@@ -17,6 +17,7 @@ class ProductService
 
     public function create(array $data, ?UploadedFile $image = null, ?int $userId = null): Product
     {
+        unset($data['image']);
         $newPath = $image?->store('products', 'public');
         try {
             return DB::transaction(function () use ($data, $newPath, $userId) {
@@ -46,6 +47,7 @@ class ProductService
 
     public function update(int $productId, array $data, ?UploadedFile $image = null, ?int $userId = null): Product
     {
+        unset($data['image']);
         $newPath = $image?->store('products', 'public');
         $oldPath = null;
         try {
