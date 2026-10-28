@@ -21,8 +21,7 @@ class OrderService
 
     public function create(array $input, ?int $userId = null): Order
     {
-        $canonical = $input;
-        ksort($canonical);
+        $canonical = $this->canonicalize($input);
         $hash = hash('sha256', json_encode($canonical, JSON_THROW_ON_ERROR));
         $key = (string) $input['idempotency_key'];
 
@@ -147,6 +146,24 @@ class OrderService
 
             return $order->load(['items', 'table', 'payments']);
         }, attempts: 3);
+    }
+
+    private function canonicalize(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        if (array_is_list($value)) {
+            return array_map(fn ($item) => $this->canonicalize($item), $value);
+        }
+
+        ksort($value);
+        foreach ($value as $key => $item) {
+            $value[$key] = $this->canonicalize($item);
+        }
+
+        return $value;
     }
 
     public function transition(int $orderId, OrderStatus $next, ?string $reason = null, ?int $userId = null): Order
