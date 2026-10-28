@@ -12,9 +12,7 @@
         <span class="eyebrow">SECURE ADMIN ACCESS</span>
         <h1>ورود به پنل مدیریت</h1>
         <p>برای دسترسی به سفارش‌ها و صندوق وارد حساب مدیر شوید.</p>
-        @if ($errors->any())
-            <div class="login-error" role="alert">{{ $errors->first() }}</div>
-        @endif
+        @if ($errors->any()) <div class="login-error" role="alert">{{ $errors->first() }}</div> @endif
         <form method="POST" action="{{ route('admin.login.store') }}" class="login-form">
             @csrf
             <label for="email">ایمیل مدیر</label>
