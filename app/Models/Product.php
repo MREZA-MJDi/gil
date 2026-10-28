@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
+    protected $appends = ['image_url'];
+
     protected $fillable = [
         'category_id', 'name', 'description', 'image_path', 'base_price', 'unit',
         'status', 'sort_order', 'stock_quantity', 'low_stock_threshold',
