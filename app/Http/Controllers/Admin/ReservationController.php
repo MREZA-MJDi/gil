@@ -92,7 +92,7 @@ class ReservationController extends Controller
         return DB::transaction(function () use ($data, $reservation, $audit, $request) {
             $locked = Reservation::query()->whereKey($reservation->id)->lockForUpdate()->firstOrFail();
             $from = $locked->status;
-            $to = $data['status'];
+            $to = ReservationStatus::from($data['status']);
 
             $allowed = match ($from) {
                 ReservationStatus::Pending => [ReservationStatus::Confirmed, ReservationStatus::Cancelled],
