@@ -42,7 +42,9 @@ class PaymentService
             if ($order->status->value === 'cancelled') {
                 throw ValidationException::withMessages(['order' => 'سفارش لغوشده قابل پرداخت نیست.']);
             }
-            if ($amount > $order->remaining()) {
+            $netPaidBefore = $order->netPaid();
+            $remainingBefore = max(0, (int) $order->total - $netPaidBefore);
+            if ($amount > $remainingBefore) {
                 throw ValidationException::withMessages(['amount' => 'مبلغ پرداخت از مانده صورتحساب بیشتر است.']);
             }
 
@@ -68,7 +70,7 @@ class PaymentService
                 ]);
             }
 
-            $netPaid = $order->netPaid() + $amount;
+            $netPaid = $netPaidBefore + $amount;
             $order->forceFill(['payment_status' => $netPaid >= $order->total ? PaymentStatus::Paid : PaymentStatus::Partial])->save();
             $this->audit->record('payment.recorded', $payment, [], [
                 'order_id' => $order->id, 'amount' => $amount, 'method' => $method->value,
@@ -101,6 +103,7 @@ class PaymentService
             if ($amount < 1 || $amount > $payment->refundable()) {
                 throw ValidationException::withMessages(['amount' => 'مبلغ بازپرداخت از مبلغ قابل برگشت بیشتر است.']);
             }
+            $netPaidBefore = $order->netPaid();
 
             $shift = null;
             if ($payment->method === PaymentMethod::Cash) {
@@ -122,7 +125,7 @@ class PaymentService
                 ]);
             }
 
-            $netPaid = $order->netPaid() - $amount;
+            $netPaid = max(0, $netPaidBefore - $amount);
             $status = $netPaid <= 0 ? PaymentStatus::Refunded
                 : ($netPaid < $order->total ? PaymentStatus::PartiallyRefunded : PaymentStatus::Paid);
             $order->forceFill(['payment_status' => $status])->save();
