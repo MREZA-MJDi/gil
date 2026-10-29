@@ -5,12 +5,13 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "test:js": "node --test resources/js/dashboard/api.test.js"
+    "test:js": "node --test resources/js/dashboard/api.test.js resources/js/date-utils.test.js"
   },
   "dependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "jalaali-js": "^2.0.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",

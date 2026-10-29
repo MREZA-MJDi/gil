@@ -13,6 +13,7 @@ class StoreOrderRequest extends FormRequest
     {
         $this->merge([
             'channel' => $this->input('channel', 'dine_in'),
+            'payment_preference' => $this->input('payment_preference', 'at_counter'),
             'discount' => (int) $this->input('discount', 0),
             'idempotency_key' => trim((string) $this->header('Idempotency-Key', $this->input('idempotency_key'))),
         ]);
@@ -22,6 +23,7 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             'channel' => ['required', Rule::in(['dine_in', 'takeaway', 'online', 'counter'])],
+            'payment_preference' => ['required', Rule::in(['cash', 'card_terminal', 'at_counter'])],
             'restaurant_table_id' => ['nullable', 'integer', 'exists:restaurant_tables,id'],
             'items' => ['required', 'array', 'min:1', 'max:50'],
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
