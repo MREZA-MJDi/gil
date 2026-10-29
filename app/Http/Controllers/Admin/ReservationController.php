@@ -179,4 +179,5 @@ class ReservationController extends Controller
 
             return response()->json(['data' => $locked->load('table:id,name')]);
         }, attempts: 3);
-    }}
+    }
+}
