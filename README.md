@@ -1,59 +1,78 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# خانه گیلاسی - پنل عملیات کافه و رستوران
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+سامانه Laravel + React برای مدیریت منو، سفارش‌ها، پرداخت و صندوق، موجودی، میز و QR، رزروها، هزینه‌ها، بازخورد و گزارش‌های عملیاتی. تجربه عمومی سایت فارسی و راست‌چین است. تقویم ورودی رزرو و گزارش‌ها شمسی نمایش داده می‌شود و تاریخ استاندارد برای backend ارسال می‌شود.
 
-## About Laravel
+## نیازمندی‌ها
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2+ و Composer
+- Node.js 22+ و npm
+- SQLite برای راه‌اندازی ساده؛ دیتابیس‌های دیگر بر اساس تنظیم محیط قابل پیکربندی‌اند.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## راه‌اندازی محلی
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+    cp .env.example .env
+    composer install
+    npm ci
+    php artisan key:generate
+    mkdir -p database
+    touch database/database.sqlite
 
-## Learning Laravel
+در فایل .env شماره موبایل و رمز مدیر را تنظیم کن:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+    APP_NAME="خانه گیلاسی"
+    APP_ENV=local
+    APP_DEBUG=true
+    APP_URL=http://localhost:8086
+    APP_TIMEZONE=Asia/Tehran
+    DB_CONNECTION=sqlite
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    ADMIN_NAME="مدیر خانه گیلاسی"
+    ADMIN_PHONE=09121234567
+    ADMIN_PASSWORD="replace-with-a-unique-password-14-chars-or-more"
+    # Optional: only enable staff registration if an invitation key is required.
+    ADMIN_REGISTRATION_KEY=
 
-## Laravel Sponsors
+سپس:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+    php artisan migrate
+    php artisan db:seed
+    npm run build
+    php artisan serve --host=0.0.0.0 --port=8086
 
-### Premium Partners
+صفحه اصلی: http://localhost:8086/  
+ورود کارکنان/مدیر: http://localhost:8086/admin/login  
+ثبت‌نام با کلید دعوت: http://localhost:8086/admin/register  
+پنل پس از ورود: http://localhost:8086/admin
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Seeder و داده‌ها
 
-## Contributing
+DatabaseSeeder ابتدا مدیر پیکربندی‌شده و سپس داده‌های پایه مجموعه را ایجاد می‌کند. Seeder پایه تنظیمات، دسته‌ها، کاتالوگ شروع کار، گزینه‌های محصولات و میزهای QR را به‌صورت idempotent درج می‌کند. سفارش، دریافت، بازپرداخت، هزینه، رزرو، مشتری یا حرکت موجودی جعلی نمی‌سازد. مقادیر اولیه منو برای شروع‌اند و باید قبل از استفاده واقعی با قیمت‌ها و اطلاعات تأییدشده کسب‌وکار تطبیق داده شوند.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## واحد پول و تاریخ
 
-## Code of Conduct
+- ورود مبلغ هزارگان‌دار است.
+- واحد نمایشی تومان/ریال در تنظیمات قابل انتخاب است. تغییر برچسب، مقدار ذخیره‌شده را تبدیل نمی‌کند؛ همه مبالغ باید در یک واحد یکنواخت ثبت شوند.
+- تاریخ و زمان رزرو/گزارش به شمسی انتخاب یا نمایش داده می‌شود؛ backend مقدار استاندارد ISO/Gregorian را اعتبارسنجی و ذخیره می‌کند.
+- منطقه زمانی پیش‌فرض محیط کسب‌وکار Asia/Tehran است.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## رزرو عمومی
 
-## Security Vulnerabilities
+صفحه اصلی فرم «درخواست رزرو میز» دارد. درخواست مشتری با وضعیت pending ذخیره می‌شود و کد پیگیری نمایش داده می‌شود. تأیید در پنل نیازمند تخصیص میز فعال است؛ تداخل زمانی سمت سرور بررسی می‌شود. idempotency و rate limiting برای کاهش درخواست‌های تکراری فعال‌اند.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## تست‌ها و build
 
-## License
+    php artisan test
+    npm run test:js
+    npm run build
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+GitHub Actions این مراحل را نیز روی push و pull request اجرا می‌کند.
+
+## استقرار روی پورت 8086
+
+برای تست موقت از دستور زیر استفاده کن:
+
+    php artisan serve --host=0.0.0.0 --port=8086
+
+این سرور توسعه برای production مناسب نیست. در production از Nginx یا وب‌سرور مناسب، PHP-FPM یا سرویس مدیریت‌شده، TLS، APP_DEBUG=false، بکاپ، لاگ و restart خودکار استفاده کن؛ پورت را در firewall فقط برای مبدأهای لازم باز کن.
+
+راهنمای کامل فارسی: docs/dashboard-guide-fa.md
