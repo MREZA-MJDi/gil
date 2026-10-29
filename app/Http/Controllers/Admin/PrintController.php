@@ -8,7 +8,6 @@ use App\Models\Order;
 use App\Models\PrintLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class PrintController extends Controller
@@ -29,7 +28,7 @@ class PrintController extends Controller
     public function kitchen(Order $order): JsonResponse
     {
         $order->load(['table:id,name', 'items']);
-        return response()->json(['type' => PrintType::Kitchen->value, 'data' => $order->only(['number','channel','status','customer_note','created_at']) + ['table' => $order->table, 'items' => $order->items]);
+        return response()->json(['type' => PrintType::Kitchen->value, 'data' => $order->only(['number','channel','status','customer_note','created_at']) + ['table' => $order->table, 'items' => $order->items]]);
     }
 
     public function log(Request $request, Order $order): JsonResponse
