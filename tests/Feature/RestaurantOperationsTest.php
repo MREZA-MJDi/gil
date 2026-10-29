@@ -572,4 +572,51 @@ class RestaurantOperationsTest extends TestCase
         $this->assertSame('pending', $pending->fresh()->status->value);
     }
 
+
+    public function test_foundation_seeder_does_not_create_demo_catalogue_or_fake_transactions(): void
+    {
+        config([
+            'restaurant.name' => 'کافه واقعی تست',
+            'restaurant.phone' => '02112345678',
+            'restaurant.address' => 'نشانی ثبت‌شده',
+            'restaurant.currency_label' => 'تومان',
+            'restaurant.initial_table_names' => [],
+        ]);
+        $categoriesBefore = Category::query()->count();
+        $productsBefore = Product::query()->count();
+
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\RestaurantFoundationSeeder::class]);
+
+        $this->assertDatabaseHas('restaurant_settings', [
+            'singleton_key' => 'main',
+            'name' => 'کافه واقعی تست',
+            'phone' => '02112345678',
+        ]);
+        $this->assertSame($categoriesBefore, Category::query()->count());
+        $this->assertSame($productsBefore, Product::query()->count());
+        $this->assertDatabaseCount('restaurant_tables', 0);
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('payments', 0);
+        $this->assertDatabaseCount('refunds', 0);
+        $this->assertDatabaseCount('reservations', 0);
+        $this->assertDatabaseCount('expenses', 0);
+    }
+
+    public function test_foundation_seeder_creates_only_explicit_table_names_and_is_idempotent(): void
+    {
+        config([
+            'restaurant.name' => 'کافه میزهای تست',
+            'restaurant.initial_table_names' => ['میز سالن', 'میز تراس', 'میز سالن'],
+        ]);
+
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\RestaurantFoundationSeeder::class]);
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\RestaurantFoundationSeeder::class]);
+
+        $this->assertDatabaseCount('restaurant_tables', 2);
+        $this->assertDatabaseHas('restaurant_tables', ['name' => 'میز سالن', 'is_active' => true]);
+        $this->assertDatabaseHas('restaurant_tables', ['name' => 'میز تراس', 'is_active' => true]);
+        $this->assertDatabaseCount('products', 1);
+        $this->assertDatabaseCount('categories', 1);
+    }
+
 }

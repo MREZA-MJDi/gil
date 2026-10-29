@@ -6,7 +6,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-and-test:
@@ -30,20 +30,6 @@ jobs:
 
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist
-
-      - name: Resolve package lock
-        run: npm install --package-lock-only --ignore-scripts
-
-      - name: Commit package lock changes on branch pushes
-        if: github.event_name == 'push'
-        run: |
-          git add package-lock.json
-          if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "build: sync npm lockfile"
-            git push origin "HEAD:$GITHUB_REF_NAME"
-          fi
 
       - name: Install JavaScript dependencies
         run: npm ci
