@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::table('orders', function (Blueprint $table) {
             $table->string('source', 24)->default('staff')->after('channel');
+            $table->string('payment_preference', 24)->default('at_counter')->after('channel');
             $table->string('external_provider', 32)->nullable()->after('source');
             $table->string('external_order_id', 120)->nullable()->after('external_provider');
             $table->unique(['external_provider', 'external_order_id'], 'orders_external_provider_order_unique');
@@ -80,7 +81,7 @@ return new class extends Migration {
         });
         Schema::table('orders', function (Blueprint $table) {
             $table->dropUnique('orders_external_provider_order_unique');
-            $table->dropColumn(['source', 'external_provider', 'external_order_id']);
+            $table->dropColumn(['source', 'external_provider', 'external_order_id', 'payment_preference']);
         });
     }
 };

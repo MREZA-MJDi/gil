@@ -24,6 +24,7 @@ class PublicOrderController extends Controller
             'customer_name' => ['required', 'string', 'max:150'],
             'customer_phone' => ['required', 'string', 'max:30'],
             'customer_note' => ['nullable', 'string', 'max:2000'],
+            'payment_preference' => ['sometimes', 'string', 'in:cash,card_terminal,at_counter'],
             'idempotency_key' => ['required', 'string', 'min:16', 'max:64', 'regex:/^[A-Za-z0-9._:-]+$/'],
         ]);
 

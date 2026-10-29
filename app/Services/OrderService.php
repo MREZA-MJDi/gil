@@ -130,6 +130,7 @@ class OrderService
                 'number' => 'KG-'.now()->format('ymd').'-'.Str::upper(Str::random(6)),
                 'restaurant_table_id' => $table?->id,
                 'channel' => $input['channel'],
+                'payment_preference' => $input['payment_preference'] ?? 'at_counter',
                 'source' => $input['source'] ?? 'staff',
                 'external_provider' => $input['external_provider'] ?? null,
                 'external_order_id' => $input['external_order_id'] ?? null,
