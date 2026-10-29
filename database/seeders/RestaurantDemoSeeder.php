@@ -29,6 +29,8 @@ use RuntimeException;
 
 class RestaurantDemoSeeder extends Seeder
 {
+    private int $currencyMultiplier = 1;
+
     public function run(): void
     {
         if (! app()->environment('local')) {
@@ -41,15 +43,13 @@ class RestaurantDemoSeeder extends Seeder
         }
 
         $settings = RestaurantSetting::current();
-        if ($settings->currency_label === 'ریال') {
-            throw new RuntimeException('قیمت‌های نمونه بر مبنای تومان هستند. پیش از اجرای این Seeder، واحد پول را روی تومان بگذارید.');
-        }
+        $this->currencyMultiplier = $settings->currency_label === 'ریال' ? 10 : 1;
 
         $settings->forceFill([
             'name' => $settings->name ?: 'خانه گیلاسی',
             'phone' => $settings->phone ?: '021-12345678',
             'address' => $settings->address ?: 'تهران، خیابان نمونه، پلاک ۱۲',
-            'currency_label' => 'تومان',
+            'currency_label' => $settings->currency_label === 'ریال' ? 'ریال' : 'تومان',
             'tax_basis_points' => 900,
             'service_basis_points' => 500,
             'receipt_footer' => 'از اینکه خانه گیلاسی را انتخاب کردید سپاسگزاریم.',
@@ -127,7 +127,7 @@ class RestaurantDemoSeeder extends Seeder
                 'calories' => $definition['calories'],
                 'preparation_time_minutes' => $definition['minutes'],
                 'image_path' => 'https://images.unsplash.com/'.$definition['image'].'?auto=format&fit=crop&w=1000&q=85',
-                'base_price' => $definition['price'],
+                'base_price' => $definition['price'] * $this->currencyMultiplier,
                 'unit' => 'عدد',
                 'status' => 'active',
                 'sort_order' => count($result) + 1,
@@ -154,7 +154,7 @@ class RestaurantDemoSeeder extends Seeder
             foreach ($optionDefinitions as $optionData) {
                 ProductOption::query()->updateOrCreate(
                     ['product_id' => $product->id, 'name' => $optionData['name']],
-                    ['type'=>$optionData['type'],'price'=>$optionData['price'],'is_active'=>true,'sort_order'=>$optionData['sort_order']],
+                    ['type'=>$optionData['type'],'price'=>$optionData['price'] * $this->currencyMultiplier,'is_active'=>true,'sort_order'=>$optionData['sort_order']],
                 );
             }
         }
@@ -210,7 +210,7 @@ class RestaurantDemoSeeder extends Seeder
                 'unit'=>$unit,
                 'stock_quantity'=>$isNew ? $stock : $ingredient->stock_quantity,
                 'low_stock_threshold'=>$ingredient->low_stock_threshold ?? max(1, (int) floor($stock * .12)),
-                'cost_per_unit'=>$cost,
+                'cost_per_unit' => $cost * $this->currencyMultiplier,
                 'is_active'=>true,
             ])->save();
             $result[$key] = $ingredient;
@@ -282,7 +282,7 @@ class RestaurantDemoSeeder extends Seeder
         $cashShiftService = app(CashShiftService::class);
         $shift = CashShift::query()->where('status', 'open')->where('open_lock', true)->first();
         if (! $shift) {
-            $shift = $cashShiftService->open(3000000, 'صندوق شروع شیفت نمونه', $manager->id);
+            $shift = $cashShiftService->open(3000000 * $this->currencyMultiplier, 'صندوق شروع شیفت نمونه', $manager->id);
         }
 
         $specs = [
@@ -330,10 +330,14 @@ class RestaurantDemoSeeder extends Seeder
             }
 
             $order = $orderService->create($input, $manager->id);
-            if (! $order->wasRecentlyCreated) continue;
+            if (! $order->wasRecentlyCreated) {
+                $this->stampDemoOrderDate($order, $index);
+                continue;
+            }
 
             if ($spec['status'] === 'cancelled') {
                 $orderService->cancel($order->id, 'لغو داده نمونه برای تست بازگشت موجودی', $manager->id);
+                $this->stampDemoOrderDate($order, $index);
                 continue;
             }
 
@@ -386,13 +390,14 @@ class RestaurantDemoSeeder extends Seeder
                     ['order_id'=>$order->id,'payment_id'=>null,'user_id'=>$manager->id,'type'=>'invoice','is_reprint'=>false,'printed_at'=>now()],
                 );
             }
+            $this->stampDemoOrderDate($order, $index);
         }
 
         foreach ([
-            ['title'=>'DEMO · خرید مواد اولیه هفتگی','category'=>'ingredients','amount'=>1850000,'is_paid'=>true,'method'=>'cash','note'=>'هزینه نمونه برای تست گزارش'],
-            ['title'=>'DEMO · بسته‌بندی بیرون‌بر','category'=>'packaging','amount'=>420000,'is_paid'=>true,'method'=>'card_terminal','note'=>'هزینه نمونه بسته‌بندی'],
-            ['title'=>'DEMO · سرویس دستگاه اسپرسو','category'=>'repairs','amount'=>950000,'is_paid'=>false,'method'=>'other','note'=>'هزینه نمونه پرداخت‌نشده'],
-            ['title'=>'DEMO · خرید سبزی و میوه','category'=>'ingredients','amount'=>680000,'is_paid'=>true,'method'=>'cash','note'=>'خرید نمونه روز'],
+            ['title'=>'DEMO · خرید مواد اولیه هفتگی','category'=>'ingredients','amount'=>1850000 * $this->currencyMultiplier,'is_paid'=>true,'method'=>'cash','note'=>'هزینه نمونه برای تست گزارش'],
+            ['title'=>'DEMO · بسته‌بندی بیرون‌بر','category'=>'packaging','amount'=>420000 * $this->currencyMultiplier,'is_paid'=>true,'method'=>'card_terminal','note'=>'هزینه نمونه بسته‌بندی'],
+            ['title'=>'DEMO · سرویس دستگاه اسپرسو','category'=>'repairs','amount'=>950000 * $this->currencyMultiplier,'is_paid'=>false,'method'=>'other','note'=>'هزینه نمونه پرداخت‌نشده'],
+            ['title'=>'DEMO · خرید سبزی و میوه','category'=>'ingredients','amount'=>680000 * $this->currencyMultiplier,'is_paid'=>true,'method'=>'cash','note'=>'خرید نمونه روز'],
         ] as $expense) {
             $expenseRecord = Expense::query()->firstOrCreate(
                 ['title'=>$expense['title']],
@@ -423,6 +428,41 @@ class RestaurantDemoSeeder extends Seeder
         }
     }
 
+
+    /**
+     * Spread demo orders over the last two weeks so Jalali date filters, sales charts,
+     * receipts and daily reports have meaningful test data. Only deterministic demo orders
+     * from the specifications above are updated.
+     */
+    private function stampDemoOrderDate(Order $order, int $index): void
+    {
+        $daysAgo = ($index * 2) % 14;
+        $demoTime = now()->subDays($daysAgo)->setTime(9 + ($index % 10), ($index * 7) % 60, 0);
+
+        DB::table('orders')->where('id', $order->id)->update([
+            'created_at' => $demoTime,
+            'updated_at' => $demoTime,
+        ]);
+        DB::table('order_status_histories')->where('order_id', $order->id)->update([
+            'created_at' => $demoTime,
+            'updated_at' => $demoTime,
+        ]);
+        DB::table('payments')->where('order_id', $order->id)->update([
+            'paid_at' => $demoTime,
+            'created_at' => $demoTime,
+            'updated_at' => $demoTime,
+        ]);
+
+        $paymentIds = DB::table('payments')->where('order_id', $order->id)->select('id');
+        DB::table('refunds')->whereIn('payment_id', $paymentIds)->update([
+            'refunded_at' => $demoTime,
+            'created_at' => $demoTime,
+            'updated_at' => $demoTime,
+        ]);
+        DB::table('print_logs')->where('order_id', $order->id)->update(['printed_at' => $demoTime]);
+        DB::table('cash_movements')->where('order_id', $order->id)->update(['occurred_at' => $demoTime]);
+    }
+
     /** @param array<int, RestaurantTable> $tables */
     private function seedReservations(User $manager, array $tables): void
     {
@@ -445,7 +485,7 @@ class RestaurantDemoSeeder extends Seeder
                     'ends_at'=>$starts->copy()->addMinutes($item['duration']),
                     'status'=>ReservationStatus::from($item['status']),'source'=>$item['source'],
                     'purpose'=>$item['purpose'],'occasion_name'=>$item['occasion'],
-                    'estimated_budget'=>$item['budget'],'notes'=>$item['notes'],
+                    'estimated_budget' => ($item['budget'] === null ? null : $item['budget'] * $this->currencyMultiplier),'notes'=>$item['notes'],
                     'idempotency_key'=>'demo-reservation-'.$index.'-'.strtolower($item['reference']),
                     'idempotency_hash'=>hash('sha256',$item['reference']),
                     'created_by'=>$item['source']==='staff' ? $manager->id : null,
