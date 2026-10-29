@@ -44,7 +44,7 @@ class RestaurantOperationsTest extends TestCase
             'status' => 'active',
             'sort_order' => 1,
             'stock_quantity' => 5,
-            'low_stock_threshold' => 1,
+            'low_stock_threshold' => 5,
         ]);
     }
 
