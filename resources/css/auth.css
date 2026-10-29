@@ -61,3 +61,45 @@
  .auth-form-heading h1{font-size:21px}.auth-links{font-size:10px}
 }
 @media(prefers-reduced-motion:reduce){.auth-submit,.auth-input{transition:none}}
+
+
+/* Full-screen restaurant photo login backdrop. Keep the form readable above it. */
+.admin-auth-body{
+    position:relative;
+    isolation:isolate;
+    background-color:#30261f;
+    background-image:linear-gradient(115deg,rgba(24,18,14,.43),rgba(28,21,16,.18) 52%,rgba(24,18,14,.42)),url('/images/login-background.webp');
+    background-position:center;
+    background-size:cover;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+}
+.auth-layout{
+    background:rgba(255,250,242,.12);
+    border-color:rgba(255,255,255,.52);
+    box-shadow:0 28px 90px rgba(24,18,13,.34);
+    backdrop-filter:blur(3px);
+}
+.auth-form-panel{
+    background:rgba(255,252,247,.94);
+    -webkit-backdrop-filter:blur(14px);
+    backdrop-filter:blur(14px);
+}
+.auth-brand-panel{
+    background:linear-gradient(145deg,rgba(42,39,34,.66),rgba(69,51,41,.57) 68%,rgba(119,70,56,.63));
+}
+@media(max-width:720px){
+    .admin-auth-body{
+        background-color:#30261f;
+        background-image:linear-gradient(180deg,rgba(24,18,14,.36),rgba(24,18,14,.15) 38%,rgba(24,18,14,.3)),url('/images/login-background.webp');
+        background-position:center;
+        background-size:cover;
+        background-repeat:no-repeat;
+        background-attachment:scroll;
+    }
+    .auth-layout{background:rgba(255,250,242,.12)}
+    .auth-brand-panel{
+        background:linear-gradient(145deg,rgba(42,39,34,.66),rgba(69,51,41,.57) 68%,rgba(119,70,56,.63));
+    }
+    .auth-form-panel{background:rgba(255,252,247,.95)}
+}
