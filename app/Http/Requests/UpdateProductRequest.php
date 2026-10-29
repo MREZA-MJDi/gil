@@ -9,6 +9,17 @@ class UpdateProductRequest extends FormRequest
 {
     public function authorize(): bool { return true; }
 
+    protected function prepareForValidation(): void
+    {
+        $options = $this->input('options');
+        if (is_string($options)) {
+            $decoded = json_decode($options, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $this->merge(['options' => $decoded]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         return [
