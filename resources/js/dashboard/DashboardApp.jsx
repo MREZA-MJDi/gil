@@ -143,7 +143,7 @@ function OrdersPage({ orders, tables, onRefresh, onDetails, onPrint, onNewOrder,
                     <td><div className="op-actions">
                         <Button onClick={() => onDetails(order.id)}>جزئیات</Button>
                         {nextStatus(order.status) && <Button kind="primary" onClick={() => onTransition(order, nextStatus(order.status))}>{nextStatusLabel(order.status)}</Button>}
-                        {!['delivered','cancelled'].includes(order.status) && order.payment_status !== 'paid' && <Button kind="danger" onClick={() => onCancel(order)}>لغو</Button>}
+                        {!['delivered','cancelled'].includes(order.status) && !['paid','partial','partially_refunded'].includes(order.payment_status) && <Button kind="danger" onClick={() => onCancel(order)}>لغو</Button>}
                         <Button onClick={() => onPrint(order.id, 'kitchen')}>فیش آشپزخانه</Button>
                     </div></td>
                 </tr>)}
