@@ -28,7 +28,7 @@ const paymentStatusLabel = {
 };
 const productStatusLabel = { active: 'فعال', inactive: 'غیرفعال', unavailable: 'ناموجود' };
 const reservationStatusLabel = { pending: 'در انتظار', confirmed: 'تأیید شده', arrived: 'مراجعه کرده', cancelled: 'لغو شده', no_show: 'عدم مراجعه' };
-const feedbackStatusLabel = { new: 'جدید', reviewing: 'در حال بررسی', resolved: 'رسیدگی‌شده', closed: 'بسته‌شده' };
+const feedbackStatusLabel = { new: 'جدید', in_progress: 'در حال بررسی', resolved: 'رسیدگی‌شده', closed: 'بسته‌شده' };
 const reservationPurposeLabel = { table: 'رزرو میز', birthday: 'تولد', consultation: 'مشاوره', private_event: 'مراسم خصوصی', catering: 'کترینگ' };
 const paymentMethodLabel = { cash: 'نقدی', card_terminal: 'کارت‌خوان (ثبت کاربر)', online: 'آنلاین', other: 'سایر' };
 const paymentPreferenceLabel = { cash: 'نقدی', card_terminal: 'کارت‌خوان', at_counter: 'در صندوق / هنگام تحویل' };
@@ -60,7 +60,7 @@ function Pill({ value, dictionary = {}, tone }) {
     const resolvedTone = tone || (
         ['delivered', 'paid', 'active', 'confirmed', 'resolved', 'arrived'].includes(value) ? 'success' :
         ['cancelled', 'refunded', 'inactive', 'unavailable', 'no_show'].includes(value) ? 'danger' :
-        ['ready', 'partial', 'partially_refunded', 'preparing', 'reviewing'].includes(value) ? 'warning' : 'neutral'
+        ['ready', 'partial', 'partially_refunded', 'preparing', 'reviewing', 'in_progress'].includes(value) ? 'warning' : 'neutral'
     );
     return <span className={'status-pill ' + resolvedTone}><i />{label}</span>;
 }
@@ -308,7 +308,7 @@ function CustomersPage({ feedback, onRespond, onRefresh }) {
                 <div className="op-feedback-head"><div><b>{item.customer_name || 'مشتری بدون نام'}</b><small>{item.phone || item.email || 'راه ارتباطی ثبت نشده'} · {dateTime(item.created_at)}</small></div><Pill value={item.status} dictionary={feedbackStatusLabel} /></div>
                 <div className="op-feedback-meta"><span>{({complaint:'شکایت',suggestion:'پیشنهاد',praise:'قدردانی'})[item.kind] || item.kind}</span>{item.rating && <span>امتیاز: {numberFa(item.rating)} از ۵</span>}{item.order?.number && <span>سفارش {item.order.number}</span>}</div>
                 <p>{item.message}</p>{item.admin_response && <blockquote>{item.admin_response}</blockquote>}
-                <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); const draft = drafts[item.id] || {}; onRespond(item, { status: draft.status || (item.status === 'new' ? 'reviewing' : item.status), admin_response: draft.response ?? item.admin_response ?? '' }); }}>
+                <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); const draft = drafts[item.id] || {}; onRespond(item, { status: draft.status || (item.status === 'new' ? 'in_progress' : item.status), admin_response: draft.response ?? item.admin_response ?? '' }); }}>
                     <Field label="وضعیت رسیدگی"><select value={(drafts[item.id]?.status) ?? item.status} onChange={e => setDrafts(v => ({...v,[item.id]:{...(v[item.id]||{}),status:e.target.value}}))}>{Object.entries(feedbackStatusLabel).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
                     <Field label="پاسخ مدیر"><input value={(drafts[item.id]?.response) ?? item.admin_response ?? ''} onChange={e => setDrafts(v => ({...v,[item.id]:{...(v[item.id]||{}),response:e.target.value}}))} maxLength="5000" placeholder="پاسخ قابل ارسال یا یادداشت رسیدگی" /></Field>
                     <div className="op-form-actions"><Button kind="primary" type="submit">ثبت پاسخ</Button></div>

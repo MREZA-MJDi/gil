@@ -458,7 +458,7 @@ class RestaurantDemoSeeder extends Seeder
     {
         $feedback = [
             ['email'=>'feedback-demo-1@example.test','name'=>'نیلوفر احمدی','phone'=>'09121110001','kind'=>'praise','rating'=>5,'message'=>'لاته خیلی خوش‌طعم بود و سفارش QR بدون معطلی ثبت شد.','status'=>'resolved','response'=>'از اینکه تجربه‌ات را به اشتراک گذاشتی ممنونیم.'],
-            ['email'=>'feedback-demo-2@example.test','name'=>'آرمان شجاعی','phone'=>'09121110002','kind'=>'suggestion','rating'=>4,'message'=>'اگر گزینه شیر گیاهی در منو پررنگ‌تر نمایش داده شود عالی می‌شود.','status'=>'reviewing','response'=>null],
+            ['email'=>'feedback-demo-2@example.test','name'=>'آرمان شجاعی','phone'=>'09121110002','kind'=>'suggestion','rating'=>4,'message'=>'اگر گزینه شیر گیاهی در منو پررنگ‌تر نمایش داده شود عالی می‌شود.','status'=>'in_progress','response'=>null],
             ['email'=>'feedback-demo-3@example.test','name'=>'مشتری نمونه','phone'=>'09121110003','kind'=>'complaint','rating'=>2,'message'=>'سفارش بیرون‌بر کمی دیر آماده شد؛ لطفاً زمان تقریبی را به‌روز کنید.','status'=>'new','response'=>null],
         ];
         foreach ($feedback as $item) {
