@@ -274,6 +274,12 @@ class RestaurantOperationsTest extends TestCase
         $this->getJson('/admin/api/orders/'.$orderId.'/invoice')->assertOk()->assertJsonPath('type', 'invoice');
         $this->getJson('/admin/api/orders/'.$orderId.'/kitchen-slip')->assertOk()->assertJsonPath('type', 'kitchen');
         $this->getJson('/admin/api/orders/'.$orderId.'/receipt')->assertUnprocessable();
+
+        $firstPrint = $this->postJson('/admin/api/orders/'.$orderId.'/print-log', ['type' => 'invoice'])
+            ->assertCreated()->assertJsonPath('data.is_reprint', false);
+        $secondPrint = $this->postJson('/admin/api/orders/'.$orderId.'/print-log', ['type' => 'invoice'])
+            ->assertCreated()->assertJsonPath('data.is_reprint', true);
+        $this->assertSame($firstPrint->json('data.document_number'), $secondPrint->json('data.document_number'));
     }
 
     public function test_reservation_creation_is_idempotent_and_prevents_table_overlap(): void
