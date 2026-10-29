@@ -6,6 +6,7 @@ use App\Enums\ProductStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
@@ -40,6 +41,12 @@ class Product extends Model
     public function options(): HasMany
     {
         return $this->hasMany(ProductOption::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function recipeIngredients(): BelongsToMany
+    {
+        return $this->belongsToMany(Ingredient::class, 'product_recipe_ingredients')
+            ->withPivot('quantity')->withTimestamps();
     }
 
     public function orderItems(): HasMany
