@@ -40,8 +40,19 @@ class MenuController extends Controller
                 ->orderBy('sort_order')->orderBy('name'),
         ])->get();
 
+        $settings = RestaurantSetting::current();
+
         return response()->json(['data' => [
             'table' => ['id' => $table->id, 'name' => $table->name],
+            'settings' => [
+                'name' => $settings->name,
+                'phone' => $settings->phone,
+                'address' => $settings->address,
+                'logo_url' => $settings->logo_path ? asset('storage/'.$settings->logo_path) : null,
+                'currency_label' => $settings->currency_label,
+                'tax_basis_points' => $settings->tax_basis_points,
+                'service_basis_points' => $settings->service_basis_points,
+            ],
             'categories' => $categories,
         ]]);
     }
