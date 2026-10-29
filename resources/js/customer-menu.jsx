@@ -17,7 +17,6 @@ function CustomerMenu() {
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
     const [paymentPreference, setPaymentPreference] = useState('at_counter');
-    const [paymentPreference, setPaymentPreference] = useState('at_counter');
     const [idempotencyKey, setIdempotencyKey] = useState('');
     const [submissionUncertain, setSubmissionUncertain] = useState(false);
 
@@ -228,14 +227,6 @@ function CustomerMenu() {
             })}
             <label>نام (اختیاری)<input disabled={busy || submissionUncertain} value={customerName} onChange={e => setCustomerName(e.target.value)} maxLength={150} /></label>
             <label>شماره تماس (اختیاری)<input disabled={busy || submissionUncertain} value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} maxLength={30} inputMode="tel" /></label>
-            <label className="customer-payment-preference">روش پرداخت موردنظر
-                <select value={paymentPreference} disabled={busy || submissionUncertain} onChange={event => setPaymentPreference(event.target.value)}>
-                    <option value="at_counter">پرداخت در صندوق / هنگام تحویل</option>
-                    <option value="cash">نقدی</option>
-                    <option value="card_terminal">کارت‌خوان</option>
-                </select>
-                <small>این فقط روش ترجیحی است؛ تا ثبت پرداخت توسط کارکنان، سفارش تسویه‌نشده می‌ماند.</small>
-            </label>
             <fieldset className="customer-payment-preference">
                 <legend>روش پرداخت دلخواه</legend>
                 <label><input type="radio" name="payment-preference" value="at_counter" checked={paymentPreference==='at_counter'} disabled={busy || submissionUncertain} onChange={() => setPaymentPreference('at_counter')} /><span><b>پرداخت هنگام تحویل / در صندوق</b><small>اگر هنوز تصمیم نگرفته‌ای این گزینه مناسب است.</small></span></label>
