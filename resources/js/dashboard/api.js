@@ -36,6 +36,10 @@ export async function api(path, options = {}) {
         throw new Error('ارتباط با سرور برقرار نشد. اتصال شبکه را بررسی و دوباره تلاش کن.');
     }
 
+    if (response.redirected) {
+        throw new Error('نشست ورود منقضی شده است. صفحه را تازه‌سازی و دوباره وارد شو.');
+    }
+
     let payload = null;
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
