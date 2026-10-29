@@ -443,7 +443,7 @@ class RestaurantDemoSeeder extends Seeder
             'created_at' => $demoTime,
             'updated_at' => $demoTime,
         ]);
-        DB::table('order_status_histories')->where('order_id', $order->id)->update([
+        DB::table('order_status_history')->where('order_id', $order->id)->update([
             'created_at' => $demoTime,
             'updated_at' => $demoTime,
         ]);

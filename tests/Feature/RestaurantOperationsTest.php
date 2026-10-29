@@ -69,7 +69,7 @@ class RestaurantOperationsTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('ماندگار')
+            ->assertSee('طعم خوب')
             ->assertSee('لاته تست')
             ->assertSee('ورود کارکنان');
 
