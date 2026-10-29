@@ -85,46 +85,127 @@ function Modal({ title, eyebrow, onClose, children, wide = false }) {
 }
 function Errors({ message }) { return message ? <div className="op-alert" role="alert"><b>عملیات انجام نشد</b><span>{message}</span></div> : null; }
 
-function OverviewPage({ dashboard, orders = [], onNavigate, onNewOrder, loading }) {
+function OverviewSkeleton() {
+    return <div className="page-content overview-page" aria-label="بارگذاری داشبورد">
+        <section className="overview-hero overview-skeleton-hero">
+            <div className="overview-skeleton-line short" />
+            <div className="overview-skeleton-line title" />
+            <div className="overview-skeleton-line wide" />
+            <div className="overview-skeleton-actions"><i /><i /></div>
+        </section>
+        <div className="overview-section-heading"><div><div className="overview-skeleton-line short" /><div className="overview-skeleton-line medium" /></div></div>
+        <section className="overview-kpi-grid">
+            {[0,1,2,3].map(key=><div className="overview-kpi-card overview-skeleton-card" key={key}><i /><div><span /><b /><small /></div></div>)}
+        </section>
+        <div className="overview-section-heading"><div><div className="overview-skeleton-line short" /><div className="overview-skeleton-line medium" /></div></div>
+        <section className="overview-alert-grid">
+            {[0,1,2].map(key=><div className="overview-alert-card overview-skeleton-card" key={key}><i /><div><span /><b /><small /></div></div>)}
+        </section>
+        <section className="overview-main-grid">
+            <div className="panel overview-skeleton-panel"><div className="overview-skeleton-line medium" /><div className="overview-skeleton-line wide" /><div className="overview-skeleton-line wide" /><div className="overview-skeleton-line wide" /></div>
+            <div className="panel overview-skeleton-panel"><div className="overview-skeleton-line medium" /><div className="overview-skeleton-line wide" /><div className="overview-skeleton-line wide" /><div className="overview-skeleton-line wide" /></div>
+        </section>
+    </div>;
+}
+
+function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
     const recent = dashboard?.recent_orders || [];
+    const lowStock = Number(dashboard?.low_stock_count || 0);
+    const reservationsCount = Number(dashboard?.today_reservations_count || 0);
+    const readyOrders = Number(dashboard?.orders_by_status?.ready || 0);
+    const openInvoices = Number(dashboard?.open_invoice_amount || 0);
+    const cashShiftOpen = Boolean(dashboard?.active_cash_shift);
+
     const cards = [
-        ['فروش ثبت‌شده امروز', money(dashboard?.registered_sales), 'سفارش‌های لغونشده؛ قبل از تخفیف/مرجوعی فروش خالص نیست', '↗', 'coral'],
-        ['دریافتی خالص امروز', money(dashboard?.collections_net), 'دریافتی منهای مبالغ بازپرداخت‌شده امروز', '◈', 'green'],
-        ['تعداد سفارش‌های امروز', numberFa(dashboard?.orders_count), 'شامل سفارش‌های لغوشده', '▤', 'purple'],
-        ['مانده صورت‌حساب‌ها', money(dashboard?.open_invoice_amount), 'سفارش‌های تسویه‌نشده', '◷', 'amber'],
+        { label: 'فروش ثبت‌شده', value: money(dashboard?.registered_sales), hint: 'مجموع سفارش‌های غیرلغوشده', icon: '↗', tone: 'coral', destination: 'reports', action: 'مشاهده گزارش فروش' },
+        { label: 'دریافتی خالص', value: money(dashboard?.collections_net), hint: 'پس از کسر بازپرداخت‌ها', icon: '◈', tone: 'green', destination: 'cashier', action: 'رفتن به صندوق' },
+        { label: 'سفارش‌های امروز', value: numberFa(dashboard?.orders_count), hint: 'همه وضعیت‌ها، شامل لغوشده', icon: '▤', tone: 'purple', destination: 'orders', action: 'پیگیری سفارش‌ها' },
+        { label: 'مانده صورت‌حساب', value: money(dashboard?.open_invoice_amount), hint: 'سفارش‌های تسویه‌نشده', icon: '◷', tone: 'amber', destination: 'orders', action: 'بررسی مانده‌ها' },
     ];
-    return <div className="page-content">
-        <PageHeader title="نمای کلی عملیات" subtitle="وضعیت واقعی صندوق، سفارش‌ها و موجودی؛ از API و دیتابیس مجموعه." action="＋ سفارش جدید" onAction={onNewOrder} />
-        {loading && <Loading />}
-        <section className="stats-grid">
-            {cards.map(([label, value, sub, icon, tone]) => <article className="stat-card" key={label}>
-                <div className="stat-top"><span className={'stat-icon ' + tone}><Icon>{icon}</Icon></span><span className="stat-trend">زنده</span></div>
-                <div className="stat-label">{label}</div><div className="stat-value">{value ?? '—'}</div><div className="stat-sub">{sub}</div>
-            </article>)}
-        </section>
-        <div className="op-summary-strip">
-            <div><span className="live-dot" /><b>{dashboard?.active_cash_shift ? 'شیفت صندوق باز است' : 'شیفت صندوق بسته است'}</b><small>{dashboard?.active_cash_shift ? ('شروع: ' + dateTime(dashboard.active_cash_shift.opened_at)) : 'برای ثبت نقدی، ابتدا شیفت را باز کن.'}</small></div>
-            <div><b>{numberFa(dashboard?.low_stock_count)} محصول کم‌موجودی</b><small>بر اساس آستانه تعریف‌شده هر محصول</small><Button onClick={() => onNavigate('inventory')}>بررسی انبار ←</Button></div>
-            <div><b>{numberFa(dashboard?.today_reservations_count)} رزرو امروز</b><small>رزروهای در انتظار یا تأییدشده</small><Button onClick={() => onNavigate('reservations')}>مدیریت رزرو ←</Button></div>
+
+    const alerts = [
+        !cashShiftOpen ? { tone: 'warning', icon: '◷', label: 'نیاز به اقدام', title: 'شیفت صندوق بسته است', detail: 'برای ثبت دریافت و پرداخت نقدی، شیفت صندوق را باز کن.', action: 'مدیریت صندوق', page: 'cashier', rank: 1 } : null,
+        lowStock > 0 ? { tone: 'danger', icon: '!', label: 'موجودی', title: lowStock + ' محصول کم‌موجودی', detail: 'محصول‌های رسیده به آستانه هشدار را بررسی و رسید خرید را ثبت کن.', action: 'بررسی انبار', page: 'inventory', rank: 2 } : null,
+        openInvoices > 0 ? { tone: 'warning', icon: '↗', label: 'پیگیری مالی', title: 'صورت‌حساب باز داری', detail: 'مانده‌های پرداخت‌نشده را بررسی کن؛ فروش با دریافتی یکی نیست.', action: 'مشاهده سفارش‌ها', page: 'orders', rank: 3 } : null,
+        reservationsCount > 0 ? { tone: 'info', icon: '◷', label: 'مهمان‌ها', title: reservationsCount + ' رزرو برای امروز', detail: 'زمان رزروها و تخصیص میزها را پیش از مراجعه بررسی کن.', action: 'مدیریت رزروها', page: 'reservations', rank: 4 } : null,
+        readyOrders > 0 ? { tone: 'success', icon: '✓', label: 'آماده تحویل', title: readyOrders + ' سفارش آماده تحویل', detail: 'سفارش‌های آماده را بررسی کن تا تحویل معطل نماند.', action: 'رفتن به سفارش‌ها', page: 'orders', rank: 5 } : null,
+    ].filter(Boolean).sort((a,b)=>a.rank-b.rank).slice(0,4);
+
+    const quickLinks = [
+        { title: 'ثبت سفارش جدید', description: 'ثبت آیتم‌ها، تخفیف و میز', icon: '＋', tone: 'coral', run: onNewOrder },
+        { title: 'صندوق و پرداخت', description: 'دریافت وجه، فیش و بازپرداخت', icon: '◈', tone: 'green', run: ()=>onNavigate('cashier') },
+        { title: 'منو و قیمت‌ها', description: 'مدیریت دسته‌ها و محصولات', icon: '▦', tone: 'amber', run: ()=>onNavigate('menu') },
+        { title: 'انبار و موجودی', description: 'گردش موجودی و اصلاح شمارش', icon: '▧', tone: 'purple', run: ()=>onNavigate('inventory') },
+    ];
+
+    return <div className="page-content overview-page">
+        <header className="overview-hero">
+            <div className="overview-hero-copy">
+                <div className="overview-eyebrow"><span className="overview-live-dot" /> خانه گیلاسی <span>/</span> مرکز عملیات</div>
+                <h1>سلام، آماده‌ی یک روز منظم؟</h1>
+                <p>تصویر روشن صندوق، سفارش‌ها و مواردی که امروز نیاز به توجه دارند.</p>
+                <div className="overview-hero-meta">
+                    <span><i>◷</i>{new Intl.DateTimeFormat('fa-IR-u-ca-persian',{weekday:'long',day:'numeric',month:'long',timeZone:'Asia/Tehran'}).format(new Date())}</span>
+                    <span><i>✓</i> شاخص‌ها بر اساس اطلاعات ثبت‌شده در سامانه</span>
+                </div>
+            </div>
+            <div className="overview-hero-actions">
+                <Button kind="primary" onClick={onNewOrder}>＋ ثبت سفارش</Button>
+                <Button onClick={()=>onNavigate('orders')}>مشاهده سفارش‌ها <span aria-hidden="true">←</span></Button>
+            </div>
+            <div className="overview-hero-orb" aria-hidden="true" />
+        </header>
+
+        <div className="overview-section-heading">
+            <div><span className="overview-section-kicker">01 / عملکرد</span><h2>شاخص‌های کلیدی امروز</h2><p>هر کارت مسیر مستقیم به صفحه‌ی مرتبط دارد.</p></div>
+            <span className="overview-data-note"><i /> متصل به دیتابیس</span>
         </div>
-        <section className="panel orders-panel">
-            <div className="panel-heading"><div><h2>آخرین سفارش‌ها</h2><p>وضعیت آماده‌سازی و پرداخت را از همین‌جا پیگیری کن.</p></div><Button onClick={() => onNavigate('orders')}>همه سفارش‌ها ←</Button></div>
-            {recent.length ? <TableWrap><thead><tr><th>شماره</th><th>کانال</th><th>مبلغ</th><th>آماده‌سازی</th><th>پرداخت</th><th>ثبت‌شده</th><th>جزئیات</th></tr></thead><tbody>
-                {recent.slice(0, 8).map(order => <tr key={order.id}><td className="mono">{order.number}</td><td>{channelLabel(order)}</td><td>{money(order.total)}</td><td><Pill value={order.status} dictionary={orderStatusLabel} /></td><td><Pill value={order.payment_status} dictionary={paymentStatusLabel} /></td><td>{dateTime(order.created_at)}</td><td><Button onClick={() => onNavigate('orders')}>بازکردن</Button></td></tr>)}
-            </tbody></TableWrap> : <Empty>هنوز سفارشی ثبت نشده است.</Empty>}
+        <section className="overview-kpi-grid" aria-label="شاخص‌های کلیدی امروز">
+            {cards.map((card,index)=><button type="button" className={'overview-kpi-card tone-'+card.tone} key={card.label} onClick={()=>onNavigate(card.destination)} aria-label={card.action}>
+                <span className="overview-kpi-top"><span className="overview-kpi-icon">{card.icon}</span><span className="overview-kpi-index">{String(index+1).padStart(2,'0')}</span></span>
+                <span className="overview-kpi-label">{card.label}</span>
+                <strong className="overview-kpi-value">{card.value ?? '—'}</strong>
+                <span className="overview-kpi-bottom"><small>{card.hint}</small><span className="overview-kpi-arrow" aria-hidden="true">↗</span></span>
+            </button>)}
         </section>
-        <section className="bottom-grid">
-            <article className="panel quick-panel"><div className="panel-heading"><div><h2>دسترسی سریع</h2><p>جریان‌های پرتکرار روزانه</p></div></div><div className="quick-grid">
-                <button onClick={onNewOrder}><span className="quick-icon qi-red">＋</span><span><b>ثبت سفارش</b><small>محصول، گزینه، میز و تخفیف</small></span><em>←</em></button>
-                <button onClick={() => onNavigate('cashier')}><span className="quick-icon qi-green">◈</span><span><b>صندوق و فیش</b><small>دریافت، بازپرداخت و چاپ</small></span><em>←</em></button>
-                <button onClick={() => onNavigate('menu')}><span className="quick-icon qi-amber">▦</span><span><b>منو و قیمت</b><small>محصول، دسته و وضعیت فروش</small></span><em>←</em></button>
-                <button onClick={() => onNavigate('inventory')}><span className="quick-icon qi-purple">▧</span><span><b>موجودی</b><small>ورود، خروج و گردش انبار</small></span><em>←</em></button>
-            </div></article>
-            <article className="panel attention-panel"><div className="panel-heading"><div><h2>مهم برای مدیر</h2><p>عددها از سامانه خوانده می‌شوند، نه داده نمونه.</p></div></div>
-                <div className="attention-item"><span className="attention-icon amber-bg">◷</span><span><b>دریافتی و فروش متفاوت‌اند</b><small>گزارش مالی این دو را جدا نگه می‌دارد.</small></span><Button onClick={() => onNavigate('reports')}>گزارش</Button></div>
-                <div className="attention-item"><span className="attention-icon red-bg">!</span><span><b>سفارش آماده تحویل</b><small>{numberFa(dashboard?.orders_by_status?.ready || 0)} مورد با این وضعیت</small></span><Button onClick={() => onNavigate('orders')}>سفارش‌ها</Button></div>
-                <div className="attention-item"><span className="attention-icon green-bg">✓</span><span><b>تاریخچه چاپ و عملیات</b><small>اقدام کاربر در دفتر رویداد ثبت می‌شود.</small></span><Button onClick={() => onNavigate('settings')}>تنظیمات</Button></div>
+
+        <div className="overview-section-heading overview-alert-heading">
+            <div><span className="overview-section-kicker">02 / اولویت‌های روز</span><h2>نیاز به پیگیری</h2><p>هشدارها فقط وقتی نمایش داده می‌شوند که اقدامی واقعاً لازم باشد.</p></div>
+            <span className={'overview-alert-count '+(alerts.length ? 'has-alerts' : '')}>{numberFa(alerts.length)} مورد</span>
+        </div>
+        <section className="overview-alert-grid" aria-label="هشدارها و کارهای نیازمند پیگیری">
+            {alerts.length ? alerts.map((item,index)=><button type="button" className={'overview-alert-card alert-'+item.tone} key={item.title} onClick={()=>onNavigate(item.page)}>
+                <span className="overview-alert-icon">{item.icon}</span>
+                <span className="overview-alert-content"><small>{item.label}</small><strong>{item.title}</strong><span>{item.detail}</span><b>{item.action} <i aria-hidden="true">←</i></b></span>
+                <span className="overview-alert-index">{numberFa(index+1)}</span>
+            </button>) : <button type="button" className="overview-clear-card" onClick={()=>onNavigate('reports')}>
+                <span className="overview-clear-icon">✓</span><span><strong>فعلاً مورد فوری ثبت نشده</strong><small>وضعیت‌ها پایش می‌شوند؛ گزارش‌های روز را هم می‌توانی بررسی کنی.</small></span><b>مشاهده گزارش <i aria-hidden="true">←</i></b>
+            </button>}
+        </section>
+
+        <section className="overview-main-grid">
+            <article className="panel overview-orders-panel">
+                <div className="overview-panel-heading"><div><span className="overview-section-kicker">تازه‌ترین فعالیت</span><h2>آخرین سفارش‌ها</h2><p>برای دیدن جزئیات هر سفارش، روی ردیف آن بزن.</p></div><Button onClick={()=>onNavigate('orders')}>همه سفارش‌ها <span aria-hidden="true">←</span></Button></div>
+                {recent.length ? <TableWrap><thead><tr><th>شماره</th><th>کانال / میز</th><th>مبلغ</th><th>آماده‌سازی</th><th>پرداخت</th><th>زمان ثبت</th><th><span className="sr-only">بازکردن</span></th></tr></thead><tbody>
+                    {recent.slice(0,6).map(order=><tr key={order.id} className="overview-order-row" role="button" tabIndex={0} aria-label={'جزئیات سفارش '+(order.number || order.id)} onClick={()=>onOrderOpen(order.id)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onOrderOpen(order.id);}}}>
+                        <td className="mono">{order.number || ('#'+order.id)}</td><td>{channelLabel(order)}</td><td className="amount-cell">{money(order.total)}</td><td><Pill value={order.status} dictionary={orderStatusLabel} /></td><td><Pill value={order.payment_status} dictionary={paymentStatusLabel} /></td><td>{dateTime(order.created_at)}</td><td><span className="overview-row-arrow" aria-hidden="true">↙</span></td>
+                    </tr>)}
+                </tbody></TableWrap> : <button type="button" className="overview-empty-orders" onClick={onNewOrder}><span>＋</span><strong>هنوز سفارشی ثبت نشده</strong><small>اولین سفارش را ثبت کن تا فعالیت امروز اینجا دیده شود.</small><b>ثبت سفارش <i aria-hidden="true">←</i></b></button>}
             </article>
+
+            <aside className="panel overview-side-panel">
+                <div className="overview-panel-heading"><div><span className="overview-section-kicker">مرکز دسترسی</span><h2>کارهای پرتکرار</h2><p>با یک انتخاب به بخش موردنظر برو.</p></div></div>
+                <div className="overview-quick-links">
+                    {quickLinks.map(link=><button type="button" className="overview-quick-link" key={link.title} onClick={link.run}>
+                        <span className={'overview-quick-icon tone-'+link.tone}>{link.icon}</span><span className="overview-quick-copy"><strong>{link.title}</strong><small>{link.description}</small></span><span className="overview-quick-arrow" aria-hidden="true">↙</span>
+                    </button>)}
+                </div>
+                <button type="button" className="overview-cash-status" onClick={()=>onNavigate('cashier')}>
+                    <span className={'overview-cash-status-icon '+(cashShiftOpen?'is-open':'is-closed')}>{cashShiftOpen?'✓':'!'}</span>
+                    <span><strong>{cashShiftOpen?'شیفت صندوق باز است':'شیفت صندوق بسته است'}</strong><small>{cashShiftOpen?('شروع: '+dateTime(dashboard?.active_cash_shift?.opened_at)):'برای عملیات نقدی، شیفت را باز کن.'}</small></span>
+                    <span aria-hidden="true">←</span>
+                </button>
+            </aside>
         </section>
     </div>;
 }
@@ -202,19 +283,20 @@ function CashierPage({ cashShift, orders, onRefresh, onOpenShift, onCloseShift, 
     </div>;
 }
 
-function MenuPage({ products, categories, onRefresh, onProduct, onProductStatus, onCategory }) {
+function MenuPage({ products, categories, onRefresh, onProduct, onProductStatus, onProductDelete, onCategory, onCategoryDelete }) {
     const [query, setQuery] = useState('');
     const [category, setCategory] = useState('all');
     const filtered = (products || []).filter(p => (category === 'all' || String(p.category_id) === category) && (String(p.name || '').toLowerCase().includes(query.toLowerCase()) || String(p.category?.name || '').toLowerCase().includes(query.toLowerCase())));
     return <div className="page-content">
         <PageHeader title="منو و محصولات" subtitle="قیمت، دسته، گزینه‌های محصول و وضعیت قابل سفارش بودن؛ تغییرها در دیتابیس ثبت می‌شوند." action="＋ محصول جدید" onAction={() => onProduct(null)} />
         <div className="op-toolbar"><input value={query} onChange={e => setQuery(e.target.value)} placeholder="جست‌وجوی نام محصول…" /><select value={category} onChange={e => setCategory(e.target.value)}><option value="all">همه دسته‌ها</option>{(categories || []).map(c => <option key={c.id} value={String(c.id)}>{c.name}</option>)}</select><Button onClick={() => onCategory(null)}>＋ دسته‌بندی</Button><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
+        {(categories || []).length > 0 && <section className="panel op-card"><div className="panel-heading"><div><h2>مدیریت دسته‌بندی‌ها</h2><p>نام و ترتیب دسته‌ها را تغییر بده؛ حذف دسته دارای محصول مجاز نیست.</p></div></div><div className="op-actions">{categories.map(c => <span className="op-category-manager-item" key={c.id}><b>{c.name}</b><Button onClick={() => onCategory(c)}>ویرایش</Button><Button kind="danger" onClick={() => onCategoryDelete(c)}>حذف</Button></span>)}</div></section>}
         {filtered.length ? <div className="op-product-grid">{filtered.map(product => <article className="op-product-card" key={product.id}>
             {product.image_url ? <img src={product.image_url} alt="" /> : <div className="op-product-placeholder">☕</div>}
             <div className="op-product-body"><div className="op-product-top"><span>{product.category?.name || 'بدون دسته'}</span><Pill value={product.status} dictionary={productStatusLabel} /></div>
                 <h3>{product.name}</h3><b className="op-product-price">{money(product.base_price)}</b>
                 <div className="op-product-meta"><span>شناسه: {numberFa(product.id)}</span><span>{product.stock_quantity === null ? 'بدون رهگیری موجودی' : ('موجودی: ' + numberFa(product.stock_quantity))}</span></div>
-                <div className="op-actions"><Button onClick={() => onProduct(product)}>ویرایش</Button><Button onClick={() => onProductStatus(product, product.status === 'active' ? 'unavailable' : 'active')}>{product.status === 'active' ? 'ناموجود کردن' : 'فعال‌سازی'}</Button></div>
+                <div className="op-actions"><Button onClick={() => onProduct(product)}>ویرایش</Button><Button onClick={() => onProductStatus(product, product.status === 'active' ? 'unavailable' : 'active')}>{product.status === 'active' ? 'ناموجود کردن' : 'فعال‌سازی'}</Button><Button kind="danger" onClick={() => onProductDelete(product)}>حذف</Button></div>
             </div>
         </article>)}</div> : <Empty>محصولی پیدا نشد. یک محصول جدید بساز یا فیلتر را عوض کن.</Empty>}
     </div>;
@@ -236,7 +318,7 @@ function InventoryPage({ products, movements, onRefresh, onAdjust }) {
     </div>;
 }
 
-function TablesPage({ tables, onCreate, onUpdate, onRotate, onShowQr, onRefresh }) {
+function TablesPage({ tables, onCreate, onUpdate, onEdit, onDelete, onRotate, onShowQr, onRefresh }) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     return <div className="page-content">
@@ -253,10 +335,10 @@ function TablesPage({ tables, onCreate, onUpdate, onRotate, onShowQr, onRefresh 
             <div className="op-table-head"><div className="op-table-symbol">⌂</div><div><h3>{table.name}</h3><small>{table.description || 'میز سالن'}</small></div><Pill value={table.is_active ? 'active' : 'inactive'} dictionary={{active:'فعال',inactive:'غیرفعال'}} /></div>
             <div className="op-table-state"><b>{numberFa(table.open_orders_count || 0)}</b><span>سفارش باز</span></div>
             <a className="op-link" href={table.menu_url} target="_blank" rel="noreferrer">{table.menu_url}</a>
-            <div className="op-actions"><Button kind="primary" onClick={() => onShowQr(table)}>نمایش / چاپ QR</Button>
+            <div className="op-actions"><Button onClick={() => onEdit(table)}>ویرایش اطلاعات</Button><Button kind="primary" onClick={() => onShowQr(table)}>نمایش / چاپ QR</Button>
                 <Button onClick={() => { const url = new URL(table.menu_url, window.location.origin).href; if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(() => alert('لینک منوی این میز کپی شد.')).catch(() => window.prompt('لینک منو را کپی کن:', url)); else window.prompt('لینک منو را کپی کن:', url); }}>کپی لینک منو</Button>
                 <Button onClick={() => onRotate(table)}>تعویض QR</Button>
-                <Button kind={table.is_active ? 'danger' : 'primary'} onClick={() => onUpdate(table, { is_active: !table.is_active })}>{table.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}</Button>
+                <Button kind={table.is_active ? 'danger' : 'primary'} onClick={() => onUpdate(table, { is_active: !table.is_active })}>{table.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}</Button>{table.is_active && <Button kind="danger" onClick={() => onDelete(table)}>حذف / بایگانی</Button>}
             </div>
         </article>)}</div> : <Empty>هنوز میزی ایجاد نشده است.</Empty>}
         <p className="op-note">برای هر میز، تصویر QR از لینک اختصاصی آن ساخته می‌شود. تلفن مشتری باید به نشانی‌ای دسترسی داشته باشد که در APP_URL تنظیم کرده‌ای؛ آدرس localhost فقط روی خود سرور/کامپیوتر صندوق باز می‌شود.</p>
@@ -493,14 +575,29 @@ function ProductModal({ product, categories, onClose, onSave }) {
     </Modal>;
 }
 
-function CategoryModal({ onClose, onSave }) {
-    const [name,setName]=useState('');
-    const [sortOrder,setSortOrder]=useState('0');
-    return <Modal title="دسته‌بندی جدید" eyebrow="MENU CATEGORY" onClose={onClose}>
-        <form className="op-form" onSubmit={e=>{e.preventDefault();onSave({name:name.trim(),sort_order:Number(sortOrder),is_active:true});}}>
+function CategoryModal({ category, onClose, onSave }) {
+    const [name,setName]=useState(category?.name || '');
+    const [sortOrder,setSortOrder]=useState(String(category?.sort_order ?? 0));
+    const [isActive,setIsActive]=useState(category?.is_active !== false);
+    return <Modal title={category ? 'ویرایش دسته‌بندی' : 'دسته‌بندی جدید'} eyebrow="MENU CATEGORY" onClose={onClose}>
+        <form className="op-form" onSubmit={e=>{e.preventDefault();onSave({name:name.trim(),sort_order:Number(sortOrder),is_active:isActive},category);}}>
             <Field label="نام دسته"><input value={name} onChange={e=>setName(e.target.value)} maxLength="150" required /></Field>
             <Field label="ترتیب نمایش"><input type="number" min="0" value={sortOrder} onChange={e=>setSortOrder(e.target.value)} /></Field>
-            <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ایجاد دسته</Button></div>
+            <Field label="وضعیت"><select value={isActive ? '1' : '0'} onChange={e=>setIsActive(e.target.value === '1')}><option value="1">فعال</option><option value="0">غیرفعال</option></select></Field>
+            <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">{category ? 'ذخیره تغییرات' : 'ایجاد دسته'}</Button></div>
+        </form>
+    </Modal>;
+}
+
+function TableEditModal({ table, onClose, onSave }) {
+    const [name,setName]=useState(table?.name || '');
+    const [description,setDescription]=useState(table?.description || '');
+    return <Modal title="ویرایش میز" eyebrow="TABLE SETTINGS" onClose={onClose}>
+        <form className="op-form" onSubmit={e=>{e.preventDefault();onSave({name:name.trim(),description:description.trim() || null});}}>
+            <Field label="نام میز"><input value={name} onChange={e=>setName(e.target.value)} maxLength="80" required /></Field>
+            <Field label="توضیح"><input value={description} onChange={e=>setDescription(e.target.value)} maxLength="255" /></Field>
+            <p className="op-note">تغییر نام یا توضیح روی همان رکورد ذخیره می‌شود و لینک QR همین میز حفظ می‌شود.</p>
+            <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ذخیره تغییرات</Button></div>
         </form>
     </Modal>;
 }
@@ -714,8 +811,22 @@ export default function DashboardApp() {
     },'محصول و تصویر ذخیره شد.');
     const changeProductStatus=(product,status)=>action(()=>api('/products/'+product.id+'/status',{method:'PATCH',body:{status}}),'وضعیت محصول تغییر کرد.',{close:false});
     const createCategory=payload=>action(()=>api('/categories',{method:'POST',body:payload}),'دسته‌بندی ایجاد شد.');
+    const updateCategory=(category,payload)=>action(()=>api('/categories/'+category.id,{method:'PATCH',body:payload}),'دسته‌بندی به‌روزرسانی شد.');
+    const deleteCategory=category=>{
+        if(!window.confirm('دسته «'+category.name+'» حذف شود؟ اگر محصولی به آن متصل باشد، سرور حذف را رد می‌کند.')) return;
+        return action(()=>api('/categories/'+category.id,{method:'DELETE'}),'دسته‌بندی حذف شد.');
+    };
+    const deleteProduct=product=>{
+        if(!window.confirm('محصول «'+product.name+'» حذف شود؟ محصول دارای سابقه فروش یا گردش موجودی قابل حذف نیست و باید غیرفعال شود.')) return;
+        return action(()=>api('/products/'+product.id,{method:'DELETE'}),'محصول حذف شد.');
+    };
     const createTable=payload=>action(()=>api('/tables',{method:'POST',body:payload}),'میز ایجاد شد.');
     const updateTable=(table,payload)=>action(()=>api('/tables/'+table.id,{method:'PATCH',body:payload}),'میز به‌روزرسانی شد.',{close:false});
+    const editTable=(table,payload)=>action(()=>api('/tables/'+table.id,{method:'PATCH',body:payload}),'اطلاعات میز به‌روزرسانی شد.');
+    const archiveTable=table=>{
+        if(!window.confirm('میز «'+table.name+'» بایگانی و از دسترس منوی مشتری خارج شود؟ سوابق سفارش حذف نمی‌شوند.')) return;
+        return action(()=>api('/tables/'+table.id,{method:'PATCH',body:{is_active:false}}),'میز بایگانی شد؛ سوابق آن در دیتابیس باقی ماند.',{close:false});
+    };
     const rotateTable=table=>action(()=>api('/tables/'+table.id+'/rotate-qr',{method:'POST',body:{}}),'QR قبلی باطل و لینک جدید تولید شد.',{close:false});
     const adjustInventory=payload=>action(()=>api('/inventory/adjustments',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'گردش موجودی ثبت شد.');
     const createReservation=payload=>action(()=>api('/reservations',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'رزرو ثبت شد.');
@@ -733,12 +844,12 @@ export default function DashboardApp() {
     };
 
     const renderPage=()=>{
-        if(page==='overview') return <OverviewPage dashboard={data.dashboard} onNavigate={navigate} onNewOrder={newOrder} loading={loading} />;
+        if(page==='overview') return data.dashboard ? <OverviewPage dashboard={data.dashboard} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} /> : (loading ? <OverviewSkeleton /> : <OverviewPage dashboard={{}} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} />);
         if(page==='orders') return <OrdersPage orders={data.orders} onRefresh={refresh} onDetails={orderDetails} onPrint={printDocument} onNewOrder={newOrder} onTransition={transition} onCancel={cancelOrder} />;
         if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} />;
-        if(page==='menu') return <MenuPage products={data.products} categories={data.categories} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onCategory={()=>setModal({type:'category'})} />;
+        if(page==='menu') return <MenuPage products={data.products} categories={data.categories} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onProductDelete={deleteProduct} onCategory={category=>setModal({type:'category',category})} onCategoryDelete={deleteCategory} />;
         if(page==='inventory') return <InventoryPage products={data.products} movements={data.movements} onRefresh={refresh} onAdjust={product=>setModal({type:'inventory',product})} />;
-        if(page==='tables') return <TablesPage tables={data.tables} onRefresh={refresh} onCreate={createTable} onUpdate={updateTable} onRotate={rotateTable} onShowQr={table=>setModal({type:'qr',table})} />;
+        if(page==='tables') return <TablesPage tables={data.tables} onRefresh={refresh} onCreate={createTable} onUpdate={updateTable} onEdit={table=>setModal({type:'table-edit',table})} onDelete={archiveTable} onRotate={rotateTable} onShowQr={table=>setModal({type:'qr',table})} />;
         if(page==='reservations') return <ReservationsPage reservations={data.reservations} tables={data.tables} onRefresh={refresh} onCreate={createReservation} onTransition={transitionReservation} />;
         if(page==='customers') return <CustomersPage feedback={data.feedback} onRefresh={refresh} onRespond={respondFeedback} />;
         if(page==='expenses') return <ExpensesPage expenses={data.expenses} onRefresh={refresh} onCreate={createExpense} />;
@@ -765,7 +876,8 @@ export default function DashboardApp() {
         </main>
         {modal?.type==='order'&&<OrderModal products={modal.products} tables={modal.tables} onClose={()=>setModal(null)} onSubmit={createOrder}/>}
         {modal?.type==='product'&&<ProductModal key={modal.product?.id||'new'} product={modal.product} categories={data.categories||[]} onClose={()=>setModal(null)} onSave={createProduct}/>}
-        {modal?.type==='category'&&<CategoryModal onClose={()=>setModal(null)} onSave={createCategory}/>}
+        {modal?.type==='category'&&<CategoryModal key={modal.category?.id || 'new'} category={modal.category} onClose={()=>setModal(null)} onSave={(payload,category)=>category?updateCategory(category,payload):createCategory(payload)}/>}
+        {modal?.type==='table-edit'&&<TableEditModal key={modal.table?.id} table={modal.table} onClose={()=>setModal(null)} onSave={(payload)=>editTable(modal.table,payload)}/>}
         {modal?.type==='payment'&&<PaymentModal order={modal.order} onClose={()=>setModal(null)} onSubmit={submitPayment}/>}
         {modal?.type==='cancel'&&<CancelModal order={modal.order} onClose={()=>setModal(null)} onSubmit={submitCancel}/>}
         {modal?.type==='refund'&&<RefundModal payment={modal.payment} orderId={modal.orderId} onClose={()=>setModal(null)} onSubmit={submitRefund}/>}

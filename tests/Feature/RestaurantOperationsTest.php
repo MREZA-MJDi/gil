@@ -619,4 +619,47 @@ class RestaurantOperationsTest extends TestCase
         $this->assertDatabaseCount('categories', 1);
     }
 
+    public function test_admin_can_edit_and_delete_catalog_records_when_they_have_no_history(): void
+    {
+        $this->actingAs($this->admin);
+
+        $this->patchJson('/admin/api/categories/'.$this->category->id, [
+            'name' => 'دسته ویرایش‌شده',
+            'sort_order' => 4,
+            'is_active' => true,
+        ])->assertOk()->assertJsonPath('data.name', 'دسته ویرایش‌شده');
+
+        $this->deleteJson('/admin/api/products/'.$this->product->id)->assertOk();
+        $this->deleteJson('/admin/api/categories/'.$this->category->id)->assertOk();
+
+        $this->assertDatabaseMissing('products', ['id' => $this->product->id]);
+        $this->assertDatabaseMissing('categories', ['id' => $this->category->id]);
+    }
+
+    public function test_environment_seeded_table_edits_survive_repeated_seed_runs(): void
+    {
+        config(['restaurant.initial_table_names' => ['میز اولیه']]);
+
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\RestaurantFoundationSeeder::class]);
+
+        $table = RestaurantTable::query()->where('name', 'میز اولیه')->firstOrFail();
+        $table->forceFill([
+            'name' => 'میز ویرایش‌شده',
+            'description' => 'بخش تراس',
+            'is_active' => false,
+        ])->save();
+
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\RestaurantFoundationSeeder::class]);
+
+        $this->assertSame(1, RestaurantTable::query()->count());
+        $this->assertDatabaseHas('restaurant_tables', [
+            'id' => $table->id,
+            'name' => 'میز ویرایش‌شده',
+            'description' => 'بخش تراس',
+            'is_active' => 0,
+            'seed_key' => 'env-table:'.hash('sha256', 'میز اولیه'),
+        ]);
+        $this->assertDatabaseMissing('restaurant_tables', ['name' => 'میز اولیه']);
+    }
+
 }
