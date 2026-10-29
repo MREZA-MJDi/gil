@@ -436,13 +436,22 @@ function OrderModal({ products, tables, onClose, onSubmit }) {
 }
 
 function ProductModal({ product, categories, onClose, onSave }) {
+    const [imageFile,setImageFile]=useState(null);
     const [form,setForm]=useState({category_id:String(product?.category_id || categories?.[0]?.id || ''),name:product?.name || '',description:product?.description || '',base_price:String(product?.base_price ?? ''),status:product?.status || 'active',stock_quantity:product?.stock_quantity === null || product?.stock_quantity === undefined ? '' : String(product.stock_quantity),low_stock_threshold:product?.low_stock_threshold === null || product?.low_stock_threshold === undefined ? '' : String(product.low_stock_threshold), options:(product?.options || []).map(o=>({id:o.id,name:o.name,type:o.type,price:String(o.price),is_active:Boolean(o.is_active)}))});
     const set=(key,value)=>setForm(v=>({...v,[key]:value}));
     const addOption=()=>set('options',[...form.options,{name:'',type:'addon',price:'0',is_active:true}]);
     const updateOption=(i,key,value)=>set('options',form.options.map((o,index)=>index===i?{...o,[key]:value}:o));
     const removeOption=i=>set('options',form.options.filter((_,index)=>index!==i));
+    const previewUrl=useMemo(()=>imageFile?URL.createObjectURL(imageFile):null,[imageFile]);
+    useEffect(()=>()=>{if(previewUrl)URL.revokeObjectURL(previewUrl);},[previewUrl]);
     return <Modal title={product ? 'ویرایش محصول' : 'محصول جدید'} eyebrow="PRODUCT CATALOG" onClose={onClose} wide>
-        <form className="op-form" onSubmit={e=>{e.preventDefault();onSave({ ...form,category_id:Number(form.category_id),base_price:Number(form.base_price),stock_quantity:form.stock_quantity===''?null:Number(form.stock_quantity),low_stock_threshold:form.low_stock_threshold===''?null:Number(form.low_stock_threshold),options:form.options.map(o=>({...o,price:Number(o.price)})) },product?.id);}}>
+        <form className="op-form" onSubmit={e=>{e.preventDefault();onSave({ ...form,category_id:Number(form.category_id),base_price:Number(form.base_price),stock_quantity:form.stock_quantity===''?null:Number(form.stock_quantity),low_stock_threshold:form.low_stock_threshold===''?null:Number(form.low_stock_threshold),options:form.options.map(o=>({...o,price:Number(o.price)})),image:imageFile||undefined },product?.id);}}>
+            <div className="op-product-image-editor">
+                {(previewUrl||product?.image_url) ? <img src={previewUrl||product.image_url} alt="پیش‌نمایش تصویر محصول" /> : <span>☕</span>}
+                <Field label="عکس محصول (JPG / PNG / WebP، حداکثر ۴ مگابایت)">
+                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setImageFile(e.target.files?.[0]||null)} />
+                </Field>
+            </div>
             <div className="op-form-grid">
                 <Field label="نام محصول"><input value={form.name} onChange={e=>set('name',e.target.value)} maxLength="150" required /></Field>
                 <Field label="دسته‌بندی"><select value={form.category_id} onChange={e=>set('category_id',e.target.value)} required>{(categories||[]).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
@@ -658,7 +667,21 @@ export default function DashboardApp() {
             popup.document.open();popup.document.write(printHtml(order,type,config));popup.document.close();popup.focus();
         }catch(e){popup.close();notify(e?.message||'دریافت اطلاعات برای چاپ ناموفق بود.');}
     };
-    const createProduct=(payload,id)=>action(()=>api('/products'+(id?'/'+id:''),{method:id?'PATCH':'POST',body:payload}),'محصول ذخیره شد.');
+    const createProduct=(payload,id)=>action(()=>{
+        if (typeof File !== 'undefined' && payload.image instanceof File) {
+            const body = new FormData();
+            Object.entries(payload).forEach(([key,value]) => {
+                if (value === undefined || key === 'image') return;
+                if (key === 'options') body.append('options', JSON.stringify(value));
+                else body.append(key, value === null ? '' : typeof value === 'boolean' ? (value ? '1' : '0') : String(value));
+            });
+            body.append('image', payload.image);
+            if (id) body.append('_method', 'PATCH');
+            return api('/products'+(id?'/'+id:''),{method:'POST',body});
+        }
+        const { image, ...json } = payload;
+        return api('/products'+(id?'/'+id:''),{method:id?'PATCH':'POST',body:json});
+    },'محصول و تصویر ذخیره شد.');
     const changeProductStatus=(product,status)=>action(()=>api('/products/'+product.id+'/status',{method:'PATCH',body:{status}}),'وضعیت محصول تغییر کرد.',{close:false});
     const createCategory=payload=>action(()=>api('/categories',{method:'POST',body:payload}),'دسته‌بندی ایجاد شد.');
     const createTable=payload=>action(()=>api('/tables',{method:'POST',body:payload}),'میز ایجاد شد.');
