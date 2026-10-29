@@ -21,6 +21,7 @@
                 <div class="hero-actions">
                     <a class="button button-dark" href="{{ route('public.menu') }}">کشف منو <span>↗</span></a>
                     <a class="button button-quiet" href="#story"><span class="button-play">↓</span> قصهٔ ما</a>
+                    <a class="button button-quiet" href="#reservation">درخواست رزرو <span>↗</span></a>
                 </div>
                 <div class="hero-social-proof"><div class="mini-avatar-stack"><span>گ</span><span>ق</span><span>☕</span></div><div><b>برای لحظه‌های معمولیِ خاص</b><small>قهوه، غذا، آدم‌های خوب</small></div></div>
                 <div class="hero-scribble" aria-hidden="true">slow down<br>sip something good <span>✳</span></div>
