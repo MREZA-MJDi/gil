@@ -80,7 +80,7 @@ class RestaurantOperationsTest extends TestCase
             'admin.password' => 'password',
         ]);
 
-        Artisan::call('db:seed', ['--class' => \\Database\\Seeders\\AdminUserSeeder::class]);
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\AdminUserSeeder::class]);
 
         $this->post('/admin/login', [
             'email' => 'local-demo@example.test',
