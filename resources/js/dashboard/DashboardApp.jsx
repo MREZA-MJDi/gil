@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { api, idempotencyKey, unwrapData, unwrapList } from './api.js';
 import QRCode from 'qrcode';
+import { gregorianDateToJalali, jalaliDateToGregorian, gregorianDateTimeToJalali, jalaliDateTimeToGregorian, toPersianDigits } from '../date-utils.js';
 
 const navItems = [
     ['overview', 'نمای کلی', '◫'],
@@ -31,9 +32,10 @@ const feedbackStatusLabel = { new: 'جدید', reviewing: 'در حال بررس�
 const reservationPurposeLabel = { table: 'رزرو میز', birthday: 'تولد', consultation: 'مشاوره', private_event: 'مراسم خصوصی', catering: 'کترینگ' };
 const paymentMethodLabel = { cash: 'نقدی', card_terminal: 'کارت‌خوان (ثبت کاربر)', online: 'آنلاین', other: 'سایر' };
 const expenseCategoryLabel = { rent: 'اجاره', payroll: 'حقوق', utilities: 'قبوض', ingredients: 'مواد اولیه', repairs: 'تعمیرات', packaging: 'بسته‌بندی', transport: 'حمل‌ونقل', other: 'سایر' };
-const money = value => new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 }).format(Number(value || 0)) + ' تومان';
+const currencyLabel = () => window.__restaurantCurrencyLabel || document.querySelector('meta[name="currency-label"]')?.content || 'تومان';
+const money = value => new Intl.NumberFormat('fa-IR-u-nu-arabext', { maximumFractionDigits: 0 }).format(Number(value || 0)) + ' ' + currencyLabel();
 const numberFa = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0));
-const dateTime = value => value ? new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
+const dateTime = value => value ? new Intl.DateTimeFormat('fa-IR-u-ca-persian-nu-arabext', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Tehran' }).format(new Date(value)) : '—';
 const localDateTime = value => value ? String(value).replace('T', ' ') + ':00' : '';
 const channelLabel = order => {
     if (order?.table?.name) return order.table.name;
@@ -179,11 +181,11 @@ function CashierPage({ cashShift, orders, onRefresh, onOpenShift, onCloseShift, 
                 <div className="panel-heading"><div><h2>وضعیت شیفت صندوق</h2><p>هم‌زمان فقط یک شیفت باز قابل ثبت است.</p></div><Pill value={cashShift?.status || 'closed'} dictionary={{open:'باز',closed:'بسته'}} /></div>
                 {cashShift ? <div className="op-kpi-grid"><div><small>وجه آغازین</small><b>{money(cashShift.opening_cash)}</b></div><div><small>زمان شروع</small><b>{dateTime(cashShift.opened_at)}</b></div><div><small>ورودی/خروجی ثبت‌شده</small><b>{numberFa((cashShift.movements || []).length)} حرکت</b></div></div> :
                     <form className="op-form" onSubmit={e => { e.preventDefault(); onOpenShift({ opening_cash: Number(openingCash), note: shiftNote }); }}>
-                        <Field label="وجه نقد اولیه (تومان)"><input type="number" min="0" step="1" value={openingCash} onChange={e => setOpeningCash(e.target.value)} required /></Field>
+                        <Field label={"وجه نقد اولیه (" + currencyLabel() + ')'}><input type="number" min="0" step="1" value={openingCash} onChange={e => setOpeningCash(e.target.value)} required /></Field>
                         <Field label="یادداشت شروع"><input value={shiftNote} onChange={e => setShiftNote(e.target.value)} maxLength="500" placeholder="مثلاً صندوق شیفت صبح" /></Field><Button kind="primary" type="submit">باز کردن شیفت</Button>
                     </form>}
                 {cashShift && <form className="op-form op-form-separated" onSubmit={e => { e.preventDefault(); onCloseShift(cashShift.id, { counted_cash: Number(countedCash), note: shiftNote }); }}>
-                    <Field label="وجه نقد شمارش‌شده (تومان)"><input type="number" min="0" value={countedCash} onChange={e => setCountedCash(e.target.value)} required /></Field>
+                    <Field label={"وجه نقد شمارش‌شده (" + currencyLabel() + ')'}><input type="number" min="0" value={countedCash} onChange={e => setCountedCash(e.target.value)} required /></Field>
                     <Field label="یادداشت بستن"><input value={shiftNote} onChange={e => setShiftNote(e.target.value)} maxLength="500" placeholder="توضیح اختلاف صندوق، در صورت وجود" /></Field>
                     <Button kind="danger" type="submit">بستن و ثبت مغایرت</Button>
                 </form>}
@@ -192,7 +194,7 @@ function CashierPage({ cashShift, orders, onRefresh, onOpenShift, onCloseShift, 
                 <div className="panel-heading"><div><h2>ورودی / خروجی دستی صندوق</h2><p>برای تنخواه، شارژ صندوق یا خروج وجه، علت را شفاف ثبت کن.</p></div></div>
                 {cashShift ? <form className="op-form" onSubmit={e => { e.preventDefault(); onMovement(cashShift.id, { ...movement, idempotency_key: movementKey }).then(ok => { if (ok) { setMovement({ direction: 'out', amount: '', reason: '' }); setMovementKey(idempotencyKey()); } }); }}>
                     <Field label="نوع حرکت"><select value={movement.direction} onChange={e => setMovement(v => ({...v, direction:e.target.value}))}><option value="in">ورودی وجه</option><option value="out">خروجی وجه</option></select></Field>
-                    <Field label="مبلغ (تومان)"><input type="number" min="1" value={movement.amount} onChange={e => setMovement(v => ({...v, amount:e.target.value}))} required /></Field>
+                    <Field label={"مبلغ (" + currencyLabel() + ')'}><input type="number" min="1" value={movement.amount} onChange={e => setMovement(v => ({...v, amount:e.target.value}))} required /></Field>
                     <Field label="علت / شرح"><input minLength="3" maxLength="500" value={movement.reason} onChange={e => setMovement(v => ({...v, reason:e.target.value}))} required placeholder="شرح قابل حسابرسی" /></Field>
                     <Button kind="primary" type="submit">ثبت حرکت صندوق</Button>
                 </form> : <Empty>برای ثبت حرکت دستی، ابتدا شیفت را باز کن.</Empty>}
@@ -280,7 +282,7 @@ function ReservationsPage({ reservations, tables, onCreate, onTransition, onRefr
                 <Field label="تلفن"><input value={form.phone} onChange={e => set('phone', e.target.value)} maxLength="30" required /></Field>
                 <Field label="تعداد نفرات"><input type="number" min="1" max="50" value={form.party_size} onChange={e => set('party_size', e.target.value)} required /></Field>
                 <Field label="میز (اختیاری)"><select value={form.restaurant_table_id} onChange={e => set('restaurant_table_id', e.target.value)}><option value="">بدون تخصیص میز</option>{(tables || []).filter(t => t.is_active).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>
-                <Field label="تاریخ و ساعت"><input type="datetime-local" value={form.starts_at} onChange={e => set('starts_at', e.target.value)} required /></Field>
+                <Field label="تاریخ و ساعت"><JalaliDateTimeInput value={form.starts_at} onChange={value => set('starts_at', value)} required /></Field>
                 <Field label="مدت (دقیقه)"><select value={form.duration_minutes} onChange={e => set('duration_minutes', e.target.value)}><option value="60">۶۰</option><option value="90">۹۰</option><option value="120">۱۲۰</option><option value="180">۱۸۰</option></select></Field>
                 <Field label="یادداشت"><input value={form.notes} onChange={e => set('notes', e.target.value)} maxLength="1000" /></Field>
                 <div className="op-form-actions"><Button kind="primary" type="submit">ثبت رزرو</Button></div>
@@ -341,7 +343,7 @@ function ReportsPage({ report, onRefresh }) {
     const [to, setTo] = useState('');
     return <div className="page-content">
         <PageHeader title="گزارش‌های مالی و فروش" subtitle="فروش ثبت‌شده، دریافتی، بازپرداخت و پرداخت‌ها تفکیک شده‌اند؛ سود تا تکمیل بهای تمام‌شده گزارش نمی‌شود." />
-        <form className="op-toolbar" onSubmit={e => { e.preventDefault(); onRefresh(from, to); }}><Field label="از تاریخ"><input type="date" value={from} onChange={e => setFrom(e.target.value)} /></Field><Field label="تا تاریخ"><input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} /></Field><Button kind="primary" type="submit">اجرای گزارش</Button><Button type="button" onClick={() => { setFrom(''); setTo(''); onRefresh('', ''); }}>این ماه</Button></form>
+        <form className="op-toolbar" onSubmit={e => { e.preventDefault(); onRefresh(from, to); }}><Field label="از تاریخ"><JalaliDateInput value={from} onChange={setFrom} placeholder="۱۴۰۵/۰۸/۰۱" ariaLabel="از تاریخ شمسی" /></Field><Field label="تا تاریخ"><JalaliDateInput value={to} onChange={setTo} placeholder="۱۴۰۵/۰۸/۳۰" ariaLabel="تا تاریخ شمسی" /></Field><Button kind="primary" type="submit">اجرای گزارش</Button><Button type="button" onClick={() => { setFrom(''); setTo(''); onRefresh('', ''); }}>این ماه</Button></form>
         {report?.summary && <div className="op-grid op-grid-3">
             <article className="stat-card"><div className="stat-label">سفارش‌ها</div><div className="stat-value">{numberFa(report.summary.orders_count)}</div><div className="stat-sub">{numberFa(report.summary.cancelled_orders)} لغوشده (در تعداد کل)</div></article>
             <article className="stat-card"><div className="stat-label">فروش ثبت‌شده</div><div className="stat-value">{money(report.summary.registered_sales)}</div><div className="stat-sub">مجموع سفارش‌ها، به‌جز لغوشده‌ها</div></article>
@@ -369,7 +371,7 @@ function SettingsPage({ settings, onSave, onRefresh }) {
             <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onSave({ ...form, tax_basis_points: Number(form.tax_basis_points), service_basis_points: Number(form.service_basis_points), paper_width: Number(form.paper_width) }); }}>
                 <Field label="نام مجموعه"><input value={form.name} onChange={e => set('name',e.target.value)} maxLength="150" required /></Field>
                 <Field label="تلفن"><input value={form.phone} onChange={e => set('phone',e.target.value)} maxLength="30" /></Field>
-                <Field label="واحد پول"><input value={form.currency_label} onChange={e => set('currency_label',e.target.value)} maxLength="20" required /></Field>
+                <Field label="واحد پول" hint="این واحد مبنای تمام مبلغ‌هاست؛ پیش از ثبت محصول انتخابش کن."><select value={form.currency_label} onChange={e => set('currency_label', e.target.value)}><option value="تومان">تومان</option><option value="ریال">ریال</option></select></Field>
                 <Field label="مالیات (%)"><input type="number" min="0" max="100" step="0.01" value={Number(form.tax_basis_points)/100} onChange={e => set('tax_basis_points', String(Math.round(Number(e.target.value || 0)*100)))} /></Field>
                 <Field label="سرویس (%)"><input type="number" min="0" max="100" step="0.01" value={Number(form.service_basis_points)/100} onChange={e => set('service_basis_points', String(Math.round(Number(e.target.value || 0)*100)))} /></Field>
                 <Field label="عرض کاغذ فیش"><select value={form.paper_width} onChange={e => set('paper_width',e.target.value)}><option value="58">۵۸ میلی‌متر</option><option value="80">۸۰ میلی‌متر</option></select></Field>
@@ -420,7 +422,7 @@ function OrderModal({ products, tables, onClose, onSubmit }) {
                 {channel === 'dine_in' && <Field label="میز"><select value={tableId} onChange={e=>setTableId(e.target.value)}><option value="">بدون تخصیص میز</option>{(tables || []).filter(t=>t.is_active).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>}
                 <Field label="نام مشتری (اختیاری)"><input value={customerName} onChange={e=>setCustomerName(e.target.value)} maxLength="150" /></Field>
                 <Field label="تلفن (اختیاری)"><input value={customerPhone} onChange={e=>setCustomerPhone(e.target.value)} maxLength="30" /></Field>
-                <Field label="تخفیف (تومان)"><input type="number" min="0" max={subtotal} value={discount} onChange={e=>setDiscount(e.target.value)} required /></Field>
+                <Field label={"تخفیف (" + currencyLabel() + ')'}><input type="number" min="0" max={subtotal} value={discount} onChange={e=>setDiscount(e.target.value)} required /></Field>
                 <Field label="یادداشت سفارش"><input value={customerNote} onChange={e=>setCustomerNote(e.target.value)} maxLength="2000" /></Field>
             </div>
             <div className="op-picker">
@@ -461,7 +463,7 @@ function ProductModal({ product, categories, onClose, onSave }) {
             <div className="op-form-grid">
                 <Field label="نام محصول"><input value={form.name} onChange={e=>set('name',e.target.value)} maxLength="150" required /></Field>
                 <Field label="دسته‌بندی"><select value={form.category_id} onChange={e=>set('category_id',e.target.value)} required>{(categories||[]).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
-                <Field label="قیمت (تومان)"><input type="number" min="0" value={form.base_price} onChange={e=>set('base_price',e.target.value)} required /></Field>
+                <Field label={"قیمت (" + currencyLabel() + ')'}><input type="number" min="0" value={form.base_price} onChange={e=>set('base_price',e.target.value)} required /></Field>
                 <Field label="وضعیت فروش"><select value={form.status} onChange={e=>set('status',e.target.value)}><option value="active">فعال</option><option value="inactive">غیرفعال</option><option value="unavailable">ناموجود</option></select></Field>
                 <Field label="موجودی فعلی" hint={product && product.stock_quantity !== null ? 'رهگیری موجودی فعال است؛ برای خاموش‌کردن آن سوابق قابل حسابرسی از بین می‌رود.' : 'خالی = بدون رهگیری'}><input type="number" min="0" value={form.stock_quantity} required={Boolean(product && product.stock_quantity !== null)} onChange={e=>set('stock_quantity',e.target.value)} placeholder="خالی = بدون رهگیری" /></Field>
                 <Field label="آستانه کمبود"><input type="number" min="0" value={form.low_stock_threshold} onChange={e=>set('low_stock_threshold',e.target.value)} placeholder="مثلاً ۵" /></Field>
@@ -509,7 +511,7 @@ function PaymentModal({ order, onClose, onSubmit }) {
     return <Modal title="ثبت پرداخت" eyebrow="PAYMENT / CASHIER" onClose={onClose}>
         <div className="op-payment-summary"><span>سفارش {order.number}</span><b>{money(order.total)}</b><small>مانده محاسبه‌شده: {money(remaining)}</small></div>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),method,reference:reference||null,note:note||null,idempotency_key:requestKey},order.id);}}>
-            <Field label="مبلغ دریافت (تومان)"><input type="number" min="1" max={remaining} value={amount} onChange={e=>setAmount(e.target.value)} required /></Field>
+            <Field label={"مبلغ دریافت (" + currencyLabel() + ')'}><input type="number" min="1" max={remaining} value={amount} onChange={e=>setAmount(e.target.value)} required /></Field>
             <Field label="روش پرداخت"><select value={method} onChange={e=>setMethod(e.target.value)}><option value="cash">نقدی (نیازمند شیفت باز)</option><option value="card_terminal">کارت‌خوان — ثبت تأیید توسط کارمند</option><option value="other">سایر / انتقال تأییدشده خارج از سامانه</option></select></Field>
             <Field label="شماره پیگیری (اختیاری)"><input value={reference} onChange={e=>setReference(e.target.value)} maxLength="120" /></Field>
             <Field label="یادداشت"><input value={note} onChange={e=>setNote(e.target.value)} maxLength="500" /></Field>
@@ -539,7 +541,7 @@ function RefundModal({ payment, orderId, onClose, onSubmit }) {
     return <Modal title="بازپرداخت" eyebrow="REFUND / AUDITABLE" onClose={onClose}>
         <div className="op-payment-summary"><span>مبلغ پرداخت اولیه</span><b>{money(payment.amount)}</b><small>مانده قابل بازپرداخت: {money(refundable)}</small></div>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),reason,idempotency_key:requestKey},payment.id,orderId);}}>
-            <Field label="مبلغ بازپرداخت (تومان)"><input type="number" min="1" max={refundable} value={amount} onChange={e=>setAmount(e.target.value)} required /></Field>
+            <Field label={"مبلغ بازپرداخت (" + currencyLabel() + ')'}><input type="number" min="1" max={refundable} value={amount} onChange={e=>setAmount(e.target.value)} required /></Field>
             <Field label="علت بازپرداخت"><input value={reason} onChange={e=>setReason(e.target.value)} minLength="3" maxLength="500" required /></Field>
             <p className="op-note">بازپرداخت نقدی نیازمند شیفت باز است. بازپرداخت آنلاین بدون اتصال به درگاه از سمت بانک انجام نمی‌شود.</p>
             <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="danger" type="submit" disabled={Number(amount)<1 || Number(amount)>refundable}>ثبت بازپرداخت</Button></div>
@@ -622,7 +624,7 @@ export default function DashboardApp() {
                 if(page==='expenses') next.expenses=unwrapList(await api('/expenses?per_page=100'));
                 if(page==='reports') next.report=unwrapData(await api('/reports/sales'));
                 if(page==='settings') { next.settings=unwrapData(await api('/settings')); }
-                if(alive){setData(prev=>({...prev,...next}));if(next.settings)setSettings(next.settings);}
+                if(alive){setData(prev=>({...prev,...next}));if(next.settings){setSettings(next.settings);window.__restaurantCurrencyLabel=next.settings.currency_label||'تومان';}}
             }catch(e){if(alive)setError(e?.message||'دریافت اطلاعات از سرور ناموفق بود.');}
             finally{if(alive)setLoading(false);}
         };
@@ -717,7 +719,7 @@ export default function DashboardApp() {
     const openShift=payload=>action(()=>api('/cash-shift/open',{method:'POST',body:payload}),'شیفت صندوق باز شد.');
     const closeShift=(id,payload)=>action(()=>api('/cash-shift/'+id+'/close',{method:'POST',body:payload}),'شیفت بسته و مغایرت محاسبه شد.');
     const cashMovement=(id,payload)=>action(()=>api('/cash-shift/'+id+'/movements',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'حرکت صندوق ثبت شد.',{close:false});
-    const saveSettings=payload=>action(async()=>{await api('/settings',{method:'PATCH',body:payload});const refreshed=unwrapData(await api('/settings'));setSettings(refreshed);setData(prev=>({...prev,settings:refreshed}));},'تنظیمات ذخیره شد.',{close:false});
+    const saveSettings=payload=>action(async()=>{await api('/settings',{method:'PATCH',body:payload});const refreshed=unwrapData(await api('/settings'));setSettings(refreshed);window.__restaurantCurrencyLabel=refreshed.currency_label||'تومان';setData(prev=>({...prev,settings:refreshed}));},'تنظیمات ذخیره شد.',{close:false});
     const runReport=async(from='',to='')=>{
         try{setLoading(true);let qs=[];if(from)qs.push('from='+encodeURIComponent(from));if(to)qs.push('to='+encodeURIComponent(to));const next=unwrapData(await api('/reports/sales'+(qs.length?'?'+qs.join('&'):'')));setData(p=>({...p,report:next}));setError('');}
         catch(e){setError(e.message||'اجرای گزارش ناموفق بود.');}
@@ -750,7 +752,7 @@ export default function DashboardApp() {
         </aside>
         {mobileNav&&<button type="button" aria-label="بستن منو" className="mobile-overlay" onClick={()=>setMobileNav(false)}/>}
         <main className="main-shell">
-            <div className="topbar"><button type="button" className="mobile-menu-button" onClick={()=>setMobileNav(true)} aria-label="بازکردن منو">☰</button><div className="breadcrumb">خانه گیلاسی <span>/</span> {navItems.find(n=>n[0]===page)?.[1]||'مدیریت'}</div><div className="topbar-right"><span className={'connection-state '+(error?'op-connection-error':'')}><i/>{error?'خطا در ارتباط':'اتصال به سامانه'}</span><span className="topbar-date">{new Intl.DateTimeFormat('fa-IR',{weekday:'long',day:'numeric',month:'long'}).format(new Date())}</span><button type="button" className="icon-button" aria-label="تازه‌سازی صفحه" onClick={refresh}>↻</button><span className="topbar-avatar">KG</span></div></div>
+            <div className="topbar"><button type="button" className="mobile-menu-button" onClick={()=>setMobileNav(true)} aria-label="بازکردن منو">☰</button><div className="breadcrumb">خانه گیلاسی <span>/</span> {navItems.find(n=>n[0]===page)?.[1]||'مدیریت'}</div><div className="topbar-right"><span className={'connection-state '+(error?'op-connection-error':'')}><i/>{error?'خطا در ارتباط':'اتصال به سامانه'}</span><span className="topbar-date">{new Intl.DateTimeFormat('fa-IR-u-ca-persian-nu-arabext',{weekday:'long',day:'numeric',month:'long',timeZone:'Asia/Tehran'}).format(new Date())}</span><button type="button" className="icon-button" aria-label="تازه‌سازی صفحه" onClick={refresh}>↻</button><span className="topbar-avatar">KG</span></div></div>
             {error&&<div className="op-global-error" role="alert"><span>{error}</span><Button onClick={refresh}>تلاش دوباره</Button></div>}
             {loading&&<div className="op-loading op-loading-line"><span className="op-spinner"/>در حال دریافت اطلاعات از سرور…</div>}
             {renderPage()}
@@ -837,7 +839,7 @@ function RecipesPage({ recipeData, onRefresh, onCreateIngredient, onUpdateIngred
                     <Field label="واحد پایه" hint="این واحد در رسپی و موجودی تغییرناپذیر می‌ماند."><select value={ingredientForm.unit} onChange={e=>setIngredientForm(s=>({...s,unit:e.target.value}))}><option value="g">گرم (g)</option><option value="ml">میلی‌لیتر (ml)</option><option value="pcs">عدد (pcs)</option></select></Field>
                     <Field label="موجودی اولیه" hint="تا ۳ رقم اعشار؛ مثلاً 2500 گرم."><input type="number" min="0" max="99999999999.999" step="0.001" value={ingredientForm.stock_quantity} onChange={e=>setIngredientForm(s=>({...s,stock_quantity:e.target.value}))} required /></Field>
                     <Field label="هشدار کمبود" hint="وقتی موجودی به این مقدار یا کمتر برسد، کمبود نشان داده می‌شود."><input type="number" min="0" step="0.001" value={ingredientForm.low_stock_threshold} onChange={e=>setIngredientForm(s=>({...s,low_stock_threshold:e.target.value}))} placeholder="اختیاری" /></Field>
-                    <Field label="هزینه هر واحد پایه (تومان)" hint="مثلاً اگر ۱۰۰۰ گرم قهوه ۴۰۰٬۰۰۰ تومان است، اینجا ۴۰۰ وارد کن."><input type="number" min="0" max="1000000000" value={ingredientForm.cost_per_unit} onChange={e=>setIngredientForm(s=>({...s,cost_per_unit:e.target.value}))} required /></Field>
+                    <Field label={'هزینه هر واحد پایه ('+currencyLabel()+')'} hint={'اگر یک کیلو قهوه ۴۰۰٬۰۰۰ '+currencyLabel()+' است، هزینه هر گرم را اینجا وارد کن.'}><input type="number" min="0" max="1000000000" value={ingredientForm.cost_per_unit} onChange={e=>setIngredientForm(s=>({...s,cost_per_unit:e.target.value}))} required /></Field>
                 </div>
                 <div className="op-form-actions"><Button kind="primary" type="submit">ثبت ماده اولیه</Button></div>
             </form>
@@ -889,6 +891,20 @@ function IngredientStockModal({ ingredient, onClose, onSubmit }) {
             <div className="op-form-actions"><Button onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ثبت گردش</Button></div>
         </form>
     </Modal>;
+}
+
+function JalaliDateInput({ value, onChange, placeholder = '۱۴۰۵/۰۸/۰۷', ariaLabel = 'تاریخ شمسی' }) {
+    const [text, setText] = useState(() => value ? toPersianDigits(gregorianDateToJalali(value)) : '');
+    const [invalid, setInvalid] = useState(false);
+    useEffect(() => { setText(value ? toPersianDigits(gregorianDateToJalali(value)) : ''); setInvalid(false); }, [value]);
+    return <div className="jalali-date-control"><input type="text" inputMode="numeric" autoComplete="off" placeholder={placeholder} aria-label={ariaLabel} aria-invalid={invalid} value={text} onChange={event => { const next=event.target.value; setText(next); if (!next.trim()) { setInvalid(false); event.target.setCustomValidity(''); onChange(''); return; } const gregorian=jalaliDateToGregorian(next); setInvalid(!gregorian); event.target.setCustomValidity(gregorian ? '' : 'تاریخ شمسی معتبر وارد کن؛ نمونه: ۱۴۰۵/۰۸/۰۷'); if (gregorian) onChange(gregorian); }} />{invalid && <small role="alert">فرمت تاریخ: سال/ماه/روز شمسی، مثل ۱۴۰۵/۰۸/۰۷</small>}</div>;
+}
+
+function JalaliDateTimeInput({ value, onChange, required = false }) {
+    const [text, setText] = useState(() => value ? toPersianDigits(gregorianDateTimeToJalali(value)) : '');
+    const [invalid, setInvalid] = useState(false);
+    useEffect(() => { setText(value ? toPersianDigits(gregorianDateTimeToJalali(value)) : ''); setInvalid(false); }, [value]);
+    return <div className="jalali-date-control"><input type="text" inputMode="numeric" autoComplete="off" required={required} placeholder="۱۴۰۵/۰۸/۰۷ ۱۸:۳۰" aria-label="تاریخ و ساعت شمسی" aria-invalid={invalid} value={text} onChange={event => { const next=event.target.value; setText(next); if (!next.trim()) { setInvalid(false); event.target.setCustomValidity(''); onChange(''); return; } const gregorian=jalaliDateTimeToGregorian(next); setInvalid(!gregorian); event.target.setCustomValidity(gregorian ? '' : 'تاریخ و ساعت شمسی را به شکل ۱۴۰۵/۰۸/۰۷ ۱۸:۳۰ وارد کن.'); if (gregorian) onChange(gregorian); }} />{invalid && <small role="alert">نمونه: ۱۴۰۵/۰۸/۰۷ ۱۸:۳۰</small>}</div>;
 }
 
 function InventoryModal({ product, products, onClose, onSubmit }) {
