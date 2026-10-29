@@ -373,7 +373,7 @@
 .public-home .hero-fullbleed::before,
 .public-home .hero-fullbleed::after{content:"";position:absolute;inset:0;pointer-events:none}
 .public-home .hero-fullbleed::before{
-    z-index:-2;background-image:url('/images/cafe-hero.webp');
+    z-index:-2;background-image:url('/images/login-background.webp');
     background-size:cover;background-position:center 51%;background-repeat:no-repeat;
     transform:scale(1.015);animation:cafeHeroReveal 1s ease-out both;
 }
