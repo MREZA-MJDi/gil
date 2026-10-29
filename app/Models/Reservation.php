@@ -10,7 +10,7 @@ class Reservation extends Model
 {
     protected $fillable = [
         'reference', 'restaurant_table_id', 'customer_name', 'phone', 'email', 'party_size',
-        'starts_at', 'duration_minutes', 'ends_at', 'status', 'source', 'notes', 'idempotency_key', 'created_by',
+        'starts_at', 'duration_minutes', 'ends_at', 'status', 'source', 'notes', 'idempotency_key', 'idempotency_hash', 'created_by',
     ];
 
     protected function casts(): array
