@@ -15,7 +15,7 @@
         <section class="dark-food-hero cup-stop" id="home" data-cup-stop>
             <div class="dark-hero-copy">
                 <span class="delivery-pill"><i></i> FRESHLY MADE · READY FOR YOU</span>
-                <h1>Pan-Asian Crave <span>Fresh Flavors,</span> <b>or Enjoy Here</b></h1>
+                <h1>Pan-Asian Crave <span>Delivered in 30 Minutes</span> <b>or Enjoy Here</b></h1>
                 <p class="dark-hero-description">Bold flavors, fresh ingredients, and comforting favorites — made for sharing, staying in, or enjoying around our table.</p>
                 <div class="dark-hero-actions">
                     <a class="dark-action primary" href="{{ route('public.menu') }}"><span>↗</span> Order Now</a>
@@ -35,7 +35,7 @@
                 <span class="hero-produce leaf leaf-one" aria-hidden="true"></span>
                 <span class="hero-produce leaf leaf-two" aria-hidden="true"></span>
                 <span class="hero-produce leaf leaf-three" aria-hidden="true"></span>
-                <img class="hero-bowl-image" src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&amp;fit=crop&amp;w=1300&amp;q=90" alt="A colorful bowl of fresh food with vegetables and herbs" fetchpriority="high">
+                <img class="hero-bowl-image" src="https://images.unsplash.com/photo-1775039984426-544b16dc2993?auto=format&amp;fit=crop&amp;w=1400&amp;q=90" alt="A colorful bowl of fresh food with vegetables and herbs" fetchpriority="high">
                 <div class="hero-art-label"><span>GILASI KITCHEN</span><i></i><span>MADE FRESH</span></div>
             </div>
             <a class="dark-hero-scroll" href="#experience" aria-label="Scroll to discover"><span></span></a>
