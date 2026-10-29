@@ -677,7 +677,7 @@ export default function DashboardApp() {
             const body = new FormData();
             Object.entries(payload).forEach(([key,value]) => {
                 if (value === undefined || key === 'image') return;
-                if (key === 'options') body.append('options', JSON.stringify(value));
+                if (['options', 'allergens', 'dietary_tags'].includes(key)) body.append(key, JSON.stringify(value));
                 else body.append(key, value === null ? '' : typeof value === 'boolean' ? (value ? '1' : '0') : String(value));
             });
             body.append('image', payload.image);
