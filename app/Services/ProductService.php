@@ -103,8 +103,12 @@ class ProductService
 
                 $this->audit->record('product.updated', $product, $oldValues, [
                     'name' => $product->name, 'category_id' => $product->category_id,
-                    'base_price' => $product->base_price, 'status' => $product->status->value,
-                    'sort_order' => $product->sort_order, 'stock_quantity' => $product->stock_quantity,
+                    'base_price' => $product->base_price, 'description' => $product->description,
+                    'ingredients' => $product->ingredients, 'allergens' => $product->allergens,
+                    'dietary_tags' => $product->dietary_tags, 'calories' => $product->calories,
+                    'preparation_time_minutes' => $product->preparation_time_minutes,
+                    'status' => $product->status->value, 'sort_order' => $product->sort_order,
+                    'stock_quantity' => $product->stock_quantity,
                 ], null, $userId);
 
                 return $product->load(['category', 'options']);
