@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f4efe6">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="currency-label" content="{{ $settings->currency_label }}">
     <meta name="description" content="منوی به‌روز {{ $settings->name }} با قیمت‌ها، افزودنی‌ها و جزئیات محصولات.">
     <title>منو | {{ $settings->name }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -88,6 +89,5 @@
         <section class="menu-cta-band cup-stop" data-cup-stop><div><span class="section-kicker">YOUR LITTLE PAUSE</span><h2>طعم بعدیِ موردعلاقه‌ات<br>شاید همین‌جا باشد.</h2></div><a href="{{ route('home') }}#visit" class="button button-cream">ملاقات در کافه <span>↗</span></a></section>
     </main>
     @include('public.partials.footer')
-    @include('public.partials.traveling-cup')
 </body>
 </html>

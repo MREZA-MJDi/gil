@@ -2,7 +2,8 @@ const root = document.querySelector('[data-public-ordering]');
 
 if (root) {
     const cart = new Map();
-    const money = value => new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 }).format(Number(value || 0)) + ' تومان';
+    const currencyLabel = document.querySelector('meta[name="currency-label"]')?.content || 'تومان';
+    const money = value => new Intl.NumberFormat('fa-IR-u-nu-arabext', { maximumFractionDigits: 0 }).format(Number(value || 0)) + ' ' + currencyLabel;
     const escapeHtml = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
     const idempotencyKey = () => globalThis.crypto?.randomUUID?.().replaceAll('-', '') || ('web' + Date.now().toString(36) + Math.random().toString(36).slice(2, 24));
     const itemsEl = document.getElementById('online-cart-items');
@@ -73,6 +74,7 @@ if (root) {
             customer_name: String(fields.get('customer_name') || '').trim(),
             customer_phone: String(fields.get('customer_phone') || '').trim(),
             customer_note: String(fields.get('customer_note') || '').trim() || null,
+            payment_preference: String(fields.get('payment_preference') || 'at_counter'),
             idempotency_key: key,
         };
         try {

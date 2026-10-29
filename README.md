@@ -75,3 +75,24 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 - Signed normalized intake endpoints are available at \`POST /api/integrations/orders/snappfood\` and \`POST /api/integrations/orders/partner\`. This is a trusted adapter contract, **not a claim that Snappfood's live/private API has already been connected**.
 - Configure a private \`ORDER_WEBHOOK_SECRET\` with at least 32 characters. Send \`X-Gil-Signature: sha256=<hex HMAC-SHA256 of the exact raw request body>\`.
 - External product IDs must be mapped by the adapter to this system's \`product_id\`. The app recalculates prices using its own catalog, deduplicates by external order ID, and does not assume marketplace payment is settled. Production status/refund/settlement synchronization needs official API access and a dedicated adapter.
+
+
+## Local demo data for full UI testing
+
+The repository includes a local-only demo dataset for testing the application through the browser. It adds Persian menu categories and product images, recipes and ingredients, ten QR-linked tables, orders with multiple channels/statuses, partial/full payments and a sample refund, cash-shift activity, expenses, reservations for birthdays/consultations/catering, print-log entries, and customer feedback. Demo customer records are clearly identifiable by their sample names or \`DEMO\` references. Do not run demo seeds against a real restaurant database.
+
+From the project directory, first make sure \`.env\` has \`APP_ENV=local\`, the database name and credentials you intend to use, and admin credentials. Then run:
+
+\`\`\`bash
+php artisan optimize:clear
+php artisan migrate
+php artisan db:seed --class="Database\\Seeders\\AdminUserSeeder" --force
+php artisan db:seed --class="Database\\Seeders\\RestaurantDemoSeeder" --force
+npm run build
+php artisan optimize:clear
+php artisan serve
+\`\`\`
+
+Open \`http://127.0.0.1:8000/\` for the public website, \`http://127.0.0.1:8000/menu\` for direct takeaway ordering, \`http://127.0.0.1:8000/reserve\` for booking requests, and \`http://127.0.0.1:8000/admin/login\` for the dashboard. For QR testing, open **میزها و QR** in the dashboard and print or preview a table's own QR. On a phone, \`APP_URL\` must be a LAN-reachable host/IP, not \`localhost\`.
+
+Demo prices are stored in the selected database currency unit. The included dataset is priced in Toman; the seeder deliberately refuses to load these values if the current setting is Rial, to avoid silently mislabelling amounts. The selected currency is displayed consistently in dashboard totals, website checkout, and QR menu.

@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -16,6 +17,7 @@ function CustomerMenu() {
     const [notice, setNotice] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
+    const [paymentPreference, setPaymentPreference] = useState('at_counter');
     const [idempotencyKey, setIdempotencyKey] = useState('');
     const [submissionUncertain, setSubmissionUncertain] = useState(false);
 
@@ -117,6 +119,7 @@ function CustomerMenu() {
                     items: cart,
                     customer_name: customerName.trim() || null,
                     customer_phone: customerPhone.trim() || null,
+                    payment_preference: paymentPreference,
                     discount: 0,
                 }),
             });
@@ -225,6 +228,14 @@ function CustomerMenu() {
             })}
             <label>نام (اختیاری)<input disabled={busy || submissionUncertain} value={customerName} onChange={e => setCustomerName(e.target.value)} maxLength={150} /></label>
             <label>شماره تماس (اختیاری)<input disabled={busy || submissionUncertain} value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} maxLength={30} inputMode="tel" /></label>
+            <label className="customer-payment-preference">روش پرداخت موردنظر
+                <select value={paymentPreference} disabled={busy || submissionUncertain} onChange={event => setPaymentPreference(event.target.value)}>
+                    <option value="at_counter">پرداخت در صندوق / هنگام تحویل</option>
+                    <option value="cash">نقدی</option>
+                    <option value="card_terminal">کارت‌خوان</option>
+                </select>
+                <small>این فقط روش ترجیحی است؛ تا ثبت پرداخت توسط کارکنان، سفارش تسویه‌نشده می‌ماند.</small>
+            </label>
             <div className="customer-price-breakdown">
                 <p><span>جمع اقلام</span><b>{money(subtotal, currency)}</b></p>
                 {Number(data.settings?.tax_basis_points || 0) > 0 && <p><span>مالیات ({numberFa(Number(data.settings.tax_basis_points) / 100)}٪)</span><b>{money(tax, currency)}</b></p>}

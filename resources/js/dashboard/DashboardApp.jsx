@@ -325,7 +325,7 @@ function ExpensesPage({ expenses, onCreate, onRefresh }) {
             <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onCreate({ ...form, amount: Number(form.amount) }); }}>
                 <Field label="عنوان هزینه"><input value={form.title} onChange={e => set('title',e.target.value)} maxLength="150" required placeholder="مثلاً خرید شیر" /></Field>
                 <Field label="دسته"><select value={form.category} onChange={e => set('category',e.target.value)}>{Object.entries(expenseCategoryLabel).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
-                <Field label="مبلغ (تومان)"><input type="number" min="1" value={form.amount} onChange={e => set('amount',e.target.value)} required /></Field>
+                <Field label={'مبلغ ('+currencyLabel()+')'}><input type="number" min="1" value={form.amount} onChange={e => set('amount',e.target.value)} required /></Field>
                 <Field label="روش پرداخت"><select value={form.payment_method} onChange={e => set('payment_method',e.target.value)}><option value="cash">نقدی</option><option value="card_terminal">کارت‌خوان (ثبت‌شده)</option><option value="other">سایر</option></select></Field>
                 <Field label="وضعیت پرداخت"><select value={form.is_paid ? 'paid' : 'unpaid'} onChange={e => set('is_paid',e.target.value === 'paid')}><option value="paid">پرداخت شده</option><option value="unpaid">پرداخت نشده</option></select></Field>
                 <Field label="یادداشت"><input value={form.note} onChange={e => set('note',e.target.value)} maxLength="1000" /></Field>
@@ -350,7 +350,7 @@ function ReportsPage({ report, onRefresh }) {
             <article className="stat-card"><div className="stat-label">دریافتی خالص بازه</div><div className="stat-value">{money(report.summary.collections_net)}</div><div className="stat-sub">دریافتی ناخالص {money(report.summary.collections_gross)} منهای بازپرداخت {money(report.summary.refunds)}</div></article>
         </div>}
         <section className="panel orders-panel"><div className="panel-heading"><div><h2>فروش روزانه</h2><p>بر اساس تاریخ ایجاد سفارش؛ فروش ثبت‌شده را با وجه دریافتی یکی نگیر.</p></div></div>
-            {report?.daily?.length ? <TableWrap><thead><tr><th>روز</th><th>تعداد سفارش</th><th>فروش ثبت‌شده</th></tr></thead><tbody>{report.daily.map(day => <tr key={day.day}><td>{day.day}</td><td>{numberFa(day.orders_count)}</td><td>{money(day.registered_sales)}</td></tr>)}</tbody></TableWrap> : <Empty>در این بازه سفارشی وجود ندارد.</Empty>}
+            {report?.daily?.length ? <TableWrap><thead><tr><th>روز</th><th>تعداد سفارش</th><th>فروش ثبت‌شده</th></tr></thead><tbody>{report.daily.map(day => <tr key={day.day}><td>{toPersianDigits(gregorianDateToJalali(day.day)) || day.day}</td><td>{numberFa(day.orders_count)}</td><td>{money(day.registered_sales)}</td></tr>)}</tbody></TableWrap> : <Empty>در این بازه سفارشی وجود ندارد.</Empty>}
         </section>
         <section className="op-grid op-grid-2">
             <article className="panel orders-panel"><div className="panel-heading"><div><h2>دریافتی به تفکیک روش</h2></div></div>{report?.payments_by_method?.length ? <TableWrap><thead><tr><th>روش</th><th>تعداد</th><th>مبلغ</th></tr></thead><tbody>{report.payments_by_method.map(p => <tr key={p.method}><td>{paymentMethodLabel[p.method] || p.method}</td><td>{numberFa(p.count)}</td><td>{money(p.amount)}</td></tr>)}</tbody></TableWrap> : <Empty>دریافتی‌ای برای این بازه ثبت نشده است.</Empty>}</article>
@@ -593,6 +593,19 @@ export default function DashboardApp() {
     const [detailOrder,setDetailOrder]=useState(null);
     const [busy,setBusy]=useState(false);
     const [settings,setSettings]=useState(null);
+
+    useEffect(() => {
+        let active = true;
+        api('/settings').then(payload => {
+            const currencySettings = unwrapData(payload);
+            if (!active) return;
+            window.__restaurantCurrencyLabel = currencySettings?.currency_label || 'تومان';
+            setSettings(currencySettings);
+        }).catch(() => {
+            window.__restaurantCurrencyLabel = window.__restaurantCurrencyLabel || 'تومان';
+        });
+        return () => { active = false; };
+    }, []);
 
     useEffect(()=>{
         let alive=true;
