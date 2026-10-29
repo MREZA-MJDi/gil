@@ -22,6 +22,7 @@ class RestaurantDemoSeederTest extends TestCase
 
     public function test_local_demo_seeder_builds_a_complete_testable_restaurant_and_can_be_repeated(): void
     {
+        $this->app->detectEnvironment(fn () => 'local');
         config(['app.env' => 'local']);
         User::query()->create([
             'name' => 'Demo Test Manager',
@@ -68,6 +69,7 @@ class RestaurantDemoSeederTest extends TestCase
 
     public function test_demo_seeder_refuses_to_run_outside_local_environment(): void
     {
+        $this->app->detectEnvironment(fn () => 'testing');
         config(['app.env' => 'testing']);
 
         $this->expectException(\RuntimeException::class);
