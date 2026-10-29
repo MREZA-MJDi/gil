@@ -9,7 +9,7 @@ class InventoryMovement extends Model
 {
     protected $fillable = [
         'product_id', 'order_id', 'user_id', 'movement_type', 'quantity_delta',
-        'stock_before', 'stock_after', 'reason', 'idempotency_key',
+        'stock_before', 'stock_after', 'reason', 'idempotency_key', 'idempotency_hash',
     ];
 
     protected function casts(): array
