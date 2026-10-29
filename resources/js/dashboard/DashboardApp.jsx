@@ -160,9 +160,10 @@ function nextStatusLabel(status) {
 
 function CashierPage({ cashShift, orders, onRefresh, onOpenShift, onCloseShift, onMovement, onPayment, onDetails }) {
     const [openingCash, setOpeningCash] = useState('0');
-    const [countedCash, setCountedCash] = useState('0');
+    const [countedCash, setCountedCash] = useState('');
     const [shiftNote, setShiftNote] = useState('');
     const [movement, setMovement] = useState({ direction: 'out', amount: '', reason: '' });
+    const [movementKey, setMovementKey] = useState(() => idempotencyKey());
     const payable = (orders || []).filter(order => order.payment_status !== 'paid' && order.payment_status !== 'refunded' && order.status !== 'cancelled');
     return <div className="page-content">
         <PageHeader title="صندوق و پرداخت" subtitle="شروع و پایان شیفت، ثبت دریافت و بازپرداخت؛ پرداخت کارت‌خوان به معنی ثبت تأییدشده توسط کارمند است." />
@@ -182,7 +183,7 @@ function CashierPage({ cashShift, orders, onRefresh, onOpenShift, onCloseShift, 
             </article>
             <article className="panel op-card">
                 <div className="panel-heading"><div><h2>ورودی / خروجی دستی صندوق</h2><p>برای تنخواه، شارژ صندوق یا خروج وجه، علت را شفاف ثبت کن.</p></div></div>
-                {cashShift ? <form className="op-form" onSubmit={e => { e.preventDefault(); onMovement(cashShift.id, movement); }}>
+                {cashShift ? <form className="op-form" onSubmit={e => { e.preventDefault(); onMovement(cashShift.id, { ...movement, idempotency_key: movementKey }).then(ok => { if (ok) { setMovement({ direction: 'out', amount: '', reason: '' }); setMovementKey(idempotencyKey()); } }); }}>
                     <Field label="نوع حرکت"><select value={movement.direction} onChange={e => setMovement(v => ({...v, direction:e.target.value}))}><option value="in">ورودی وجه</option><option value="out">خروجی وجه</option></select></Field>
                     <Field label="مبلغ (تومان)"><input type="number" min="1" value={movement.amount} onChange={e => setMovement(v => ({...v, amount:e.target.value}))} required /></Field>
                     <Field label="علت / شرح"><input minLength="3" maxLength="500" value={movement.reason} onChange={e => setMovement(v => ({...v, reason:e.target.value}))} required placeholder="شرح قابل حسابرسی" /></Field>
@@ -330,7 +331,7 @@ function ReportsPage({ report, onRefresh }) {
     const [to, setTo] = useState('');
     return <div className="page-content">
         <PageHeader title="گزارش‌های مالی و فروش" subtitle="فروش ثبت‌شده، دریافتی، بازپرداخت و پرداخت‌ها تفکیک شده‌اند؛ سود تا تکمیل بهای تمام‌شده گزارش نمی‌شود." />
-        <form className="op-toolbar" onSubmit={e => { e.preventDefault(); onRefresh(from, to); }}><Field label="از تاریخ"><input type="date" value={from} onChange={e => setFrom(e.target.value)} /></Field><Field label="تا تاریخ"><input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} /></Field><Button kind="primary" type="submit">اجرای گزارش</Button><Button onClick={() => { setFrom(''); setTo(''); onRefresh('', ''); }}>این ماه</Button></form>
+        <form className="op-toolbar" onSubmit={e => { e.preventDefault(); onRefresh(from, to); }}><Field label="از تاریخ"><input type="date" value={from} onChange={e => setFrom(e.target.value)} /></Field><Field label="تا تاریخ"><input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} /></Field><Button kind="primary" type="submit">اجرای گزارش</Button><Button type="button" onClick={() => { setFrom(''); setTo(''); onRefresh('', ''); }}>این ماه</Button></form>
         {report?.summary && <div className="op-grid op-grid-3">
             <article className="stat-card"><div className="stat-label">سفارش‌ها</div><div className="stat-value">{numberFa(report.summary.orders_count)}</div><div className="stat-sub">{numberFa(report.summary.cancelled_orders)} لغوشده (در تعداد کل)</div></article>
             <article className="stat-card"><div className="stat-label">فروش ثبت‌شده</div><div className="stat-value">{money(report.summary.registered_sales)}</div><div className="stat-sub">مجموع سفارش‌ها، به‌جز لغوشده‌ها</div></article>
@@ -380,6 +381,7 @@ function OrderModal({ products, tables, onClose, onSubmit }) {
     const [customerPhone, setCustomerPhone] = useState('');
     const [customerNote, setCustomerNote] = useState('');
     const [discount, setDiscount] = useState('0');
+    const [requestKey] = useState(() => idempotencyKey());
     const [productId, setProductId] = useState(activeProducts[0] ? String(activeProducts[0].id) : '');
     const [optionIds, setOptionIds] = useState([]);
     const [cart, setCart] = useState([]);
@@ -402,7 +404,7 @@ function OrderModal({ products, tables, onClose, onSubmit }) {
     };
     return <Modal title="ثبت سفارش" eyebrow="NEW ORDER / LIVE API" onClose={onClose} wide>
         <p className="op-note">قیمت نهایی و مالیات را سرور محاسبه می‌کند. این فرم فقط اقلام و تخفیف را می‌فرستد؛ پرداخت جدا ثبت می‌شود.</p>
-        {activeProducts.length === 0 ? <Empty>برای ثبت سفارش، ابتدا یک محصول فعال بساز.</Empty> : <form className="op-form" onSubmit={e => { e.preventDefault(); onSubmit({ channel, restaurant_table_id: channel === 'dine_in' && tableId ? Number(tableId) : null, customer_name: customerName || null, customer_phone: customerPhone || null, customer_note: customerNote || null, discount: Number(discount || 0), items: cart.map(line => ({...line,options:line.options.map(id => ({id}))})) }); }}>
+        {activeProducts.length === 0 ? <Empty>برای ثبت سفارش، ابتدا یک محصول فعال بساز.</Empty> : <form className="op-form" onSubmit={e => { e.preventDefault(); onSubmit({ channel, restaurant_table_id: channel === 'dine_in' && tableId ? Number(tableId) : null, customer_name: customerName || null, customer_phone: customerPhone || null, customer_note: customerNote || null, discount: Number(discount || 0), idempotency_key: requestKey, items: cart.map(line => ({...line,options:line.options.map(id => ({id}))})) }); }}>
             <div className="op-form-grid">
                 <Field label="کانال سفارش"><select value={channel} onChange={e => { setChannel(e.target.value); if (e.target.value !== 'dine_in') setTableId(''); }}><option value="dine_in">میز / حضوری</option><option value="counter">صندوق / حضوری</option><option value="takeaway">بیرون‌بر</option><option value="online">آنلاین</option></select></Field>
                 {channel === 'dine_in' && <Field label="میز"><select value={tableId} onChange={e=>setTableId(e.target.value)}><option value="">بدون تخصیص میز</option>{(tables || []).filter(t=>t.is_active).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>}
@@ -442,7 +444,7 @@ function ProductModal({ product, categories, onClose, onSave }) {
                 <Field label="دسته‌بندی"><select value={form.category_id} onChange={e=>set('category_id',e.target.value)} required>{(categories||[]).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
                 <Field label="قیمت (تومان)"><input type="number" min="0" value={form.base_price} onChange={e=>set('base_price',e.target.value)} required /></Field>
                 <Field label="وضعیت فروش"><select value={form.status} onChange={e=>set('status',e.target.value)}><option value="active">فعال</option><option value="inactive">غیرفعال</option><option value="unavailable">ناموجود</option></select></Field>
-                <Field label="موجودی فعلی"><input type="number" min="0" value={form.stock_quantity} onChange={e=>set('stock_quantity',e.target.value)} placeholder="خالی = بدون رهگیری" /></Field>
+                <Field label="موجودی فعلی" hint={product && product.stock_quantity !== null ? 'رهگیری موجودی فعال است؛ برای خاموش‌کردن آن سوابق قابل حسابرسی از بین می‌رود.' : 'خالی = بدون رهگیری'}><input type="number" min="0" value={form.stock_quantity} required={Boolean(product && product.stock_quantity !== null)} onChange={e=>set('stock_quantity',e.target.value)} placeholder="خالی = بدون رهگیری" /></Field>
                 <Field label="آستانه کمبود"><input type="number" min="0" value={form.low_stock_threshold} onChange={e=>set('low_stock_threshold',e.target.value)} placeholder="مثلاً ۵" /></Field>
                 <Field label="توضیحات"><input value={form.description} onChange={e=>set('description',e.target.value)} maxLength="3000" /></Field>
             </div>
@@ -478,10 +480,11 @@ function PaymentModal({ order, onClose, onSubmit }) {
     const [method,setMethod]=useState('cash');
     const [reference,setReference]=useState('');
     const [note,setNote]=useState('');
+    const [requestKey] = useState(() => idempotencyKey());
     const remaining=getRemaining(order);
     return <Modal title="ثبت پرداخت" eyebrow="PAYMENT / CASHIER" onClose={onClose}>
         <div className="op-payment-summary"><span>سفارش {order.number}</span><b>{money(order.total)}</b><small>مانده محاسبه‌شده: {money(remaining)}</small></div>
-        <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),method,reference:reference||null,note:note||null},order.id);}}>
+        <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),method,reference:reference||null,note:note||null,idempotency_key:requestKey},order.id);}}>
             <Field label="مبلغ دریافت (تومان)"><input type="number" min="1" max={remaining} value={amount} onChange={e=>setAmount(e.target.value)} required /></Field>
             <Field label="روش پرداخت"><select value={method} onChange={e=>setMethod(e.target.value)}><option value="cash">نقدی (نیازمند شیفت باز)</option><option value="card_terminal">کارت‌خوان — ثبت تأیید توسط کارمند</option><option value="other">سایر / انتقال تأییدشده خارج از سامانه</option></select></Field>
             <Field label="شماره پیگیری (اختیاری)"><input value={reference} onChange={e=>setReference(e.target.value)} maxLength="120" /></Field>
@@ -508,9 +511,10 @@ function RefundModal({ payment, orderId, onClose, onSubmit }) {
     const refundable=Math.max(0,Number(payment.amount||0)-alreadyRefunded);
     const [amount,setAmount]=useState(String(refundable));
     const [reason,setReason]=useState('');
+    const [requestKey] = useState(() => idempotencyKey());
     return <Modal title="بازپرداخت" eyebrow="REFUND / AUDITABLE" onClose={onClose}>
         <div className="op-payment-summary"><span>مبلغ پرداخت اولیه</span><b>{money(payment.amount)}</b><small>مانده قابل بازپرداخت: {money(refundable)}</small></div>
-        <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),reason},payment.id,orderId);}}>
+        <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),reason,idempotency_key:requestKey},payment.id,orderId);}}>
             <Field label="مبلغ بازپرداخت (تومان)"><input type="number" min="1" max={refundable} value={amount} onChange={e=>setAmount(e.target.value)} required /></Field>
             <Field label="علت بازپرداخت"><input value={reason} onChange={e=>setReason(e.target.value)} minLength="3" maxLength="500" required /></Field>
             <p className="op-note">بازپرداخت نقدی نیازمند شیفت باز است. بازپرداخت آنلاین بدون اتصال به درگاه از سمت بانک انجام نمی‌شود.</p>
@@ -627,7 +631,7 @@ export default function DashboardApp() {
     };
     const showRefund=(payment,orderId)=>setModal({type:'refund',payment,orderId});
     const createOrder=payload=>action(async()=>{
-        await api('/orders',{method:'POST',body:payload,idempotent:true});
+        await api('/orders',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key});
         setPage('orders');
     },'سفارش در سرور ثبت شد؛ موجودی رهگیری‌شده هم کم شد.');
     const transition=(order,status)=>action(()=>api('/orders/'+order.id+'/status',{method:'PATCH',body:{status,reason:'تغییر وضعیت از داشبورد'}}),'وضعیت سفارش به‌روزرسانی شد.',{close:false});
@@ -637,8 +641,8 @@ export default function DashboardApp() {
         try{const detail=unwrapData(await api('/orders/'+order.id));setModal({type:'payment',order:detail});}
         catch(e){notify(e.message||'جزئیات سفارش بارگیری نشد.');}
     };
-    const submitPayment=(payload,id)=>action(()=>api('/orders/'+id+'/payments',{method:'POST',body:payload,idempotent:true}),'پرداخت ثبت شد؛ فاکتور را می‌توانی چاپ کنی.');
-    const submitRefund=(payload,paymentId,orderId)=>action(()=>api('/payments/'+paymentId+'/refunds',{method:'POST',body:payload,idempotent:true}),'بازپرداخت ثبت شد. اگر روش وجه نقد باشد، حرکت خروجی صندوق هم ثبت می‌شود.',{close:true});
+    const submitPayment=(payload,id)=>action(()=>api('/orders/'+id+'/payments',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'پرداخت ثبت شد؛ فاکتور را می‌توانی چاپ کنی.');
+    const submitRefund=(payload,paymentId,orderId)=>action(()=>api('/payments/'+paymentId+'/refunds',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'بازپرداخت ثبت شد. اگر روش وجه نقد باشد، حرکت خروجی صندوق هم ثبت می‌شود.',{close:true});
     const printDocument=async(id,type)=>{
         const popup=window.open('about:blank','_blank','width=460,height=800');
         if(!popup){notify('مرورگر پنجره چاپ را مسدود کرد؛ اجازه Pop-up را برای این سایت فعال کن.');return;}
@@ -656,14 +660,14 @@ export default function DashboardApp() {
     const createTable=payload=>action(()=>api('/tables',{method:'POST',body:payload}),'میز ایجاد شد.');
     const updateTable=(table,payload)=>action(()=>api('/tables/'+table.id,{method:'PATCH',body:payload}),'میز به‌روزرسانی شد.',{close:false});
     const rotateTable=table=>action(()=>api('/tables/'+table.id+'/rotate-qr',{method:'POST',body:{}}),'QR قبلی باطل و لینک جدید تولید شد.',{close:false});
-    const adjustInventory=payload=>action(()=>api('/inventory/adjustments',{method:'POST',body:payload,idempotent:true}),'گردش موجودی ثبت شد.');
+    const adjustInventory=payload=>action(()=>api('/inventory/adjustments',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'گردش موجودی ثبت شد.');
     const createReservation=payload=>action(()=>api('/reservations',{method:'POST',body:payload}),'رزرو ثبت شد.');
     const transitionReservation=(item,status)=>action(()=>api('/reservations/'+item.id+'/status',{method:'PATCH',body:{status}}),'وضعیت رزرو تغییر کرد.',{close:false});
     const respondFeedback=(item,payload)=>action(()=>api('/feedback/'+item.id+'/response',{method:'PATCH',body:payload}),'پاسخ بازخورد ذخیره شد.',{close:false});
     const createExpense=payload=>action(()=>api('/expenses',{method:'POST',body:payload}),'هزینه ثبت شد.');
     const openShift=payload=>action(()=>api('/cash-shift/open',{method:'POST',body:payload}),'شیفت صندوق باز شد.');
     const closeShift=(id,payload)=>action(()=>api('/cash-shift/'+id+'/close',{method:'POST',body:payload}),'شیفت بسته و مغایرت محاسبه شد.');
-    const cashMovement=(id,payload)=>action(()=>api('/cash-shift/'+id+'/movements',{method:'POST',body:payload,idempotent:true}),'حرکت صندوق ثبت شد.',{close:false});
+    const cashMovement=(id,payload)=>action(()=>api('/cash-shift/'+id+'/movements',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'حرکت صندوق ثبت شد.',{close:false});
     const saveSettings=payload=>action(async()=>{await api('/settings',{method:'PATCH',body:payload});const refreshed=unwrapData(await api('/settings'));setSettings(refreshed);setData(prev=>({...prev,settings:refreshed}));},'تنظیمات ذخیره شد.',{close:false});
     const runReport=async(from='',to='')=>{
         try{setLoading(true);let qs=[];if(from)qs.push('from='+encodeURIComponent(from));if(to)qs.push('to='+encodeURIComponent(to));const next=unwrapData(await api('/reports/sales'+(qs.length?'?'+qs.join('&'):'')));setData(p=>({...p,report:next}));setError('');}
@@ -721,9 +725,10 @@ function InventoryModal({ product, products, onClose, onSubmit }) {
     const [direction,setDirection]=useState('in');
     const [quantity,setQuantity]=useState('1');
     const [reason,setReason]=useState('');
+    const [requestKey] = useState(() => idempotencyKey());
     const selected=tracked.find(p=>String(p.id)===productId);
     return <Modal title="اصلاح موجودی" eyebrow="INVENTORY MOVEMENT" onClose={onClose}>
-        {tracked.length===0?<Empty>ابتدا برای حداقل یک محصول مقدار موجودی اولیه تعریف کن.</Empty>:<form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({product_id:Number(productId),direction,quantity:Number(quantity),reason:reason.trim()});}}>
+        {tracked.length===0?<Empty>ابتدا برای حداقل یک محصول مقدار موجودی اولیه تعریف کن.</Empty>:<form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({product_id:Number(productId),direction,quantity:Number(quantity),reason:reason.trim(),idempotency_key:requestKey});}}>
             <Field label="محصول"><select value={productId} onChange={e=>setProductId(e.target.value)}>{tracked.map(p=><option key={p.id} value={p.id}>{p.name} · موجودی {numberFa(p.stock_quantity)}</option>)}</select></Field>
             <Field label="جهت حرکت"><select value={direction} onChange={e=>setDirection(e.target.value)}><option value="in">ورود کالا / افزایش</option><option value="out">خروج / ضایعات / مصرف</option></select></Field>
             <Field label="تعداد"><input type="number" min="1" value={quantity} onChange={e=>setQuantity(e.target.value)} required /></Field>
