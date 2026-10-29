@@ -240,3 +240,71 @@
 .site-nav-logout-button{font-family:inherit;cursor:pointer;background:transparent}
 .site-nav-logout-button:hover{background:#f3ded6;border-color:#e4b5a5;color:#a63c2b!important}
 @media(max-width:840px){.site-nav-auth{justify-content:flex-start;padding:12px 0;border:0;border-radius:0;background:transparent;border-bottom:1px solid #e7e0d3;width:100%;font-size:12px}.site-nav-auth:hover{background:transparent;color:var(--pub-red)!important}.site-nav-logout{display:block;width:100%}.site-nav-logout-button{border-radius:0}.site-nav-dashboard{background:transparent;border-color:#e7e0d3}}
+
+
+/* Reservation on the public homepage: one layout contract from wide screens to phones. */
+.reservation-section{padding:clamp(64px,8vw,118px) clamp(20px,8vw,120px);display:grid;grid-template-columns:minmax(220px,.72fr) minmax(0,1.28fr);align-items:start;gap:clamp(28px,6vw,84px);background:#ece8dc;border-block:1px solid var(--pub-line);scroll-margin-top:100px}
+.reservation-section-heading{position:sticky;top:115px;max-width:390px;padding-top:12px}
+.reservation-section-heading .section-kicker{color:#837f70}
+.reservation-section-heading h2{margin:18px 0;font-size:clamp(38px,4.8vw,65px);line-height:1.35;letter-spacing:-.06em;font-weight:800}
+.reservation-section-heading h2 em{color:var(--pub-red);font-family:Georgia,'Vazirmatn',serif;font-weight:600}
+.reservation-section-heading>p{font-size:12px;line-height:2.2;color:#65685d;max-width:330px}
+.reservation-noscript{grid-column:1/-1;padding:20px;border:1px solid #ddd1ba;border-radius:10px}
+.public-reservation-card{min-width:0;padding:clamp(18px,3.2vw,34px);border:1px solid #e4dccd;border-radius:17px;background:var(--pub-paper);box-shadow:0 18px 45px #2d2b2010}
+.reservation-form-intro{display:flex;align-items:flex-start;gap:14px;padding-bottom:22px;border-bottom:1px solid var(--pub-line);margin-bottom:22px}
+.reservation-form-mark{flex:0 0 44px;width:44px;height:44px;display:grid;place-items:center;border-radius:13px;background:var(--pub-lime);color:var(--pub-green);font-size:22px}
+.reservation-form-intro .section-kicker{font-size:9px}
+.reservation-form-intro h3{margin:7px 0 5px;font-size:20px;font-weight:800;letter-spacing:-.03em}
+.reservation-form-intro p{margin:0;color:#878275;font-size:11px;line-height:2}
+.public-reservation-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 13px;min-width:0}
+.reservation-field{display:flex;flex-direction:column;gap:8px;min-width:0;color:#4c4c41;font-size:11px;font-weight:700}
+.reservation-field>span{display:block;line-height:1.8}
+.reservation-field input,.reservation-field select,.reservation-field textarea{display:block;width:100%;min-width:0;max-width:100%;border:1px solid #ddd7ca;border-radius:9px;background:#fffefa;color:#282a22;padding:12px 13px;font:inherit;font-size:12px;font-weight:400;outline:none;transition:border-color .18s,box-shadow .18s}
+.reservation-field input,.reservation-field select{height:46px}
+.reservation-field input[dir=ltr]{text-align:left;direction:ltr}
+.reservation-field textarea{resize:vertical;min-height:86px;line-height:1.9}
+.reservation-field input:focus,.reservation-field select:focus,.reservation-field textarea:focus{border-color:#9eaf65;box-shadow:0 0 0 3px #a9b96c25}
+.reservation-field input::placeholder,.reservation-field textarea::placeholder{color:#aaa496}
+.reservation-field-wide{grid-column:1/-1}
+.reservation-submit-row{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:15px;padding-top:7px}
+.reservation-submit-row p{max-width:320px;margin:0;color:#8a8577;font-size:10px;line-height:1.9}
+.reservation-submit-button{background:var(--pub-green);color:#fffdf4!important;border:0;cursor:pointer;white-space:nowrap;gap:14px}
+.reservation-submit-button:hover{background:var(--pub-red)}
+.reservation-submit-button:disabled{opacity:.55;cursor:wait;transform:none}
+.public-reservation-error,.public-reservation-success{grid-column:1/-1;display:flex;flex-direction:column;gap:5px;margin-bottom:16px;padding:13px 15px;border-radius:10px;font-size:11px;line-height:1.9}
+.public-reservation-error{border:1px solid #ebc7be;background:#fff3f0;color:#993d31}
+.public-reservation-success{border:1px solid #cbd8ad;background:#f4f7e9;color:#35503a}
+.public-reservation-success strong{font-size:13px}
+.public-reservation-success span{display:block}
+.public-reservation-success small{font-size:10px;color:#65715c}
+.public-reservation-success button{align-self:flex-start;border:0;background:none;padding:5px 0;color:#8b452f;font:inherit;font-weight:800;cursor:pointer}
+.public-reservation-section .jalali-picker{width:100%}
+.public-reservation-section .jalali-picker-input-row{gap:6px}
+.public-reservation-section .jalali-date-display,.public-reservation-section .jalali-time-input{height:46px;border:1px solid #ddd7ca;border-radius:9px;background:#fffefa;font:inherit;font-size:12px}
+.public-reservation-section .jalali-open-button{flex-basis:43px;width:43px;border-color:#ddd7ca;background:#f5f2e9}
+.public-reservation-section .jalali-time-input{flex-basis:100px;width:100px;padding:0 7px}
+.public-reservation-section .jalali-calendar{width:min(320px,calc(100vw - 48px))}
+@media(max-width:900px){
+ .reservation-section{grid-template-columns:minmax(0,1fr);gap:24px;padding:72px 6%}
+ .reservation-section-heading{position:static;max-width:640px}
+ .reservation-section-heading h2{font-size:clamp(38px,7vw,56px);margin:12px 0}
+ .reservation-section-heading>p{max-width:600px}
+}
+@media(max-width:560px){
+ .reservation-section{padding:56px 5%;gap:20px}
+ .reservation-section-heading h2{font-size:38px}
+ .reservation-section-heading>p{font-size:11px}
+ .public-reservation-card{padding:17px 13px;border-radius:13px}
+ .reservation-form-intro{gap:10px;padding-bottom:15px;margin-bottom:16px}
+ .reservation-form-mark{width:37px;height:37px;flex-basis:37px;border-radius:10px}
+ .reservation-form-intro h3{font-size:17px}
+ .reservation-form-intro p{font-size:10px}
+ .public-reservation-form{grid-template-columns:minmax(0,1fr);gap:13px}
+ .reservation-field-wide,.reservation-submit-row,.public-reservation-error,.public-reservation-success{grid-column:1}
+ .reservation-field input,.reservation-field select,.reservation-field textarea{font-size:16px}
+ .reservation-submit-row{align-items:stretch;flex-direction:column}
+ .reservation-submit-row p{max-width:none}
+ .reservation-submit-button{width:100%;justify-content:space-between}
+ .public-reservation-section .jalali-time-input{flex-basis:94px;width:94px}
+ .public-reservation-section .jalali-calendar{width:min(310px,calc(100vw - 38px))}
+}
