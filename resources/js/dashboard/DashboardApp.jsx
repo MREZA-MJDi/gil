@@ -32,7 +32,7 @@ const paymentMethodLabel = { cash: 'نقدی', card_terminal: 'کارت‌خوا
 const expenseCategoryLabel = { rent: 'اجاره', payroll: 'حقوق', utilities: 'قبوض', ingredients: 'مواد اولیه', repairs: 'تعمیرات', packaging: 'بسته‌بندی', transport: 'حمل‌ونقل', other: 'سایر' };
 const money = value => formatIranianMoney(value, 'تومان');
 const numberFa = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0));
-const dateTime = value => value ? new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
+const dateTime = value => value ? new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Tehran' }).format(new Date(value)) : '—';
 const localDateTime = value => value ? String(value).replace('T', ' ') + ':00' : '';
 const channelLabel = order => {
     if (order?.table?.name) return order.table.name;
