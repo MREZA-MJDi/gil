@@ -52,8 +52,12 @@ class ProductController extends Controller
 
     public function destroy(Product $product, AuditLogger $audit, Request $request): JsonResponse
     {
-        // Orders preserve product snapshots and nullable product_id; deletion is allowed only when no audit-worthy stock activity exists.
-        abort_if($product->options()->exists(), 409, 'ابتدا گزینه‌های محصول را از بین ببرید یا محصول را غیرفعال کنید.');
+        abort_if($product->options()->exists(), 409, 'ابتدا گزینه‌های محصول را حذف کنید یا محصول را غیرفعال کنید.');
+        abort_if(
+            $product->orderItems()->exists() || $product->inventoryMovements()->exists(),
+            409,
+            'محصول دارای سابقه فروش یا گردش موجودی است؛ برای حفظ سوابق، آن را غیرفعال کنید.',
+        );
         $audit->record('product.deleted', $product, $product->only(['name','base_price','status']), [], 'product_delete', $request->user()->id);
         $product->delete();
         return response()->json(['message' => 'محصول حذف شد.']);
