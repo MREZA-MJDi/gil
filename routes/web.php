@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\PublicHomeController;
 use App\Http\Controllers\Admin\CashShiftController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExpenseController;
@@ -19,7 +20,8 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Customer\MenuController as CustomerMenuController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+Route::get('/', [PublicHomeController::class, 'home'])->name('home');
+Route::get('/menu', [PublicHomeController::class, 'menu'])->name('public.menu');
 
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AuthController::class, 'create'])->name('admin.login');
