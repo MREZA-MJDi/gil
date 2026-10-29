@@ -38,6 +38,16 @@ class Product extends Model
         return $this->hasMany(ProductOption::class)->orderBy('sort_order')->orderBy('id');
     }
 
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function inventoryMovements(): HasMany
+    {
+        return $this->hasMany(InventoryMovement::class);
+    }
+
     public function scopeOnMenu(Builder $query): Builder
     {
         return $query->where('status', ProductStatus::Active->value)
