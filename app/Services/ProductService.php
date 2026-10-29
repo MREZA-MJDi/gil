@@ -72,7 +72,7 @@ class ProductService
                         'stock_quantity' => 'رهگیری موجودی برای محصولی که گردش موجودی دارد قابل خاموش‌کردن نیست؛ موجودی را با اصلاح انبار مدیریت کنید.',
                     ]);
                 }
-                $oldValues = $product->only(['name', 'category_id', 'base_price', 'status', 'sort_order', 'stock_quantity', 'low_stock_threshold']);
+                $oldValues = $product->only(['name', 'category_id', 'base_price', 'description', 'ingredients', 'allergens', 'dietary_tags', 'calories', 'preparation_time_minutes', 'status', 'sort_order', 'stock_quantity', 'low_stock_threshold']);
                 $optionsProvided = array_key_exists('options', $data);
                 $options = $data['options'] ?? [];
                 unset($data['options']);
