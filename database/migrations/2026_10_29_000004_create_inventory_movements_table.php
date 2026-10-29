@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->unsignedInteger('stock_after');
             $table->string('reason', 500)->nullable();
             $table->string('idempotency_key', 64)->nullable()->unique();
+            $table->string('idempotency_hash', 64)->nullable();
             $table->timestamps();
             $table->index(['product_id', 'created_at']);
             $table->index(['order_id', 'movement_type']);
