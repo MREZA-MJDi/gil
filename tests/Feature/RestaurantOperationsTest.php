@@ -505,7 +505,6 @@ class RestaurantOperationsTest extends TestCase
         $this->assertSame('website', $order->source);
         $this->assertSame('takeaway', $order->channel);
         $this->assertSame(125000, $order->subtotal);
-        $this->assertSame(5, $this->product->fresh()->stock_quantity === 4 ? 5 : 5); // The source product was sold once; checked below.
         $this->assertSame(4, $this->product->fresh()->stock_quantity);
     }
 
