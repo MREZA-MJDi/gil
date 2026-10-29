@@ -87,6 +87,13 @@
                 <label><span>نام و نام خانوادگی *</span><input name="customer_name" autocomplete="name" required maxlength="150"></label>
                 <label><span>شماره تماس *</span><input name="customer_phone" autocomplete="tel" inputmode="tel" required maxlength="30"></label>
                 <label class="online-checkout-note"><span>توضیح سفارش (اختیاری)</span><textarea name="customer_note" rows="2" maxlength="2000" placeholder="مثلاً بدون شکر یا توضیح ضروری"></textarea></label>
+                <fieldset class="online-payment-preference">
+                    <legend>روش پرداخت دلخواه</legend>
+                    <label><input type="radio" name="payment_preference" value="at_counter" checked><span><b>هنگام تحویل / در صندوق</b><small>گزینهٔ پیشنهادی اگر هنوز تصمیم نگرفته‌ای.</small></span></label>
+                    <label><input type="radio" name="payment_preference" value="card_terminal"><span><b>کارت‌خوان</b><small>پرداخت را کارکنان ثبت می‌کنند.</small></span></label>
+                    <label><input type="radio" name="payment_preference" value="cash"><span><b>نقدی</b><small>این انتخاب به‌تنهایی به معنی پرداخت نیست.</small></span></label>
+                    <p>ترجیح پرداخت ثبت می‌شود؛ سفارش زمانی تسویه‌شده است که مبلغ واقعی در صندوق ثبت شود.</p>
+                </fieldset>
                 <button class="button button-dark" type="submit" id="online-checkout-submit" disabled>ثبت سفارش بیرون‌بر <span>↗</span></button>
                 <p id="online-checkout-message" role="status"></p>
             </form>

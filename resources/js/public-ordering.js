@@ -13,6 +13,7 @@ if (root) {
     const submit = document.getElementById('online-checkout-submit');
     const message = document.getElementById('online-checkout-message');
     let pendingIdempotencyKey = null;
+    let pendingPayload = null;
     let uncertainSubmission = false;
     const setCheckoutLocked = locked => {
         uncertainSubmission = locked;
@@ -99,12 +100,13 @@ if (root) {
                 throw new Error(validation || body?.message || 'سفارش ثبت نشد؛ اطلاعات را بررسی و دوباره تلاش کن.');
             }
             const order = body?.data || {};
-            cart.clear(); form.reset(); pendingIdempotencyKey = null; setCheckoutLocked(false); render();
+            cart.clear(); form.reset(); pendingIdempotencyKey = null; pendingPayload = null; setCheckoutLocked(false); render();
             message.textContent = 'سفارش ' + (order.number || '') + ' ثبت شد. مبلغ نهایی: ' + money(order.total) + '. پرداخت هنوز ثبت نشده و هنگام تحویل یا در صندوق انجام می‌شود.';
         } catch (error) {
             message.textContent = error?.message || 'ارتباط با سرور برقرار نشد. لطفاً دوباره تلاش کن.';
             if (response && response.status >= 400 && response.status < 500 && response.status !== 429) {
                 pendingIdempotencyKey = null;
+                pendingPayload = null;
                 setCheckoutLocked(false);
             } else {
                 // The server may have committed before a timeout/5xx. Freeze the same payload/key to prevent duplicates.

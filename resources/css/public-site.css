@@ -502,3 +502,14 @@
     .public-home-v2 .gil-category-links>a,.public-home-v2 .gil-category-image img,.public-home-v2 .gil-carousel-controls button{transition:none}
     .public-home-v2 .gil-category-links>a:hover{transform:none}
 }
+
+.public-home-v2 .site-header.is-scrolled{position:fixed;top:0;background:#141310f5;backdrop-filter:blur(16px);box-shadow:0 8px 30px #0004}
+.public-site .online-payment-preference{grid-column:1/-1;border:1px solid var(--pub-line);border-radius:12px;padding:12px 15px;background:#fbf7ef}
+.public-site .online-payment-preference legend{padding:0 6px;font-size:13px;font-weight:800}
+.public-site .online-payment-preference label{display:flex;flex-direction:row;align-items:flex-start;gap:10px;padding:10px 2px;border-bottom:1px solid var(--pub-line);cursor:pointer}
+.public-site .online-payment-preference label:last-of-type{border-bottom:0}
+.public-site .online-payment-preference input{width:auto;margin-top:4px;accent-color:var(--pub-green)}
+.public-site .online-payment-preference label span{display:grid;gap:3px}
+.public-site .online-payment-preference label b{font-size:12px}
+.public-site .online-payment-preference label small,.public-site .online-payment-preference>p{font-size:11px;color:var(--pub-muted);line-height:1.8}
+.public-site .online-payment-preference>p{margin:8px 0 0}
