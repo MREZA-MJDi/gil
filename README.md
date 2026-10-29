@@ -75,4 +75,6 @@ GitHub Actions این مراحل را نیز روی push و pull request اجر�
 
 این سرور توسعه برای production مناسب نیست. در production از Nginx یا وب‌سرور مناسب، PHP-FPM یا سرویس مدیریت‌شده، TLS، APP_DEBUG=false، بکاپ، لاگ و restart خودکار استفاده کن؛ پورت را در firewall فقط برای مبدأهای لازم باز کن.
 
-راهنمای کامل فارسی: docs/dashboard-guide-fa.md
+راهنمای کاربری داشبورد: docs/dashboard-guide-fa.md  
+راهنمای استقرار روی سرور و Nginx: docs/deployment-server-fa.md  
+نمونه کانفیگ Nginx پورت 8086: deploy/nginx-gil-8086.conf.example
