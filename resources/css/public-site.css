@@ -329,3 +329,162 @@
  .public-site.gsap-ready .visit-copy,
  .public-site.gsap-ready .visit-details{transition:none!important;transform:none!important;opacity:1!important}
 }
+
+
+/* Cinematic full-bleed home hero, inspired by the Khane Gilasi reference. */
+.public-home .site-topline{display:none}
+.public-home .site-header{
+    position:absolute;top:0;right:0;left:0;z-index:100;
+    width:100%;height:94px;padding:0 clamp(22px,8.5vw,132px);
+    gap:clamp(16px,3vw,46px);background:transparent;color:#fff;
+    border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+.public-home .site-header.is-scrolled{
+    position:fixed;height:74px;background:rgba(26,22,18,.92);
+    border-bottom:1px solid rgba(255,255,255,.12);box-shadow:0 8px 30px rgba(0,0,0,.18);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+.public-home .site-brand{gap:0}
+.public-home .site-brand-mark{display:none}
+.public-home .site-brand-copy b{
+    color:#fff;font-family:Arial,'Vazirmatn',sans-serif;font-size:clamp(19px,2vw,25px);
+    font-weight:900;letter-spacing:.035em;line-height:1.1;
+}
+.public-home .site-brand-copy b em{color:#f0a331;font-style:normal}
+.public-home .site-brand-copy small{
+    color:rgba(255,255,255,.75);font-size:8px;letter-spacing:.31em;
+    margin-top:7px;text-align:left;
+}
+.public-home .site-nav{gap:clamp(15px,2.4vw,36px);color:rgba(255,255,255,.94);font-size:11px}
+.public-home .site-nav a{font-weight:700;letter-spacing:.035em}
+.public-home .site-nav a:hover,.public-home .site-nav a:focus-visible{color:#f0a331}
+.public-home .site-nav-auth,.public-home .site-nav-logout{display:none!important}
+.public-home .site-header-cta{
+    min-height:43px;padding:0 25px;gap:10px;border-radius:999px;
+    background:#efa832;color:#2c2115!important;font-size:11px;letter-spacing:.02em;
+}
+.public-home .site-header-cta:hover{background:#ffc05a;transform:translateY(-1px)}
+.public-home .site-header-cta span{font-size:14px}
+.public-home .hero-fullbleed{
+    isolation:isolate;position:relative;display:flex;align-items:center;justify-content:center;
+    width:100%;min-height:100vh;min-height:100svh;overflow:hidden;
+    padding:135px 7% 110px;margin:0;background:#261c15;color:#fff;text-align:center;
+}
+.public-home .hero-fullbleed::before,
+.public-home .hero-fullbleed::after{content:"";position:absolute;inset:0;pointer-events:none}
+.public-home .hero-fullbleed::before{
+    z-index:-2;background-image:url('/images/cafe-hero.webp');
+    background-size:cover;background-position:center 51%;background-repeat:no-repeat;
+    transform:scale(1.015);animation:cafeHeroReveal 1s ease-out both;
+}
+.public-home .hero-fullbleed::after{
+    z-index:-1;background:
+      linear-gradient(180deg,rgba(13,11,9,.62) 0%,rgba(18,14,10,.28) 24%,rgba(15,12,9,.48) 63%,rgba(17,12,8,.64) 100%),
+      radial-gradient(ellipse at center,rgba(0,0,0,.06) 0%,rgba(0,0,0,.22) 76%);
+}
+.public-home .hero-center{width:min(760px,100%);margin:5px auto 0;position:relative;z-index:1}
+.public-home .hero-script{
+    display:block;margin:0 0 5px;color:#f0a331;
+    font:italic clamp(29px,3.5vw,48px)/1.3 Georgia,'Times New Roman',serif;
+    letter-spacing:-.025em;
+}
+.public-home .hero-fullbleed h1{
+    margin:0;color:#fff;font-family:Arial,'Vazirmatn',sans-serif;
+    font-size:clamp(45px,7vw,91px);font-weight:900;line-height:1.09;
+    letter-spacing:.035em;text-shadow:0 4px 28px rgba(0,0,0,.32);
+}
+.public-home .hero-category{
+    display:flex;align-items:center;justify-content:center;gap:15px;
+    margin:16px 0 28px;color:rgba(255,255,255,.9);
+    font:500 clamp(10px,1.25vw,15px)/1.5 'DM Mono',Arial,sans-serif;
+    letter-spacing:.45em;direction:ltr;
+}
+.public-home .hero-category span{display:inline-block;width:52px;height:1px;background:#e7a039}
+.public-home .hero-fullbleed .hero-description{
+    max-width:680px;margin:0 auto 35px;color:rgba(255,255,255,.91);
+    font-size:clamp(12px,1.3vw,16px);line-height:1.9;text-align:center;
+    text-shadow:0 2px 8px rgba(0,0,0,.5);
+}
+.public-home .hero-centered-actions{justify-content:center;gap:15px}
+.public-home .hero-fullbleed .button{
+    min-width:158px;min-height:51px;padding:0 25px;justify-content:center;
+    border-radius:999px;font-size:12px;letter-spacing:.01em;gap:10px;
+}
+.public-home .hero-button-book{background:#efa832;color:#2e2114;border-color:#efa832}
+.public-home .hero-button-book:hover{background:#ffc05a;border-color:#ffc05a;transform:translateY(-2px)}
+.public-home .hero-button-menu{background:rgba(24,20,16,.14);border:1px solid rgba(255,255,255,.85);color:#fff}
+.public-home .hero-button-menu:hover{background:rgba(255,255,255,.15);border-color:#fff;transform:translateY(-2px)}
+.public-home .hero-phone{
+    position:absolute;left:clamp(23px,7vw,108px);bottom:28px;z-index:2;
+    display:flex;align-items:center;gap:12px;color:#fff;font-size:13px;
+    text-shadow:0 2px 8px rgba(0,0,0,.5);direction:ltr;
+}
+.public-home .hero-phone svg{width:21px;height:21px}
+.public-home .hero-bottom-note{
+    position:absolute;right:clamp(23px,7vw,108px);bottom:32px;z-index:2;
+    display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.82);
+    font:9px 'DM Mono',Arial,sans-serif;letter-spacing:.14em;direction:ltr;
+}
+.public-home .hero-bottom-note span{color:#efa832;font-size:16px}
+.public-home .hero-scroll{
+    position:absolute;bottom:22px;left:50%;z-index:2;display:grid;place-items:center;
+    width:35px;height:35px;border-radius:50%;transform:translateX(-50%);
+}
+.public-home .hero-scroll span{
+    display:block;width:11px;height:11px;border-right:1.5px solid #fff;
+    border-bottom:1.5px solid #fff;transform:translateY(-3px) rotate(45deg);
+    animation:heroScrollNudge 1.8s ease-in-out infinite;
+}
+@keyframes cafeHeroReveal{from{opacity:.35;transform:scale(1.06)}to{opacity:1;transform:scale(1.015)}}
+@keyframes heroScrollNudge{0%,100%{transform:translateY(-3px) rotate(45deg)}50%{transform:translateY(2px) rotate(45deg)}}
+@media(max-width:840px){
+    .public-home .site-header{height:80px;padding-inline:5%}
+    .public-home .site-header.is-scrolled{height:67px}
+    .public-home .site-nav{
+        top:100%;right:0;left:0;padding:8px 5% 16px;
+        background:rgba(26,22,18,.97);border-bottom:1px solid rgba(255,255,255,.14);
+        box-shadow:0 18px 25px rgba(0,0,0,.2);backdrop-filter:blur(12px);
+    }
+    .public-home .site-nav a{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.12);color:#fff;font-size:12px}
+    .public-home .site-header-cta{min-height:39px;padding:0 16px;font-size:10px}
+    .public-home .site-menu-toggle span{background:#fff}
+    .public-home .site-header.is-scrolled .site-menu-toggle span{background:#fff}
+    .public-home .hero-fullbleed{min-height:100svh;padding:125px 7% 105px}
+    .public-home .hero-fullbleed::before{background-position:center}
+    .public-home .hero-script{font-size:clamp(31px,6vw,43px)}
+    .public-home .hero-fullbleed h1{font-size:clamp(46px,10vw,72px)}
+    .public-home .hero-category{margin:13px 0 22px;font-size:11px;letter-spacing:.34em;gap:11px}
+    .public-home .hero-category span{width:34px}
+    .public-home .hero-fullbleed .hero-description{max-width:560px;margin-bottom:27px;font-size:13px}
+    .public-home .hero-phone{left:5%;bottom:24px;font-size:11px}
+    .public-home .hero-bottom-note{right:5%;bottom:27px;font-size:8px}
+    .public-home .hero-scroll{bottom:55px}
+}
+@media(max-width:560px){
+    .public-home .site-header{height:72px;padding-inline:18px;gap:11px}
+    .public-home .site-header.is-scrolled{height:64px}
+    .public-home .site-brand-copy b{font-size:19px}
+    .public-home .site-brand-copy small{font-size:7px;letter-spacing:.22em;margin-top:5px}
+    .public-home .site-header-cta{padding:0 13px;min-height:37px;font-size:9px}
+    .public-home .site-menu-toggle{padding:5px}
+    .public-home .hero-fullbleed{min-height:100svh;padding:118px 22px 124px}
+    .public-home .hero-fullbleed::before{background-position:53% center}
+    .public-home .hero-fullbleed::after{
+        background:linear-gradient(180deg,rgba(13,11,9,.57),rgba(15,12,9,.25) 29%,rgba(15,12,9,.45) 64%,rgba(17,12,8,.7));
+    }
+    .public-home .hero-script{font-size:31px}
+    .public-home .hero-fullbleed h1{font-size:clamp(38px,11vw,59px);letter-spacing:.015em}
+    .public-home .hero-category{font-size:9px;letter-spacing:.25em;gap:8px;margin:11px 0 19px}
+    .public-home .hero-category span{width:24px}
+    .public-home .hero-fullbleed .hero-description{font-size:11px;line-height:2;margin-bottom:24px}
+    .public-home .hero-centered-actions{gap:9px}
+    .public-home .hero-fullbleed .button{min-width:135px;min-height:46px;padding:0 17px;font-size:11px}
+    .public-home .hero-phone{left:18px;bottom:22px;gap:7px;font-size:10px}
+    .public-home .hero-phone svg{width:16px;height:16px}
+    .public-home .hero-bottom-note{right:18px;bottom:25px;font-size:7px;letter-spacing:.08em;gap:5px}
+    .public-home .hero-bottom-note span{font-size:12px}
+    .public-home .hero-scroll{bottom:59px}
+}
+@media(prefers-reduced-motion:reduce){
+    .public-home .hero-fullbleed::before,.public-home .hero-scroll span{animation:none}
+}
