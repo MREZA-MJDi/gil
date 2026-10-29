@@ -9,34 +9,28 @@
     <title>{{ $settings->name }} — قهوه، آشپزخانه، لحظه‌ها</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="public-site">
-    <div class="site-topline"><span>قهوه تازه · مواد اولیه باکیفیت · حال خوب</span><span class="site-topline-right"><i></i> امروز هم برای یک مکث خوشمزه بازیم</span></div>
+<body class="public-site public-home">
     @include('public.partials.nav')
     <main>
-        <section class="hero-section cup-stop" id="home" data-cup-stop>
-            <div class="hero-copy">
-                <span class="eyebrow"><span class="eyebrow-dot"></span> A LITTLE PAUSE, A LOT OF GOOD</span>
-                <h1>روزت را<br><span>جرعه‌جرعه</span><br>بهتر کن.</h1>
-                <p class="hero-description">قهوه‌ای که با حوصله دم می‌کشد، خوراکی‌ای که با عشق آماده می‌شود؛ و جایی که می‌توانی چند دقیقه از شلوغی دنیا فاصله بگیری.</p>
-                <div class="hero-actions">
-                    <a class="button button-dark" href="{{ route('public.menu') }}">کشف منو <span>↗</span></a>
-                    <a class="button button-quiet" href="#story"><span class="button-play">↓</span> قصهٔ ما</a>
-                    <a class="button button-quiet" href="#reservation">درخواست رزرو <span>↗</span></a>
+        <section class="hero-section hero-fullbleed cup-stop" id="home" data-cup-stop>
+            <div class="hero-center">
+                <span class="hero-script">Welcome to</span>
+                <h1>KHANE GILASI</h1>
+                <div class="hero-category"><span></span> CAFÉ &amp; RESTAURANT <span></span></div>
+                <p class="hero-description">Good food brings people together. At Khane Gilasi, we serve fresh ingredients with real taste, in a warm and friendly atmosphere.</p>
+                <div class="hero-actions hero-centered-actions">
+                    <a class="button hero-button-book" href="#reservation">Book a Table</a>
+                    <a class="button hero-button-menu" href="{{ route('public.menu') }}">View Menus</a>
                 </div>
-                <div class="hero-social-proof"><div class="mini-avatar-stack"><span>گ</span><span>ق</span><span>☕</span></div><div><b>برای لحظه‌های معمولیِ خاص</b><small>قهوه، غذا، آدم‌های خوب</small></div></div>
-                <div class="hero-scribble" aria-hidden="true">slow down<br>sip something good <span>✳</span></div>
             </div>
-            <div class="hero-visual">
-                <div class="hero-image-frame">
-                    <img class="hero-image" src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1300&q=85" alt="قهوه تازه و ابزار دم‌آوری در کافه" fetchpriority="high">
-                    <div class="hero-image-shade"></div>
-                    <div class="hero-image-caption"><span>01 / 04</span><span>GOOD THINGS TAKE TIME</span></div>
-                </div>
-                <div class="hero-sticker" aria-label="قهوه تازه، هر روز"><span>FRESH</span><b>☕</b><span>EVERY DAY</span></div>
-                <div class="floating-note note-top"><span class="note-line"></span><span>از دانه تا فنجان<br><b>همه‌چیز با دقت</b></span></div>
-                <div class="floating-note note-bottom"><span class="note-icon">✳</span><span><b>لحظهٔ خودت</b><br>همین‌جا شروع می‌شود.</span></div>
-            </div>
-            <div class="hero-index"><span>01</span><span class="hero-index-line"></span><span>05</span></div>
+            @if ($settings->phone)
+                <a class="hero-phone" href="tel:{{ preg_replace('/[^0-9+]/', '', $settings->phone) }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 2.8 10 2l2 4.5-2.2 2.1a15.3 15.3 0 0 0 5.6 5.6l2.1-2.2 4.5 2-.8 3.4a2.2 2.2 0 0 1-2.4 1.7C10 18.1 5.9 14 4.9 5.2a2.2 2.2 0 0 1 1.7-2.4Z" fill="currentColor"/></svg>
+                    <span>{{ $settings->phone }}</span>
+                </a>
+            @endif
+            <div class="hero-bottom-note">FRESH INGREDIENTS <span>✳</span> WARM HOSPITALITY</div>
+            <a class="hero-scroll" href="#menu" aria-label="Scroll to menu"><span></span></a>
         </section>
 
         <section class="ticker-section" aria-label="چیزهای خوب کافه"><div class="ticker-track"><span>قهوهٔ تازه</span><i>✳</i><span>آشپزخانهٔ گرم</span><i>✳</i><span>موسیقی ملایم</span><i>✳</i><span>آدم‌های دوست‌داشتنی</span><i>✳</i><span>قهوهٔ تازه</span><i>✳</i><span>آشپزخانهٔ گرم</span><i>✳</i><span>موسیقی ملایم</span><i>✳</i><span>آدم‌های دوست‌داشتنی</span><i>✳</i></div></section>
