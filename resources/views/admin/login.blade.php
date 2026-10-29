@@ -22,7 +22,6 @@
                 <div class="auth-input-wrap">
                     <input class="auth-input" id="phone" type="tel" name="phone" value="{{ old('phone') }}"
                         autocomplete="tel" inputmode="tel" dir="ltr" placeholder="0912 123 4567" maxlength="30" required autofocus>
-                    <span class="auth-input-suffix">+98</span>
                 </div>
                 <label class="auth-label" for="password">رمز عبور</label>
                 <input class="auth-input" id="password" type="password" name="password" autocomplete="current-password"
