@@ -14,8 +14,11 @@ class AdminUserSeeder extends Seeder
         $password = config('admin.password');
         $name = config('admin.name', 'مدیر خانه گیلاسی');
 
-        if (! $email || ! $password || strlen($password) < 14) {
-            throw new RuntimeException('ADMIN_EMAIL و ADMIN_PASSWORD با حداقل ۱۴ کاراکتر را در .env تعریف کنید.');
+        // Local-only shortcut for a disposable development database. Production always requires a strong password.
+        $minimumPasswordLength = app()->environment('local') ? 1 : 14;
+
+        if (! $email || ! $password || strlen($password) < $minimumPasswordLength) {
+            throw new RuntimeException('ADMIN_EMAIL و ADMIN_PASSWORD را تعریف کنید؛ در production رمز باید حداقل ۱۴ کاراکتر باشد.');
         }
 
         User::query()->updateOrCreate(
