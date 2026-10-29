@@ -2,6 +2,8 @@
 
 The repository intentionally does not contain a fixed admin password. GitHub repository access alone cannot insert a row into a remote runtime database. Create the admin account in the same database configured by the application's private .env file.
 
+For a disposable local environment only (`APP_ENV=local`), the seeder permits a short development password so you can preview the UI quickly. This allowance is disabled outside local mode; never expose the local demo account on a public network or production server.
+
 ## 1. Configure the account
 
 Set these values in the server's private .env file. Use a real email you control and a unique password of at least 14 characters.

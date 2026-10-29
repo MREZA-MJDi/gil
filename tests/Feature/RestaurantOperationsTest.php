@@ -54,6 +54,53 @@ class RestaurantOperationsTest extends TestCase
         $this->getJson('/admin/api/dashboard')->assertUnauthorized();
     }
 
+    public function test_admin_dashboard_redirects_guests_to_admin_login_route(): void
+    {
+        $this->get('/admin')->assertRedirect(route('admin.login'));
+    }
+
+    public function test_public_home_and_menu_render_database_catalog(): void
+    {
+        $this->product->forceFill([
+            'name' => 'لاته تست',
+            'description' => 'قهوه تازه با شیر',
+            'base_price' => 95000,
+        ])->save();
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('روزت را')
+            ->assertSee('لاته تست')
+            ->assertSee('ورود کارکنان');
+
+        $this->actingAs($this->admin)->get('/')
+            ->assertOk()
+            ->assertSee('پنل مدیریت')
+            ->assertSee('خروج')
+            ->assertSee(route('admin.logout'), false);
+
+        $this->get('/menu')->assertOk()->assertSee('منو برای')->assertSee('لاته تست');
+    }
+
+    public function test_local_seeder_accepts_development_password_only_in_local_environment(): void
+    {
+        config([
+            'app.env' => 'local',
+            'admin.name' => 'Local Demo Admin',
+            'admin.email' => 'local-demo@example.test',
+            'admin.password' => 'password',
+        ]);
+
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\AdminUserSeeder::class]);
+
+        $this->post('/admin/login', [
+            'email' => 'local-demo@example.test',
+            'password' => 'password',
+        ])->assertRedirect(route('admin.dashboard'));
+
+        $this->assertAuthenticatedAs(User::query()->where('email', 'local-demo@example.test')->first());
+    }
+
     public function test_admin_login_works_with_seeded_env_configuration(): void
     {
         config([
