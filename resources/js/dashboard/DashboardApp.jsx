@@ -8,6 +8,7 @@ const navItems = [
     ['cashier', 'صندوق و پرداخت', '◈'],
     ['menu', 'منو و محصولات', '▦'],
     ['inventory', 'موجودی و انبار', '▧'],
+    ['recipes', 'رسپی و مواد اولیه', '♨'],
     ['tables', 'میزها و QR', '▤'],
     ['reservations', 'رزروها', '◷'],
     ['customers', 'بازخورد مشتریان', '♧'],
@@ -35,6 +36,10 @@ const dateTime = value => value ? new Intl.DateTimeFormat('fa-IR', { dateStyle: 
 const localDateTime = value => value ? String(value).replace('T', ' ') + ':00' : '';
 const channelLabel = order => {
     if (order?.table?.name) return order.table.name;
+    if (order?.source === 'snappfood') return 'اسنپ‌فود';
+    if (order?.source === 'partner') return 'سرویس بیرونی';
+    if (order?.source === 'website') return 'سفارش سایت · بیرون‌بر';
+    if (order?.source === 'qr') return 'سفارش QR';
     return ({ dine_in: 'حضوری', takeaway: 'بیرون‌بر', counter: 'صندوق', online: 'آنلاین' })[order?.channel] || order?.channel || '—';
 };
 const statusText = (value, dictionary) => dictionary[value] || value || '—';
@@ -606,6 +611,7 @@ export default function DashboardApp() {
                     const [products,movements]=await Promise.all([api('/products?per_page=100'),api('/inventory/movements?per_page=100')]);
                     next.products=unwrapList(products);next.movements=unwrapList(movements);
                 }
+                if(page==='recipes') next.recipes=unwrapData(await api('/recipes'));
                 if(page==='tables') next.tables=unwrapList(await api('/tables?per_page=100'));
                 if(page==='reservations'){
                     const [reservations,tables]=await Promise.all([api('/reservations?per_page=100'),api('/tables?per_page=100')]);
@@ -699,6 +705,10 @@ export default function DashboardApp() {
     const updateTable=(table,payload)=>action(()=>api('/tables/'+table.id,{method:'PATCH',body:payload}),'میز به‌روزرسانی شد.',{close:false});
     const rotateTable=table=>action(()=>api('/tables/'+table.id+'/rotate-qr',{method:'POST',body:{}}),'QR قبلی باطل و لینک جدید تولید شد.',{close:false});
     const adjustInventory=payload=>action(()=>api('/inventory/adjustments',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'گردش موجودی ثبت شد.');
+    const createIngredient=payload=>action(()=>api('/ingredients',{method:'POST',body:payload}),'ماده اولیه ثبت شد.');
+    const updateIngredient=(ingredient,payload)=>action(()=>api('/ingredients/'+ingredient.id,{method:'PATCH',body:payload}),'مشخصات ماده اولیه به‌روز شد.',{close:false});
+    const saveRecipe=(productId,ingredients)=>action(()=>api('/products/'+productId+'/recipe',{method:'PUT',body:{ingredients}}),'رسپی ذخیره شد؛ از این پس مصرف مواد این محصول در سفارش‌ها محاسبه می‌شود.',{close:false});
+    const submitIngredientStock=(ingredient,payload)=>action(()=>api('/ingredients/'+ingredient.id+'/movements',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'گردش ماده اولیه ثبت شد.');
     const createReservation=payload=>action(()=>api('/reservations',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'رزرو ثبت شد.');
     const transitionReservation=(item,status)=>action(()=>api('/reservations/'+item.id+'/status',{method:'PATCH',body:{status}}),'وضعیت رزرو تغییر کرد.',{close:false});
     const respondFeedback=(item,payload)=>action(()=>api('/feedback/'+item.id+'/response',{method:'PATCH',body:payload}),'پاسخ بازخورد ذخیره شد.',{close:false});
@@ -719,6 +729,7 @@ export default function DashboardApp() {
         if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} />;
         if(page==='menu') return <MenuPage products={data.products} categories={data.categories} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onCategory={()=>setModal({type:'category'})} />;
         if(page==='inventory') return <InventoryPage products={data.products} movements={data.movements} onRefresh={refresh} onAdjust={product=>setModal({type:'inventory',product})} />;
+        if(page==='recipes') return <RecipesPage recipeData={data.recipes} onRefresh={refresh} onCreateIngredient={createIngredient} onUpdateIngredient={updateIngredient} onAdjustIngredient={ingredient=>setModal({type:'ingredient-stock',ingredient})} onSaveRecipe={saveRecipe} />;
         if(page==='tables') return <TablesPage tables={data.tables} onRefresh={refresh} onCreate={createTable} onUpdate={updateTable} onRotate={rotateTable} onShowQr={table=>setModal({type:'qr',table})} />;
         if(page==='reservations') return <ReservationsPage reservations={data.reservations} tables={data.tables} onRefresh={refresh} onCreate={createReservation} onTransition={transitionReservation} />;
         if(page==='customers') return <CustomersPage feedback={data.feedback} onRefresh={refresh} onRespond={respondFeedback} />;
@@ -752,10 +763,131 @@ export default function DashboardApp() {
         {modal?.type==='refund'&&<RefundModal payment={modal.payment} orderId={modal.orderId} onClose={()=>setModal(null)} onSubmit={submitRefund}/>}
         {modal?.type==='details'&&<OrderDetailsModal order={detailOrder} onClose={()=>setModal(null)} onPrint={printDocument} onRefund={showRefund}/>}
         {modal?.type==='inventory'&&<InventoryModal product={modal.product} products={data.products||[]} onClose={()=>setModal(null)} onSubmit={adjustInventory}/>}
+        {modal?.type==='ingredient-stock'&&<IngredientStockModal ingredient={modal.ingredient} onClose={()=>setModal(null)} onSubmit={payload=>submitIngredientStock(modal.ingredient,payload)}/>}
         {modal?.type==='qr'&&<QRCodeModal table={modal.table} onClose={()=>setModal(null)} />}
         {notice&&<div className="toast-message" role="status"><span>✓</span>{notice}<button type="button" aria-label="بستن پیام" onClick={()=>setNotice('')}>×</button></div>}
         {busy&&<div className="op-busy" aria-live="polite"><span className="op-spinner"/>در حال ثبت عملیات…</div>}
     </div>;
+}
+
+function RecipesPage({ recipeData, onRefresh, onCreateIngredient, onUpdateIngredient, onAdjustIngredient, onSaveRecipe }) {
+    const ingredients = recipeData?.ingredients || [];
+    const products = recipeData?.products || [];
+    const [ingredientForm, setIngredientForm] = useState({ name: '', unit: 'g', stock_quantity: '0', low_stock_threshold: '', cost_per_unit: '0' });
+    const [selectedProductId, setSelectedProductId] = useState('');
+    const [recipeRows, setRecipeRows] = useState([]);
+    const [saving, setSaving] = useState(false);
+    const selectedProduct = products.find(product => String(product.id) === selectedProductId) || null;
+
+    useEffect(() => {
+        if (!selectedProductId && products.length) setSelectedProductId(String(products[0].id));
+    }, [products, selectedProductId]);
+
+    useEffect(() => {
+        const product = products.find(item => String(item.id) === selectedProductId);
+        setRecipeRows((product?.recipe_ingredients || []).map(ingredient => ({
+            ingredient_id: String(ingredient.id),
+            quantity: String(ingredient.pivot?.quantity ?? ingredient.pivot?.quantity ?? '1'),
+        })));
+    }, [selectedProductId, products]);
+
+    const recipeCost = recipeRows.reduce((total, row) => {
+        const ingredient = ingredients.find(item => String(item.id) === String(row.ingredient_id));
+        return total + (Number(row.quantity || 0) * Number(ingredient?.cost_per_unit || 0));
+    }, 0);
+    const margin = Number(selectedProduct?.base_price || 0) - recipeCost;
+
+    const addIngredient = async event => {
+        event.preventDefault();
+        const ok = await onCreateIngredient({
+            name: ingredientForm.name.trim(), unit: ingredientForm.unit,
+            stock_quantity: Number(ingredientForm.stock_quantity || 0),
+            low_stock_threshold: ingredientForm.low_stock_threshold === '' ? null : Number(ingredientForm.low_stock_threshold),
+            cost_per_unit: Number(ingredientForm.cost_per_unit || 0), is_active: true,
+        });
+        if (ok) setIngredientForm({ name: '', unit: 'g', stock_quantity: '0', low_stock_threshold: '', cost_per_unit: '0' });
+    };
+
+    const toggleIngredient = ingredient => onUpdateIngredient(ingredient, {
+        name: ingredient.name, unit: ingredient.unit,
+        low_stock_threshold: ingredient.low_stock_threshold === null ? null : Number(ingredient.low_stock_threshold),
+        cost_per_unit: Number(ingredient.cost_per_unit), is_active: !ingredient.is_active,
+    });
+
+    const save = async () => {
+        if (!selectedProduct) return;
+        setSaving(true);
+        try {
+            await onSaveRecipe(selectedProduct.id, recipeRows.filter(row => row.ingredient_id && Number(row.quantity) > 0)
+                .map(row => ({ ingredient_id: Number(row.ingredient_id), quantity: Number(row.quantity) })));
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return <div className="page-content">
+        <PageHeader title="رسپی و مواد اولیه" subtitle="هر محصول را به مواد واقعی وصل کن تا مصرف انبار و بهای مواد هنگام ثبت سفارش به‌صورت خودکار محاسبه شود." />
+        <div className="recipe-help"><b>راهنمای سریع</b><p>اول مواد اولیه را با موجودی و هزینه خرید وارد کن؛ سپس محصول را انتخاب کن و مقدار هر ماده برای یک پرس را بنویس. واحدها باید پایه و ثابت باشند: گرم، میلی‌لیتر یا عدد. محصولی که رسپی ندارد فقط از موجودی خود محصول استفاده می‌کند.</p></div>
+        <section className="panel recipe-create-panel">
+            <div className="panel-heading"><div><h2>＋ ماده اولیه جدید</h2><p>مثلاً دانه قهوه، شیر، آرد، شربت یا لیوان بیرون‌بر.</p></div></div>
+            <form className="op-form" onSubmit={addIngredient}>
+                <div className="op-form-grid">
+                    <Field label="نام ماده اولیه"><input value={ingredientForm.name} onChange={e=>setIngredientForm(s=>({...s,name:e.target.value}))} maxLength="150" required placeholder="مثلاً دانه قهوه" /></Field>
+                    <Field label="واحد پایه" hint="این واحد در رسپی و موجودی تغییرناپذیر می‌ماند."><select value={ingredientForm.unit} onChange={e=>setIngredientForm(s=>({...s,unit:e.target.value}))}><option value="g">گرم (g)</option><option value="ml">میلی‌لیتر (ml)</option><option value="pcs">عدد (pcs)</option></select></Field>
+                    <Field label="موجودی اولیه" hint="تا ۳ رقم اعشار؛ مثلاً 2500 گرم."><input type="number" min="0" max="99999999999.999" step="0.001" value={ingredientForm.stock_quantity} onChange={e=>setIngredientForm(s=>({...s,stock_quantity:e.target.value}))} required /></Field>
+                    <Field label="هشدار کمبود" hint="وقتی موجودی به این مقدار یا کمتر برسد، کمبود نشان داده می‌شود."><input type="number" min="0" step="0.001" value={ingredientForm.low_stock_threshold} onChange={e=>setIngredientForm(s=>({...s,low_stock_threshold:e.target.value}))} placeholder="اختیاری" /></Field>
+                    <Field label="هزینه هر واحد پایه (تومان)" hint="مثلاً اگر ۱۰۰۰ گرم قهوه ۴۰۰٬۰۰۰ تومان است، اینجا ۴۰۰ وارد کن."><input type="number" min="0" max="1000000000" value={ingredientForm.cost_per_unit} onChange={e=>setIngredientForm(s=>({...s,cost_per_unit:e.target.value}))} required /></Field>
+                </div>
+                <div className="op-form-actions"><Button kind="primary" type="submit">ثبت ماده اولیه</Button></div>
+            </form>
+        </section>
+        <section className="panel">
+            <div className="panel-heading"><div><h2>مواد اولیه ثبت‌شده</h2><p>{numberFa(ingredients.length)} ماده · هزینه بر اساس واحد پایه ثبت‌شده</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
+            {ingredients.length ? <TableWrap><thead><tr><th>ماده</th><th>واحد پایه</th><th>موجودی فعلی</th><th>هشدار کمبود</th><th>هزینه واحد</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>
+                {ingredients.map(item=><tr key={item.id}><td><b>{item.name}</b></td><td>{({g:'گرم',ml:'میلی‌لیتر',pcs:'عدد'})[item.unit]||item.unit}</td><td>{numberFa(item.stock_quantity)}</td><td>{item.low_stock_threshold===null?'تعریف نشده':numberFa(item.low_stock_threshold)}</td><td>{money(item.cost_per_unit)}</td><td><Pill value={item.is_active?'active':'inactive'} dictionary={{active:'فعال',inactive:'غیرفعال'}} /></td><td><div className="op-actions"><Button onClick={()=>onAdjustIngredient(item)}>ورود / خروج</Button><Button onClick={()=>toggleIngredient(item)}>{item.is_active?'غیرفعال‌کردن':'فعال‌کردن'}</Button></div></td></tr>)}
+            </tbody></TableWrap> : <Empty>هنوز ماده‌ای ثبت نشده است. مواد را از فرم بالا اضافه کن.</Empty>}
+        </section>
+        <section className="panel recipe-editor-panel">
+            <div className="panel-heading"><div><h2>ساخت رسپی محصول</h2><p>مقدار هر ردیف برای تولید یک عدد یا یک پرس از محصول است.</p></div></div>
+            {!products.length ? <Empty>ابتدا از بخش «منو و محصولات» یک محصول بساز.</Empty> : <>
+                <Field label="محصول موردنظر" hint="رسپی به همین محصول وصل می‌شود؛ سفارش از منو، صندوق یا QR آن را مصرف می‌کند."><select value={selectedProductId} onChange={e=>setSelectedProductId(e.target.value)}>{products.map(product=><option key={product.id} value={product.id}>{product.name} — {money(product.base_price)}</option>)}</select></Field>
+                <div className="recipe-row-list">
+                    <div className="recipe-row recipe-row-header"><span>ماده اولیه</span><span>مقدار برای یک پرس</span><span>هزینه تخمینی</span><span></span></div>
+                    {recipeRows.map((row,index)=>{
+                        const ingredient=ingredients.find(item=>String(item.id)===String(row.ingredient_id));
+                        const lineCost=Number(row.quantity||0)*Number(ingredient?.cost_per_unit||0);
+                        return <div className="recipe-row" key={index}>
+                            <label className="recipe-ingredient-select"><span className="sr-only">ماده اولیه ردیف {index+1}</span><select value={row.ingredient_id} onChange={e=>setRecipeRows(rows=>rows.map((item,i)=>i===index?{...item,ingredient_id:e.target.value}:item))} required><option value="">انتخاب ماده</option>{ingredients.filter(item=>item.is_active).map(item=><option key={item.id} value={item.id}>{item.name} · {({g:'گرم',ml:'میلی‌لیتر',pcs:'عدد'})[item.unit]||item.unit}</option>)}</select></label>
+                            <label className="recipe-quantity"><span className="sr-only">مقدار برای هر پرس</span><input type="number" min="0.001" step="0.001" value={row.quantity} onChange={e=>setRecipeRows(rows=>rows.map((item,i)=>i===index?{...item,quantity:e.target.value}:item))} required /></label>
+                            <b className="recipe-line-cost">{money(lineCost)}</b>
+                            <Button kind="danger" onClick={()=>setRecipeRows(rows=>rows.filter((_,i)=>i!==index))}>حذف</Button>
+                        </div>;
+                    })}
+                    {ingredients.length===0&&<p className="op-note">برای ساخت رسپی ابتدا مواد اولیه را اضافه کن.</p>}
+                    <div className="recipe-row-actions"><Button disabled={!ingredients.some(item=>item.is_active)} onClick={()=>setRecipeRows(rows=>[...rows,{ingredient_id:'',quantity:'1'}])}>＋ افزودن ماده به رسپی</Button><Button kind="primary" disabled={!selectedProduct || saving} onClick={save}>{saving?'در حال ذخیره…':'ذخیره رسپی'}</Button></div>
+                </div>
+                <div className="recipe-cost-summary"><div><small>بهای مواد برای یک پرس (تخمینی)</small><b>{money(recipeCost)}</b></div><div><small>قیمت فروش فعلی</small><b>{money(selectedProduct?.base_price)}</b></div><div><small>مانده پس از مواد اولیه</small><b className={margin<0?'recipe-negative':''}>{money(margin)}</b></div></div>
+                <p className="op-note">این «سود خالص» نیست؛ فقط قیمت فروش منهای هزینه مواد واردشده است. دستمزد، اجاره، انرژی، ضایعات و مالیات باید جداگانه محاسبه شوند. اگر رسپی را خالی ذخیره کنی، اتصال مواد این محصول پاک می‌شود.</p>
+            </>}
+        </section>
+    </div>;
+}
+
+function IngredientStockModal({ ingredient, onClose, onSubmit }) {
+    const [direction,setDirection] = useState('in');
+    const [quantity,setQuantity] = useState('1');
+    const [reason,setReason] = useState('');
+    const [requestKey] = useState(() => idempotencyKey());
+    return <Modal title={'گردش موجودی · '+ingredient.name} eyebrow="INGREDIENT STOCK MOVEMENT" onClose={onClose}>
+        <div className="op-payment-summary"><span>موجودی فعلی</span><b>{numberFa(ingredient.stock_quantity)} {({g:'گرم',ml:'میلی‌لیتر',pcs:'عدد'})[ingredient.unit]||ingredient.unit}</b></div>
+        <form className="op-form" onSubmit={event=>{event.preventDefault();onSubmit({direction,quantity:Number(quantity),reason:reason.trim(),idempotency_key:requestKey});}}>
+            <Field label="نوع حرکت"><select value={direction} onChange={e=>setDirection(e.target.value)}><option value="in">ورود / خرید ماده</option><option value="out">خروج / ضایعات / مصرف دستی</option></select></Field>
+            <Field label={'مقدار ('+ingredient.unit+')'}><input type="number" min="0.001" step="0.001" value={quantity} onChange={e=>setQuantity(e.target.value)} required /></Field>
+            <Field label="علت (اجباری)"><input value={reason} onChange={e=>setReason(e.target.value)} minLength="3" maxLength="500" required placeholder="مثلاً خرید هفتگی یا ثبت ضایعات" /></Field>
+            <p className="op-note">ثبت این فرم موجودی را تغییر می‌دهد و ردیف قابل پیگیری در گردش مواد اولیه ایجاد می‌کند.</p>
+            <div className="op-form-actions"><Button onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ثبت گردش</Button></div>
+        </form>
+    </Modal>;
 }
 
 function InventoryModal({ product, products, onClose, onSubmit }) {
