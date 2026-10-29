@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductOption;
 use App\Models\RestaurantSetting;
 use App\Models\RestaurantTable;
 use App\Models\User;
@@ -226,6 +227,57 @@ class RestaurantOperationsTest extends TestCase
         $this->getJson('/admin/api/reports/sales')
             ->assertOk()
             ->assertJsonStructure(['data' => ['summary', 'daily', 'payments_by_method', 'top_products']]);
+    }
+
+    public function test_qr_menu_displays_active_food_options_images_and_price_rules(): void
+    {
+        $table = RestaurantTable::query()->create([
+            'name' => 'میز منوی تست',
+            'token' => str_repeat('d', 64),
+            'is_active' => true,
+        ]);
+        Product::query()->whereKey($this->product->id)->update([
+            'description' => 'قهوه تست با توضیحات کامل',
+        ]);
+        ProductOption::query()->create([
+            'product_id' => $this->product->id,
+            'name' => 'سایز بزرگ',
+            'type' => 'size',
+            'price' => 25000,
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+        ProductOption::query()->create([
+            'product_id' => $this->product->id,
+            'name' => 'سیروپ',
+            'type' => 'addon',
+            'price' => 10000,
+            'is_active' => true,
+            'sort_order' => 2,
+        ]);
+        $settings = RestaurantSetting::current();
+        $settings->forceFill([
+            'name' => 'کافه تست',
+            'currency_label' => 'تومان',
+            'tax_basis_points' => 900,
+            'service_basis_points' => 500,
+            'customer_menu_enabled' => true,
+        ])->save();
+
+        $this->get('/menu/'.$table->token)->assertOk()->assertSee('میز منوی تست');
+        $this->getJson('/menu/'.$table->token.'/data')
+            ->assertOk()
+            ->assertJsonPath('data.table.name', 'میز منوی تست')
+            ->assertJsonPath('data.settings.name', 'کافه تست')
+            ->assertJsonPath('data.settings.tax_basis_points', 900)
+            ->assertJsonPath('data.settings.service_basis_points', 500)
+            ->assertJsonPath('data.categories.0.products.0.name', 'محصول تست')
+            ->assertJsonPath('data.categories.0.products.0.base_price', 125000)
+            ->assertJsonPath('data.categories.0.products.0.description', 'قهوه تست با توضیحات کامل')
+            ->assertJsonPath('data.categories.0.products.0.options.0.name', 'سایز بزرگ')
+            ->assertJsonPath('data.categories.0.products.0.options.0.price', 25000)
+            ->assertJsonPath('data.categories.0.products.0.options.1.name', 'سیروپ')
+            ->assertJsonPath('data.categories.0.products.0.options.1.price', 10000);
     }
 
     public function test_customer_qr_cannot_submit_an_order_for_another_table(): void
