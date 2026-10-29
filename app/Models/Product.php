@@ -74,6 +74,15 @@ class Product extends Model
 
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image_path ? asset('storage/'.$this->image_path) : null;
+        $path = $this->image_path;
+        if (! $path) return null;
+
+        // Demo catalog photos may be served by a trusted image CDN; local uploads remain storage paths.
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            $host = parse_url($path, PHP_URL_HOST);
+            return in_array($host, ['images.unsplash.com', 'images.pexels.com'], true) ? $path : null;
+        }
+
+        return asset('storage/'.$path);
     }
 }
