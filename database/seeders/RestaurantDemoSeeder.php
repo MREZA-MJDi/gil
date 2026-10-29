@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\ReservationStatus;
+use App\Models\CashMovement;
 use App\Models\CashShift;
 use App\Models\Category;
 use App\Models\CustomerFeedback;
@@ -393,7 +394,7 @@ class RestaurantDemoSeeder extends Seeder
             ['title'=>'DEMO · سرویس دستگاه اسپرسو','category'=>'repairs','amount'=>950000,'is_paid'=>false,'method'=>'other','note'=>'هزینه نمونه پرداخت‌نشده'],
             ['title'=>'DEMO · خرید سبزی و میوه','category'=>'ingredients','amount'=>680000,'is_paid'=>true,'method'=>'cash','note'=>'خرید نمونه روز'],
         ] as $expense) {
-            Expense::query()->firstOrCreate(
+            $expenseRecord = Expense::query()->firstOrCreate(
                 ['title'=>$expense['title']],
                 [
                     'cash_shift_id'=>$shift->id,'user_id'=>$manager->id,'category'=>$expense['category'],
@@ -401,6 +402,24 @@ class RestaurantDemoSeeder extends Seeder
                     'paid_at'=>$expense['is_paid'] ? now()->subHours(2) : null,'note'=>$expense['note'],
                 ],
             );
+
+            // Keep demo cash expenses consistent with the cash ledger, including if a previous
+            // seeding run created the expense before this reconciliation was added.
+            if ($expenseRecord->is_paid && $expenseRecord->payment_method === 'cash'
+                && $expenseRecord->cash_shift_id
+                && ! CashMovement::query()->where('expense_id', $expenseRecord->id)->exists()) {
+                CashMovement::query()->create([
+                    'cash_shift_id' => $expenseRecord->cash_shift_id,
+                    'user_id' => $manager->id,
+                    'expense_id' => $expenseRecord->id,
+                    'direction' => 'out',
+                    'type' => 'expense',
+                    'amount' => $expenseRecord->amount,
+                    'reason' => $expenseRecord->title,
+                    'idempotency_key' => 'expense:'.$expenseRecord->id,
+                    'occurred_at' => $expenseRecord->paid_at ?? now(),
+                ]);
+            }
         }
     }
 
