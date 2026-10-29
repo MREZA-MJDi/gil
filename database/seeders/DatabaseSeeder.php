@@ -2,19 +2,20 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
-     * Seed the application's database.
+     * Only seeds the foundational catalogue/settings and the explicitly configured
+     * administrator. It does not invent sales, customers, payments, reservations,
+     * expenses or inventory movements.
      */
     public function run(): void
     {
-        // Never create predictable demo credentials in a real database.
-        $this->call(AdminUserSeeder::class);
+        $this->call([
+            AdminUserSeeder::class,
+            RestaurantFoundationSeeder::class,
+        ]);
     }
 }

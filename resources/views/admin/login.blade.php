@@ -3,26 +3,44 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#2a2722">
     <title>ورود مدیر | خانه گیلاسی</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="admin-login-page">
-    <main class="login-card">
-        <a class="brand-lockup login-brand" href="{{ route('home') }}"><span class="brand-symbol">خ</span><span><strong>خانه گیلاسی</strong><small>CAFE / RESTAURANT</small></span></a>
-        <span class="eyebrow">SECURE ADMIN ACCESS</span>
-        <h1>ورود به پنل مدیریت</h1>
-        <p>برای دسترسی به سفارش‌ها و صندوق وارد حساب مدیر شوید.</p>
-        @if ($errors->any()) <div class="login-error" role="alert">{{ $errors->first() }}</div> @endif
-        <form method="POST" action="{{ route('admin.login.store') }}" class="login-form">
-            @csrf
-            <label for="email">ایمیل مدیر</label>
-            <input id="email" type="email" name="email" value="{{ old('email') }}" autocomplete="username" required autofocus>
-            <label for="password">رمز عبور</label>
-            <input id="password" type="password" name="password" autocomplete="current-password" required>
-            <label class="remember-line"><input type="checkbox" name="remember" value="1"> مرا به خاطر بسپار</label>
-            <button class="primary-button" type="submit">ورود امن به داشبورد ←</button>
-        </form>
-        <div class="login-foot">خانه گیلاسی · پنل عملیات داخلی</div>
+<body class="admin-auth-body">
+    <main class="auth-layout">
+        <section class="auth-form-panel" aria-labelledby="login-title">
+            <header class="auth-form-heading">
+                <span class="eyebrow">SECURE STAFF ACCESS</span>
+                <h1 id="login-title">خوش برگشتی</h1>
+                <p>برای مدیریت سفارش‌ها، صندوق و موجودی با شماره موبایلت وارد شو.</p>
+            </header>
+            @if ($errors->any()) <div class="auth-error" role="alert">{{ $errors->first() }}</div> @endif
+            <form method="POST" action="{{ route('admin.login.store') }}" class="auth-form">
+                @csrf
+                <label class="auth-label" for="phone">شماره موبایل</label>
+                <div class="auth-input-wrap">
+                    <input class="auth-input" id="phone" type="tel" name="phone" value="{{ old('phone') }}"
+                        autocomplete="tel" inputmode="tel" dir="ltr" placeholder="0912 123 4567" maxlength="30" required autofocus>
+                </div>
+                <label class="auth-label" for="password">رمز عبور</label>
+                <input class="auth-input" id="password" type="password" name="password" autocomplete="current-password"
+                    placeholder="رمز عبور حساب" required>
+                <label class="auth-check-line"><input type="checkbox" name="remember" value="1"> مرا به خاطر بسپار</label>
+                <button class="auth-submit" type="submit">ورود امن به داشبورد <span aria-hidden="true">←</span></button>
+            </form>
+            <div class="auth-links"><span>حساب کاربری نداری؟</span><a href="{{ route('admin.register') }}">ثبت‌نام با کلید دعوت</a></div>
+            <footer class="auth-legal">شماره موبایل شناسه ورود شماست. اطلاعات ورود را در اختیار دیگران قرار ندهید.</footer>
+        </section>
+        <aside class="auth-brand-panel" aria-label="خانه گیلاسی">
+            <div class="auth-brand-top"><span class="auth-mark">خ</span><span><b>خانه گیلاسی</b><small>CAFE / RESTAURANT</small></span></div>
+            <div class="auth-brand-copy">
+                <span class="auth-brand-kicker">OPERATIONS, IN ONE PLACE</span>
+                <h2>از سفارش تا صندوق، همه‌چیز مرتب.</h2>
+                <p>یک پنل یکپارچه برای پیگیری سفارش‌ها، پرداخت‌ها، موجودی، رزروها و گزارش‌های روزانه.</p>
+            </div>
+            <div class="auth-brand-foot"><i></i><span>دسترسی کارکنان · ثبت رویدادهای عملیاتی</span></div>
+        </aside>
     </main>
 </body>
 </html>

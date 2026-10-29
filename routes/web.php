@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\PublicHomeController;
+use App\Http\Controllers\PublicReservationController;
 use App\Http\Controllers\Admin\CashShiftController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExpenseController;
@@ -22,10 +23,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicHomeController::class, 'home'])->name('home');
 Route::get('/menu', [PublicHomeController::class, 'menu'])->name('public.menu');
+Route::post('/reservations', [PublicReservationController::class, 'store'])->middleware('throttle:5,1')->name('public.reservations.store');
 
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AuthController::class, 'create'])->name('admin.login');
     Route::post('/admin/login', [AuthController::class, 'store'])->middleware('throttle:5,1')->name('admin.login.store');
+    Route::get('/admin/register', [AuthController::class, 'register'])->name('admin.register');
+    Route::post('/admin/register', [AuthController::class, 'registerStore'])->middleware('throttle:3,1')->name('admin.register.store');
 });
 Route::post('/admin/logout', [AuthController::class, 'destroy'])->middleware(['auth', 'can:access-admin'])->name('admin.logout');
 

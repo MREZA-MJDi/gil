@@ -9,6 +9,7 @@
         <a href="{{ route('public.menu') }}">منو و خوراکی‌ها</a>
         <a href="{{ route('home') }}#story">داستان ما</a>
         <a href="{{ route('home') }}#moments">فضای کافه</a>
+        <a href="{{ route('home') }}#reservation">رزرو میز</a>
         <a href="{{ route('home') }}#visit">تماس و مسیر</a>
         @auth
             @if (auth()->user()->is_admin)

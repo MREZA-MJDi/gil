@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { api, idempotencyKey, unwrapData, unwrapList } from './api.js';
 import QRCode from 'qrcode';
+import { JalaliDateTimePicker, MoneyInput, formatIranianMoney } from '../shared/iranian-ui.jsx';
 
 const navItems = [
     ['overview', 'نمای کلی', '◫'],
@@ -29,9 +30,10 @@ const reservationStatusLabel = { pending: 'در انتظار', confirmed: 'تأ�
 const feedbackStatusLabel = { new: 'جدید', reviewing: 'در حال بررسی', resolved: 'رسیدگی‌شده', closed: 'بسته‌شده' };
 const paymentMethodLabel = { cash: 'نقدی', card_terminal: 'کارت‌خوان (ثبت کاربر)', online: 'آنلاین', other: 'سایر' };
 const expenseCategoryLabel = { rent: 'اجاره', payroll: 'حقوق', utilities: 'قبوض', ingredients: 'مواد اولیه', repairs: 'تعمیرات', packaging: 'بسته‌بندی', transport: 'حمل‌ونقل', other: 'سایر' };
-const money = value => new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 }).format(Number(value || 0)) + ' تومان';
+const currencyLabel = () => typeof document !== 'undefined' ? (document.documentElement.dataset.currencyLabel || 'تومان') : 'تومان';
+const money = value => formatIranianMoney(value, currencyLabel());
 const numberFa = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0));
-const dateTime = value => value ? new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
+const dateTime = value => value ? new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Tehran' }).format(new Date(value)) : '—';
 const localDateTime = value => value ? String(value).replace('T', ' ') + ':00' : '';
 const channelLabel = order => {
     if (order?.table?.name) return order.table.name;
@@ -173,11 +175,11 @@ function CashierPage({ cashShift, orders, onRefresh, onOpenShift, onCloseShift, 
                 <div className="panel-heading"><div><h2>وضعیت شیفت صندوق</h2><p>هم‌زمان فقط یک شیفت باز قابل ثبت است.</p></div><Pill value={cashShift?.status || 'closed'} dictionary={{open:'باز',closed:'بسته'}} /></div>
                 {cashShift ? <div className="op-kpi-grid"><div><small>وجه آغازین</small><b>{money(cashShift.opening_cash)}</b></div><div><small>زمان شروع</small><b>{dateTime(cashShift.opened_at)}</b></div><div><small>ورودی/خروجی ثبت‌شده</small><b>{numberFa((cashShift.movements || []).length)} حرکت</b></div></div> :
                     <form className="op-form" onSubmit={e => { e.preventDefault(); onOpenShift({ opening_cash: Number(openingCash), note: shiftNote }); }}>
-                        <Field label="وجه نقد اولیه (تومان)"><input type="number" min="0" step="1" value={openingCash} onChange={e => setOpeningCash(e.target.value)} required /></Field>
+                        <Field label="وجه نقد اولیه"><MoneyInput min="0" value={openingCash} onChange={setOpeningCash} required /></Field>
                         <Field label="یادداشت شروع"><input value={shiftNote} onChange={e => setShiftNote(e.target.value)} maxLength="500" placeholder="مثلاً صندوق شیفت صبح" /></Field><Button kind="primary" type="submit">باز کردن شیفت</Button>
                     </form>}
                 {cashShift && <form className="op-form op-form-separated" onSubmit={e => { e.preventDefault(); onCloseShift(cashShift.id, { counted_cash: Number(countedCash), note: shiftNote }); }}>
-                    <Field label="وجه نقد شمارش‌شده (تومان)"><input type="number" min="0" value={countedCash} onChange={e => setCountedCash(e.target.value)} required /></Field>
+                    <Field label="وجه نقد شمارش‌شده"><MoneyInput min="0" value={countedCash} onChange={setCountedCash} required /></Field>
                     <Field label="یادداشت بستن"><input value={shiftNote} onChange={e => setShiftNote(e.target.value)} maxLength="500" placeholder="توضیح اختلاف صندوق، در صورت وجود" /></Field>
                     <Button kind="danger" type="submit">بستن و ثبت مغایرت</Button>
                 </form>}
@@ -186,7 +188,7 @@ function CashierPage({ cashShift, orders, onRefresh, onOpenShift, onCloseShift, 
                 <div className="panel-heading"><div><h2>ورودی / خروجی دستی صندوق</h2><p>برای تنخواه، شارژ صندوق یا خروج وجه، علت را شفاف ثبت کن.</p></div></div>
                 {cashShift ? <form className="op-form" onSubmit={e => { e.preventDefault(); onMovement(cashShift.id, { ...movement, idempotency_key: movementKey }).then(ok => { if (ok) { setMovement({ direction: 'out', amount: '', reason: '' }); setMovementKey(idempotencyKey()); } }); }}>
                     <Field label="نوع حرکت"><select value={movement.direction} onChange={e => setMovement(v => ({...v, direction:e.target.value}))}><option value="in">ورودی وجه</option><option value="out">خروجی وجه</option></select></Field>
-                    <Field label="مبلغ (تومان)"><input type="number" min="1" value={movement.amount} onChange={e => setMovement(v => ({...v, amount:e.target.value}))} required /></Field>
+                    <Field label="مبلغ"><MoneyInput min="1" value={movement.amount} onChange={value => setMovement(v => ({...v, amount:value}))} required /></Field>
                     <Field label="علت / شرح"><input minLength="3" maxLength="500" value={movement.reason} onChange={e => setMovement(v => ({...v, reason:e.target.value}))} required placeholder="شرح قابل حسابرسی" /></Field>
                     <Button kind="primary" type="submit">ثبت حرکت صندوق</Button>
                 </form> : <Empty>برای ثبت حرکت دستی، ابتدا شیفت را باز کن.</Empty>}
@@ -264,6 +266,7 @@ function TablesPage({ tables, onCreate, onUpdate, onRotate, onShowQr, onRefresh 
 function ReservationsPage({ reservations, tables, onCreate, onTransition, onRefresh }) {
     const emptyForm = { restaurant_table_id: '', customer_name: '', phone: '', party_size: '2', starts_at: '', duration_minutes: '90', notes: '' };
     const [form, setForm] = useState(emptyForm);
+    const [selectedTables, setSelectedTables] = useState({});
     const [requestKey, setRequestKey] = useState(() => idempotencyKey());
     const set = (key, value) => setForm(v => ({...v, [key]: value}));
     return <div className="page-content">
@@ -274,14 +277,23 @@ function ReservationsPage({ reservations, tables, onCreate, onTransition, onRefr
                 <Field label="تلفن"><input value={form.phone} onChange={e => set('phone', e.target.value)} maxLength="30" required /></Field>
                 <Field label="تعداد نفرات"><input type="number" min="1" max="50" value={form.party_size} onChange={e => set('party_size', e.target.value)} required /></Field>
                 <Field label="میز (اختیاری)"><select value={form.restaurant_table_id} onChange={e => set('restaurant_table_id', e.target.value)}><option value="">بدون تخصیص میز</option>{(tables || []).filter(t => t.is_active).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>
-                <Field label="تاریخ و ساعت"><input type="datetime-local" value={form.starts_at} onChange={e => set('starts_at', e.target.value)} required /></Field>
+                <Field label="تاریخ و ساعت"><JalaliDateTimePicker value={form.starts_at} onChange={value => set('starts_at', value)} includeTime required ariaLabel="تاریخ و ساعت رزرو" /></Field>
                 <Field label="مدت (دقیقه)"><select value={form.duration_minutes} onChange={e => set('duration_minutes', e.target.value)}><option value="60">۶۰</option><option value="90">۹۰</option><option value="120">۱۲۰</option><option value="180">۱۸۰</option></select></Field>
                 <Field label="یادداشت"><input value={form.notes} onChange={e => set('notes', e.target.value)} maxLength="1000" /></Field>
                 <div className="op-form-actions"><Button kind="primary" type="submit">ثبت رزرو</Button></div>
             </form>
         </section>
         <section className="panel orders-panel"><div className="panel-heading"><div><h2>رزروها</h2><p>وضعیت هر رزرو با قواعد گردش کار تغییر می‌کند.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
-            {reservations?.length ? <TableWrap><thead><tr><th>شناسه</th><th>مشتری</th><th>میز</th><th>زمان</th><th>نفرات</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>{reservations.map(r => <tr key={r.id}><td className="mono">{r.reference}</td><td>{r.customer_name}<small className="op-subtext">{r.phone}</small></td><td>{r.table?.name || 'تخصیص‌نیافته'}</td><td>{dateTime(r.starts_at)}</td><td>{numberFa(r.party_size)}</td><td><Pill value={r.status} dictionary={reservationStatusLabel} /></td><td><div className="op-actions">{reservationNext(r.status).map(s => <Button key={s} kind={s === 'cancelled' ? 'danger' : 'secondary'} onClick={() => onTransition(r, s)}>{reservationStatusLabel[s]}</Button>)}</div></td></tr>)}</tbody></TableWrap> : <Empty>رزروی ثبت نشده است.</Empty>}
+            {reservations?.length ? <TableWrap><thead><tr><th>شناسه</th><th>مشتری</th><th>میز</th><th>زمان</th><th>نفرات</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>{reservations.map(r => <tr key={r.id}><td className="mono">{r.reference}</td><td>{r.customer_name}<small className="op-subtext">{r.phone}</small></td><td>{r.table?.name || 'تخصیص‌نیافته'}</td><td>{dateTime(r.starts_at)}</td><td>{numberFa(r.party_size)}</td><td><Pill value={r.status} dictionary={reservationStatusLabel} /></td><td><div className="op-reservation-actions">
+                <select aria-label={'میز رزرو ' + r.reference}
+                    value={Object.prototype.hasOwnProperty.call(selectedTables, r.id) ? selectedTables[r.id] : (r.restaurant_table_id ? String(r.restaurant_table_id) : '')}
+                    onChange={e => setSelectedTables(v => ({...v, [r.id]: e.target.value}))}>
+                    <option value="">بدون تخصیص</option>
+                    {(tables || []).filter(t => t.is_active).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+                <div className="op-actions">{reservationNext(r.status).map(s => <Button key={s} kind={s === 'cancelled' ? 'danger' : 'secondary'}
+                    onClick={() => { const choice = Object.prototype.hasOwnProperty.call(selectedTables, r.id) ? selectedTables[r.id] : (r.restaurant_table_id ? String(r.restaurant_table_id) : ''); onTransition(r, s, choice ? Number(choice) : null); }}>{reservationStatusLabel[s]}</Button>)}</div>
+            </div></td></tr>)}</tbody></TableWrap> : <Empty>رزروی ثبت نشده است.</Empty>}
         </section>
     </div>;
 }
@@ -317,7 +329,7 @@ function ExpensesPage({ expenses, onCreate, onRefresh }) {
             <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onCreate({ ...form, amount: Number(form.amount) }); }}>
                 <Field label="عنوان هزینه"><input value={form.title} onChange={e => set('title',e.target.value)} maxLength="150" required placeholder="مثلاً خرید شیر" /></Field>
                 <Field label="دسته"><select value={form.category} onChange={e => set('category',e.target.value)}>{Object.entries(expenseCategoryLabel).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
-                <Field label="مبلغ (تومان)"><input type="number" min="1" value={form.amount} onChange={e => set('amount',e.target.value)} required /></Field>
+                <Field label="مبلغ"><MoneyInput min="1" value={form.amount} onChange={value => set('amount',value)} required /></Field>
                 <Field label="روش پرداخت"><select value={form.payment_method} onChange={e => set('payment_method',e.target.value)}><option value="cash">نقدی</option><option value="card_terminal">کارت‌خوان (ثبت‌شده)</option><option value="other">سایر</option></select></Field>
                 <Field label="وضعیت پرداخت"><select value={form.is_paid ? 'paid' : 'unpaid'} onChange={e => set('is_paid',e.target.value === 'paid')}><option value="paid">پرداخت شده</option><option value="unpaid">پرداخت نشده</option></select></Field>
                 <Field label="یادداشت"><input value={form.note} onChange={e => set('note',e.target.value)} maxLength="1000" /></Field>
@@ -335,7 +347,7 @@ function ReportsPage({ report, onRefresh }) {
     const [to, setTo] = useState('');
     return <div className="page-content">
         <PageHeader title="گزارش‌های مالی و فروش" subtitle="فروش ثبت‌شده، دریافتی، بازپرداخت و پرداخت‌ها تفکیک شده‌اند؛ سود تا تکمیل بهای تمام‌شده گزارش نمی‌شود." />
-        <form className="op-toolbar" onSubmit={e => { e.preventDefault(); onRefresh(from, to); }}><Field label="از تاریخ"><input type="date" value={from} onChange={e => setFrom(e.target.value)} /></Field><Field label="تا تاریخ"><input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} /></Field><Button kind="primary" type="submit">اجرای گزارش</Button><Button type="button" onClick={() => { setFrom(''); setTo(''); onRefresh('', ''); }}>این ماه</Button></form>
+        <form className="op-toolbar" onSubmit={e => { e.preventDefault(); onRefresh(from, to); }}><Field label="از تاریخ"><JalaliDateTimePicker value={from} onChange={setFrom} placeholder="از تاریخ شمسی" ariaLabel="از تاریخ شمسی" /></Field><Field label="تا تاریخ"><JalaliDateTimePicker value={to} onChange={setTo} placeholder="تا تاریخ شمسی" ariaLabel="تا تاریخ شمسی" /></Field><Button kind="primary" type="submit">اجرای گزارش</Button><Button type="button" onClick={() => { setFrom(''); setTo(''); onRefresh('', ''); }}>این ماه</Button></form>
         {report?.summary && <div className="op-grid op-grid-3">
             <article className="stat-card"><div className="stat-label">سفارش‌ها</div><div className="stat-value">{numberFa(report.summary.orders_count)}</div><div className="stat-sub">{numberFa(report.summary.cancelled_orders)} لغوشده (در تعداد کل)</div></article>
             <article className="stat-card"><div className="stat-label">فروش ثبت‌شده</div><div className="stat-value">{money(report.summary.registered_sales)}</div><div className="stat-sub">مجموع سفارش‌ها، به‌جز لغوشده‌ها</div></article>
@@ -363,7 +375,7 @@ function SettingsPage({ settings, onSave, onRefresh }) {
             <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onSave({ ...form, tax_basis_points: Number(form.tax_basis_points), service_basis_points: Number(form.service_basis_points), paper_width: Number(form.paper_width) }); }}>
                 <Field label="نام مجموعه"><input value={form.name} onChange={e => set('name',e.target.value)} maxLength="150" required /></Field>
                 <Field label="تلفن"><input value={form.phone} onChange={e => set('phone',e.target.value)} maxLength="30" /></Field>
-                <Field label="واحد پول"><input value={form.currency_label} onChange={e => set('currency_label',e.target.value)} maxLength="20" required /></Field>
+                <Field label="واحد پول"><select value={form.currency_label} onChange={e => set('currency_label',e.target.value)} required><option value="تومان">تومان</option><option value="ریال">ریال</option></select></Field>
                 <Field label="مالیات (%)"><input type="number" min="0" max="100" step="0.01" value={Number(form.tax_basis_points)/100} onChange={e => set('tax_basis_points', String(Math.round(Number(e.target.value || 0)*100)))} /></Field>
                 <Field label="سرویس (%)"><input type="number" min="0" max="100" step="0.01" value={Number(form.service_basis_points)/100} onChange={e => set('service_basis_points', String(Math.round(Number(e.target.value || 0)*100)))} /></Field>
                 <Field label="عرض کاغذ فیش"><select value={form.paper_width} onChange={e => set('paper_width',e.target.value)}><option value="58">۵۸ میلی‌متر</option><option value="80">۸۰ میلی‌متر</option></select></Field>
@@ -414,7 +426,7 @@ function OrderModal({ products, tables, onClose, onSubmit }) {
                 {channel === 'dine_in' && <Field label="میز"><select value={tableId} onChange={e=>setTableId(e.target.value)}><option value="">بدون تخصیص میز</option>{(tables || []).filter(t=>t.is_active).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>}
                 <Field label="نام مشتری (اختیاری)"><input value={customerName} onChange={e=>setCustomerName(e.target.value)} maxLength="150" /></Field>
                 <Field label="تلفن (اختیاری)"><input value={customerPhone} onChange={e=>setCustomerPhone(e.target.value)} maxLength="30" /></Field>
-                <Field label="تخفیف (تومان)"><input type="number" min="0" max={subtotal} value={discount} onChange={e=>setDiscount(e.target.value)} required /></Field>
+                <Field label="تخفیف"><MoneyInput min="0" max={subtotal} value={discount} onChange={setDiscount} required /></Field>
                 <Field label="یادداشت سفارش"><input value={customerNote} onChange={e=>setCustomerNote(e.target.value)} maxLength="2000" /></Field>
             </div>
             <div className="op-picker">
@@ -455,7 +467,7 @@ function ProductModal({ product, categories, onClose, onSave }) {
             <div className="op-form-grid">
                 <Field label="نام محصول"><input value={form.name} onChange={e=>set('name',e.target.value)} maxLength="150" required /></Field>
                 <Field label="دسته‌بندی"><select value={form.category_id} onChange={e=>set('category_id',e.target.value)} required>{(categories||[]).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
-                <Field label="قیمت (تومان)"><input type="number" min="0" value={form.base_price} onChange={e=>set('base_price',e.target.value)} required /></Field>
+                <Field label="قیمت"><MoneyInput min="0" value={form.base_price} onChange={value=>set('base_price',value)} required /></Field>
                 <Field label="وضعیت فروش"><select value={form.status} onChange={e=>set('status',e.target.value)}><option value="active">فعال</option><option value="inactive">غیرفعال</option><option value="unavailable">ناموجود</option></select></Field>
                 <Field label="موجودی فعلی" hint={product && product.stock_quantity !== null ? 'رهگیری موجودی فعال است؛ برای خاموش‌کردن آن سوابق قابل حسابرسی از بین می‌رود.' : 'خالی = بدون رهگیری'}><input type="number" min="0" value={form.stock_quantity} required={Boolean(product && product.stock_quantity !== null)} onChange={e=>set('stock_quantity',e.target.value)} placeholder="خالی = بدون رهگیری" /></Field>
                 <Field label="آستانه کمبود"><input type="number" min="0" value={form.low_stock_threshold} onChange={e=>set('low_stock_threshold',e.target.value)} placeholder="مثلاً ۵" /></Field>
@@ -470,7 +482,7 @@ function ProductModal({ product, categories, onClose, onSave }) {
                 {form.options.map((option,i)=><div className="op-option-row" key={option.id || 'new-'+i}>
                     <input value={option.name} onChange={e=>updateOption(i,'name',e.target.value)} placeholder="نام گزینه" maxLength="100" required />
                     <select value={option.type} onChange={e=>updateOption(i,'type',e.target.value)}><option value="size">سایز</option><option value="addon">افزودنی</option></select>
-                    <input type="number" min="0" value={option.price} onChange={e=>updateOption(i,'price',e.target.value)} aria-label="قیمت گزینه" required />
+                    <MoneyInput min="0" value={option.price} onChange={value=>updateOption(i,'price',value)} aria-label="قیمت گزینه" required />
                     <label className="op-option-active"><input type="checkbox" checked={Boolean(option.is_active)} onChange={e=>updateOption(i,'is_active',e.target.checked)} />فعال</label>
                     <Button type="button" kind="danger" onClick={()=>removeOption(i)}>حذف</Button>
                 </div>)}
@@ -503,7 +515,7 @@ function PaymentModal({ order, onClose, onSubmit }) {
     return <Modal title="ثبت پرداخت" eyebrow="PAYMENT / CASHIER" onClose={onClose}>
         <div className="op-payment-summary"><span>سفارش {order.number}</span><b>{money(order.total)}</b><small>مانده محاسبه‌شده: {money(remaining)}</small></div>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),method,reference:reference||null,note:note||null,idempotency_key:requestKey},order.id);}}>
-            <Field label="مبلغ دریافت (تومان)"><input type="number" min="1" max={remaining} value={amount} onChange={e=>setAmount(e.target.value)} required /></Field>
+            <Field label="مبلغ دریافت"><MoneyInput min="1" max={remaining} value={amount} onChange={setAmount} required /></Field>
             <Field label="روش پرداخت"><select value={method} onChange={e=>setMethod(e.target.value)}><option value="cash">نقدی (نیازمند شیفت باز)</option><option value="card_terminal">کارت‌خوان — ثبت تأیید توسط کارمند</option><option value="other">سایر / انتقال تأییدشده خارج از سامانه</option></select></Field>
             <Field label="شماره پیگیری (اختیاری)"><input value={reference} onChange={e=>setReference(e.target.value)} maxLength="120" /></Field>
             <Field label="یادداشت"><input value={note} onChange={e=>setNote(e.target.value)} maxLength="500" /></Field>
@@ -533,7 +545,7 @@ function RefundModal({ payment, orderId, onClose, onSubmit }) {
     return <Modal title="بازپرداخت" eyebrow="REFUND / AUDITABLE" onClose={onClose}>
         <div className="op-payment-summary"><span>مبلغ پرداخت اولیه</span><b>{money(payment.amount)}</b><small>مانده قابل بازپرداخت: {money(refundable)}</small></div>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),reason,idempotency_key:requestKey},payment.id,orderId);}}>
-            <Field label="مبلغ بازپرداخت (تومان)"><input type="number" min="1" max={refundable} value={amount} onChange={e=>setAmount(e.target.value)} required /></Field>
+            <Field label="مبلغ بازپرداخت"><MoneyInput min="1" max={refundable} value={amount} onChange={setAmount} required /></Field>
             <Field label="علت بازپرداخت"><input value={reason} onChange={e=>setReason(e.target.value)} minLength="3" maxLength="500" required /></Field>
             <p className="op-note">بازپرداخت نقدی نیازمند شیفت باز است. بازپرداخت آنلاین بدون اتصال به درگاه از سمت بانک انجام نمی‌شود.</p>
             <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="danger" type="submit" disabled={Number(amount)<1 || Number(amount)>refundable}>ثبت بازپرداخت</Button></div>
@@ -586,13 +598,20 @@ export default function DashboardApp() {
     const [busy,setBusy]=useState(false);
     const [settings,setSettings]=useState(null);
 
+    if (typeof document !== 'undefined' && data.settings?.currency_label) {
+        document.documentElement.dataset.currencyLabel = data.settings.currency_label;
+    }
+
     useEffect(()=>{
         let alive=true;
         const load=async()=>{
             setLoading(true);setError('');
             try{
                 let next={};
-                if(page==='overview') next.dashboard=unwrapData(await api('/dashboard'));
+                if(page==='overview') {
+                    const [dashboardPayload, settingsPayload] = await Promise.all([api('/dashboard'), api('/settings')]);
+                    next.dashboard=unwrapData(dashboardPayload);next.settings=unwrapData(settingsPayload);
+                }
                 if(page==='orders') next.orders=unwrapList(await api('/orders?per_page=100'));
                 if(page==='cashier'){
                     const [shift,orders]=await Promise.all([api('/cash-shift'),api('/orders?per_page=100&unsettled=1')]);
@@ -700,7 +719,7 @@ export default function DashboardApp() {
     const rotateTable=table=>action(()=>api('/tables/'+table.id+'/rotate-qr',{method:'POST',body:{}}),'QR قبلی باطل و لینک جدید تولید شد.',{close:false});
     const adjustInventory=payload=>action(()=>api('/inventory/adjustments',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'گردش موجودی ثبت شد.');
     const createReservation=payload=>action(()=>api('/reservations',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'رزرو ثبت شد.');
-    const transitionReservation=(item,status)=>action(()=>api('/reservations/'+item.id+'/status',{method:'PATCH',body:{status}}),'وضعیت رزرو تغییر کرد.',{close:false});
+    const transitionReservation=(item,status,tableId)=>action(()=>api('/reservations/'+item.id+'/status',{method:'PATCH',body:{status,restaurant_table_id:tableId}}),'وضعیت رزرو و تخصیص میز به‌روزرسانی شد.',{close:false});
     const respondFeedback=(item,payload)=>action(()=>api('/feedback/'+item.id+'/response',{method:'PATCH',body:payload}),'پاسخ بازخورد ذخیره شد.',{close:false});
     const createExpense=payload=>action(()=>api('/expenses',{method:'POST',body:payload}),'هزینه ثبت شد.');
     const openShift=payload=>action(()=>api('/cash-shift/open',{method:'POST',body:payload}),'شیفت صندوق باز شد.');
@@ -738,7 +757,7 @@ export default function DashboardApp() {
         </aside>
         {mobileNav&&<button type="button" aria-label="بستن منو" className="mobile-overlay" onClick={()=>setMobileNav(false)}/>}
         <main className="main-shell">
-            <div className="topbar"><button type="button" className="mobile-menu-button" onClick={()=>setMobileNav(true)} aria-label="بازکردن منو">☰</button><div className="breadcrumb">خانه گیلاسی <span>/</span> {navItems.find(n=>n[0]===page)?.[1]||'مدیریت'}</div><div className="topbar-right"><span className={'connection-state '+(error?'op-connection-error':'')}><i/>{error?'خطا در ارتباط':'اتصال به سامانه'}</span><span className="topbar-date">{new Intl.DateTimeFormat('fa-IR',{weekday:'long',day:'numeric',month:'long'}).format(new Date())}</span><button type="button" className="icon-button" aria-label="تازه‌سازی صفحه" onClick={refresh}>↻</button><span className="topbar-avatar">KG</span></div></div>
+            <div className="topbar"><button type="button" className="mobile-menu-button" onClick={()=>setMobileNav(true)} aria-label="بازکردن منو">☰</button><div className="breadcrumb">خانه گیلاسی <span>/</span> {navItems.find(n=>n[0]===page)?.[1]||'مدیریت'}</div><div className="topbar-right"><span className={'connection-state '+(error?'op-connection-error':'')}><i/>{error?'خطا در ارتباط':'اتصال به سامانه'}</span><span className="topbar-date">{new Intl.DateTimeFormat('fa-IR-u-ca-persian',{weekday:'long',day:'numeric',month:'long',timeZone:'Asia/Tehran'}).format(new Date())}</span><button type="button" className="icon-button" aria-label="تازه‌سازی صفحه" onClick={refresh}>↻</button><span className="topbar-avatar">KG</span></div></div>
             {error&&<div className="op-global-error" role="alert"><span>{error}</span><Button onClick={refresh}>تلاش دوباره</Button></div>}
             {loading&&<div className="op-loading op-loading-line"><span className="op-spinner"/>در حال دریافت اطلاعات از سرور…</div>}
             {renderPage()}
