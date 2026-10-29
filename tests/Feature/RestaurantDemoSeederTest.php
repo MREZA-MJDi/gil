@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Reservation;
 use App\Models\RestaurantTable;
+use App\Models\RestaurantSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -65,6 +66,32 @@ class RestaurantDemoSeederTest extends TestCase
 
         $this->assertSame($orderCount, Order::query()->count(), 'Running the demo seeder twice must not duplicate orders.');
         $this->assertSame($stockBefore, Ingredient::query()->orderBy('id')->firstOrFail()->stock_quantity);
+    }
+
+    public function test_demo_seeder_respects_rial_as_the_chosen_currency_unit(): void
+    {
+        $this->app->detectEnvironment(fn () => 'local');
+        config(['app.env' => 'local', 'restaurant.currency_label' => 'ریال']);
+        User::query()->create([
+            'name' => 'Rial Demo Manager',
+            'email' => 'rial-demo@example.test',
+            'password' => 'demo-test-password-12345',
+            'is_admin' => true,
+        ]);
+
+        $settings = RestaurantSetting::current();
+        $this->assertSame('ریال', $settings->currency_label);
+
+        Artisan::call('db:seed', [
+            '--class' => \Database\Seeders\RestaurantDemoSeeder::class,
+            '--force' => true,
+        ]);
+
+        $this->assertSame('ریال', RestaurantSetting::current()->currency_label);
+        $this->assertSame(1450000, (int) Product::query()->where('name', 'لاته کلاسیک')->value('base_price'));
+        $this->assertSame(4000, (int) Ingredient::query()->where('name', 'دانه قهوه')->value('cost_per_unit'));
+        $this->assertSame(18500000, (int) Expense::query()->where('title', 'DEMO · خرید مواد اولیه هفتگی')->value('amount'));
+        $this->assertSame(80000000, (int) Reservation::query()->where('reference', 'DEMO-RSV-BDAY')->value('estimated_budget'));
     }
 
     public function test_demo_seeder_refuses_to_run_outside_local_environment(): void
