@@ -652,7 +652,7 @@ export default function DashboardApp() {
             const [payload,settingPayload]=await Promise.all([api('/orders/'+id+'/'+(type==='kitchen'?'kitchen-slip':type==='receipt'?'receipt':'invoice')),settings?Promise.resolve({data:settings}):api('/settings')]);
             const order=unwrapData(payload);const config=unwrapData(settingPayload);
             const printType=type==='kitchen'?'kitchen':type;
-            try{await api('/orders/'+id+'/print-log',{method:'POST',body:{type:printType,payment_id:type==='receipt'?(order.payments||[]).find(p=>p.status==='succeeded')?.id||null:null,is_reprint:false});}catch(e){notify('چاپ ادامه پیدا می‌کند، اما ثبت گزارش چاپ ناموفق بود: '+e.message);}
+            try{await api('/orders/'+id+'/print-log',{method:'POST',body:{type:printType,payment_id:type==='receipt'?(order.payments||[]).find(p=>p.status==='succeeded')?.id||null:null,is_reprint:false}});}catch(e){notify('چاپ ادامه پیدا می‌کند، اما ثبت گزارش چاپ ناموفق بود: '+e.message);}
             popup.document.open();popup.document.write(printHtml(order,type,config));popup.document.close();popup.focus();
         }catch(e){popup.close();notify(e?.message||'دریافت اطلاعات برای چاپ ناموفق بود.');}
     };
