@@ -23,10 +23,22 @@ class AdminUserSeeder extends Seeder
         $attributes = [
             'name' => $name,
             'email' => $email ?: null,
+            'phone' => $phone,
             'password' => $password,
             'is_admin' => true,
         ];
 
-        User::query()->updateOrCreate(['phone' => $phone], $attributes);
+        // Upgrade an existing installation instead of colliding with its configured admin email.
+        $user = User::query()->where('phone', $phone)->first();
+        if (! $user && $email) {
+            $user = User::query()->where('email', $email)->first();
+        }
+
+        if ($user) {
+            $user->fill($attributes)->save();
+            return;
+        }
+
+        User::query()->create($attributes);
     }
 }
