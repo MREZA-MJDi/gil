@@ -30,7 +30,8 @@ const reservationStatusLabel = { pending: 'در انتظار', confirmed: 'تأ�
 const feedbackStatusLabel = { new: 'جدید', reviewing: 'در حال بررسی', resolved: 'رسیدگی‌شده', closed: 'بسته‌شده' };
 const paymentMethodLabel = { cash: 'نقدی', card_terminal: 'کارت‌خوان (ثبت کاربر)', online: 'آنلاین', other: 'سایر' };
 const expenseCategoryLabel = { rent: 'اجاره', payroll: 'حقوق', utilities: 'قبوض', ingredients: 'مواد اولیه', repairs: 'تعمیرات', packaging: 'بسته‌بندی', transport: 'حمل‌ونقل', other: 'سایر' };
-const money = value => formatIranianMoney(value, 'تومان');
+const currencyLabel = () => typeof document !== 'undefined' ? (document.documentElement.dataset.currencyLabel || 'تومان') : 'تومان';
+const money = value => formatIranianMoney(value, currencyLabel());
 const numberFa = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0));
 const dateTime = value => value ? new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Tehran' }).format(new Date(value)) : '—';
 const localDateTime = value => value ? String(value).replace('T', ' ') + ':00' : '';
@@ -174,11 +175,11 @@ function CashierPage({ cashShift, orders, onRefresh, onOpenShift, onCloseShift, 
                 <div className="panel-heading"><div><h2>وضعیت شیفت صندوق</h2><p>هم‌زمان فقط یک شیفت باز قابل ثبت است.</p></div><Pill value={cashShift?.status || 'closed'} dictionary={{open:'باز',closed:'بسته'}} /></div>
                 {cashShift ? <div className="op-kpi-grid"><div><small>وجه آغازین</small><b>{money(cashShift.opening_cash)}</b></div><div><small>زمان شروع</small><b>{dateTime(cashShift.opened_at)}</b></div><div><small>ورودی/خروجی ثبت‌شده</small><b>{numberFa((cashShift.movements || []).length)} حرکت</b></div></div> :
                     <form className="op-form" onSubmit={e => { e.preventDefault(); onOpenShift({ opening_cash: Number(openingCash), note: shiftNote }); }}>
-                        <Field label="وجه نقد اولیه (تومان)"><MoneyInput min="0" value={openingCash} onChange={setOpeningCash} required aria-label="وجه نقد اولیه به تومان" /></Field>
+                        <Field label="وجه نقد اولیه"><MoneyInput min="0" value={openingCash} onChange={setOpeningCash} required aria-label="وجه نقد اولیه به تومان" /></Field>
                         <Field label="یادداشت شروع"><input value={shiftNote} onChange={e => setShiftNote(e.target.value)} maxLength="500" placeholder="مثلاً صندوق شیفت صبح" /></Field><Button kind="primary" type="submit">باز کردن شیفت</Button>
                     </form>}
                 {cashShift && <form className="op-form op-form-separated" onSubmit={e => { e.preventDefault(); onCloseShift(cashShift.id, { counted_cash: Number(countedCash), note: shiftNote }); }}>
-                    <Field label="وجه نقد شمارش‌شده (تومان)"><MoneyInput min="0" value={countedCash} onChange={setCountedCash} required aria-label="وجه نقد شمارش‌شده به تومان" /></Field>
+                    <Field label="وجه نقد شمارش‌شده"><MoneyInput min="0" value={countedCash} onChange={setCountedCash} required aria-label="وجه نقد شمارش‌شده به تومان" /></Field>
                     <Field label="یادداشت بستن"><input value={shiftNote} onChange={e => setShiftNote(e.target.value)} maxLength="500" placeholder="توضیح اختلاف صندوق، در صورت وجود" /></Field>
                     <Button kind="danger" type="submit">بستن و ثبت مغایرت</Button>
                 </form>}
@@ -187,7 +188,7 @@ function CashierPage({ cashShift, orders, onRefresh, onOpenShift, onCloseShift, 
                 <div className="panel-heading"><div><h2>ورودی / خروجی دستی صندوق</h2><p>برای تنخواه، شارژ صندوق یا خروج وجه، علت را شفاف ثبت کن.</p></div></div>
                 {cashShift ? <form className="op-form" onSubmit={e => { e.preventDefault(); onMovement(cashShift.id, { ...movement, idempotency_key: movementKey }).then(ok => { if (ok) { setMovement({ direction: 'out', amount: '', reason: '' }); setMovementKey(idempotencyKey()); } }); }}>
                     <Field label="نوع حرکت"><select value={movement.direction} onChange={e => setMovement(v => ({...v, direction:e.target.value}))}><option value="in">ورودی وجه</option><option value="out">خروجی وجه</option></select></Field>
-                    <Field label="مبلغ (تومان)"><MoneyInput min="1" value={movement.amount} onChange={value => setMovement(v => ({...v, amount:value}))} required aria-label="مبلغ حرکت صندوق به تومان" /></Field>
+                    <Field label="مبلغ"><MoneyInput min="1" value={movement.amount} onChange={value => setMovement(v => ({...v, amount:value}))} required aria-label="مبلغ حرکت صندوق به تومان" /></Field>
                     <Field label="علت / شرح"><input minLength="3" maxLength="500" value={movement.reason} onChange={e => setMovement(v => ({...v, reason:e.target.value}))} required placeholder="شرح قابل حسابرسی" /></Field>
                     <Button kind="primary" type="submit">ثبت حرکت صندوق</Button>
                 </form> : <Empty>برای ثبت حرکت دستی، ابتدا شیفت را باز کن.</Empty>}
@@ -318,7 +319,7 @@ function ExpensesPage({ expenses, onCreate, onRefresh }) {
             <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onCreate({ ...form, amount: Number(form.amount) }); }}>
                 <Field label="عنوان هزینه"><input value={form.title} onChange={e => set('title',e.target.value)} maxLength="150" required placeholder="مثلاً خرید شیر" /></Field>
                 <Field label="دسته"><select value={form.category} onChange={e => set('category',e.target.value)}>{Object.entries(expenseCategoryLabel).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
-                <Field label="مبلغ (تومان)"><MoneyInput min="1" value={form.amount} onChange={value => set('amount',value)} required aria-label="مبلغ هزینه به تومان" /></Field>
+                <Field label="مبلغ"><MoneyInput min="1" value={form.amount} onChange={value => set('amount',value)} required aria-label="مبلغ هزینه به تومان" /></Field>
                 <Field label="روش پرداخت"><select value={form.payment_method} onChange={e => set('payment_method',e.target.value)}><option value="cash">نقدی</option><option value="card_terminal">کارت‌خوان (ثبت‌شده)</option><option value="other">سایر</option></select></Field>
                 <Field label="وضعیت پرداخت"><select value={form.is_paid ? 'paid' : 'unpaid'} onChange={e => set('is_paid',e.target.value === 'paid')}><option value="paid">پرداخت شده</option><option value="unpaid">پرداخت نشده</option></select></Field>
                 <Field label="یادداشت"><input value={form.note} onChange={e => set('note',e.target.value)} maxLength="1000" /></Field>
@@ -364,7 +365,7 @@ function SettingsPage({ settings, onSave, onRefresh }) {
             <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onSave({ ...form, tax_basis_points: Number(form.tax_basis_points), service_basis_points: Number(form.service_basis_points), paper_width: Number(form.paper_width) }); }}>
                 <Field label="نام مجموعه"><input value={form.name} onChange={e => set('name',e.target.value)} maxLength="150" required /></Field>
                 <Field label="تلفن"><input value={form.phone} onChange={e => set('phone',e.target.value)} maxLength="30" /></Field>
-                <Field label="واحد پول"><input value={form.currency_label} onChange={e => set('currency_label',e.target.value)} maxLength="20" required /></Field>
+                <Field label="واحد پول"><select value={form.currency_label} onChange={e => set('currency_label',e.target.value)} required><option value="تومان">تومان</option><option value="ریال">ریال</option></select></Field>
                 <Field label="مالیات (%)"><input type="number" min="0" max="100" step="0.01" value={Number(form.tax_basis_points)/100} onChange={e => set('tax_basis_points', String(Math.round(Number(e.target.value || 0)*100)))} /></Field>
                 <Field label="سرویس (%)"><input type="number" min="0" max="100" step="0.01" value={Number(form.service_basis_points)/100} onChange={e => set('service_basis_points', String(Math.round(Number(e.target.value || 0)*100)))} /></Field>
                 <Field label="عرض کاغذ فیش"><select value={form.paper_width} onChange={e => set('paper_width',e.target.value)}><option value="58">۵۸ میلی‌متر</option><option value="80">۸۰ میلی‌متر</option></select></Field>
@@ -415,7 +416,7 @@ function OrderModal({ products, tables, onClose, onSubmit }) {
                 {channel === 'dine_in' && <Field label="میز"><select value={tableId} onChange={e=>setTableId(e.target.value)}><option value="">بدون تخصیص میز</option>{(tables || []).filter(t=>t.is_active).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>}
                 <Field label="نام مشتری (اختیاری)"><input value={customerName} onChange={e=>setCustomerName(e.target.value)} maxLength="150" /></Field>
                 <Field label="تلفن (اختیاری)"><input value={customerPhone} onChange={e=>setCustomerPhone(e.target.value)} maxLength="30" /></Field>
-                <Field label="تخفیف (تومان)"><MoneyInput min="0" max={subtotal} value={discount} onChange={setDiscount} required aria-label="تخفیف به تومان" /></Field>
+                <Field label="تخفیف"><MoneyInput min="0" max={subtotal} value={discount} onChange={setDiscount} required aria-label="تخفیف به تومان" /></Field>
                 <Field label="یادداشت سفارش"><input value={customerNote} onChange={e=>setCustomerNote(e.target.value)} maxLength="2000" /></Field>
             </div>
             <div className="op-picker">
@@ -456,7 +457,7 @@ function ProductModal({ product, categories, onClose, onSave }) {
             <div className="op-form-grid">
                 <Field label="نام محصول"><input value={form.name} onChange={e=>set('name',e.target.value)} maxLength="150" required /></Field>
                 <Field label="دسته‌بندی"><select value={form.category_id} onChange={e=>set('category_id',e.target.value)} required>{(categories||[]).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
-                <Field label="قیمت (تومان)"><MoneyInput min="0" value={form.base_price} onChange={value=>set('base_price',value)} required aria-label="قیمت محصول به تومان" /></Field>
+                <Field label="قیمت"><MoneyInput min="0" value={form.base_price} onChange={value=>set('base_price',value)} required aria-label="قیمت محصول به تومان" /></Field>
                 <Field label="وضعیت فروش"><select value={form.status} onChange={e=>set('status',e.target.value)}><option value="active">فعال</option><option value="inactive">غیرفعال</option><option value="unavailable">ناموجود</option></select></Field>
                 <Field label="موجودی فعلی" hint={product && product.stock_quantity !== null ? 'رهگیری موجودی فعال است؛ برای خاموش‌کردن آن سوابق قابل حسابرسی از بین می‌رود.' : 'خالی = بدون رهگیری'}><input type="number" min="0" value={form.stock_quantity} required={Boolean(product && product.stock_quantity !== null)} onChange={e=>set('stock_quantity',e.target.value)} placeholder="خالی = بدون رهگیری" /></Field>
                 <Field label="آستانه کمبود"><input type="number" min="0" value={form.low_stock_threshold} onChange={e=>set('low_stock_threshold',e.target.value)} placeholder="مثلاً ۵" /></Field>
@@ -504,7 +505,7 @@ function PaymentModal({ order, onClose, onSubmit }) {
     return <Modal title="ثبت پرداخت" eyebrow="PAYMENT / CASHIER" onClose={onClose}>
         <div className="op-payment-summary"><span>سفارش {order.number}</span><b>{money(order.total)}</b><small>مانده محاسبه‌شده: {money(remaining)}</small></div>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),method,reference:reference||null,note:note||null,idempotency_key:requestKey},order.id);}}>
-            <Field label="مبلغ دریافت (تومان)"><MoneyInput min="1" max={remaining} value={amount} onChange={setAmount} required aria-label="مبلغ دریافت به تومان" /></Field>
+            <Field label="مبلغ دریافت"><MoneyInput min="1" max={remaining} value={amount} onChange={setAmount} required aria-label="مبلغ دریافت به تومان" /></Field>
             <Field label="روش پرداخت"><select value={method} onChange={e=>setMethod(e.target.value)}><option value="cash">نقدی (نیازمند شیفت باز)</option><option value="card_terminal">کارت‌خوان — ثبت تأیید توسط کارمند</option><option value="other">سایر / انتقال تأییدشده خارج از سامانه</option></select></Field>
             <Field label="شماره پیگیری (اختیاری)"><input value={reference} onChange={e=>setReference(e.target.value)} maxLength="120" /></Field>
             <Field label="یادداشت"><input value={note} onChange={e=>setNote(e.target.value)} maxLength="500" /></Field>
@@ -534,7 +535,7 @@ function RefundModal({ payment, orderId, onClose, onSubmit }) {
     return <Modal title="بازپرداخت" eyebrow="REFUND / AUDITABLE" onClose={onClose}>
         <div className="op-payment-summary"><span>مبلغ پرداخت اولیه</span><b>{money(payment.amount)}</b><small>مانده قابل بازپرداخت: {money(refundable)}</small></div>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),reason,idempotency_key:requestKey},payment.id,orderId);}}>
-            <Field label="مبلغ بازپرداخت (تومان)"><MoneyInput min="1" max={refundable} value={amount} onChange={setAmount} required aria-label="مبلغ بازپرداخت به تومان" /></Field>
+            <Field label="مبلغ بازپرداخت"><MoneyInput min="1" max={refundable} value={amount} onChange={setAmount} required aria-label="مبلغ بازپرداخت به تومان" /></Field>
             <Field label="علت بازپرداخت"><input value={reason} onChange={e=>setReason(e.target.value)} minLength="3" maxLength="500" required /></Field>
             <p className="op-note">بازپرداخت نقدی نیازمند شیفت باز است. بازپرداخت آنلاین بدون اتصال به درگاه از سمت بانک انجام نمی‌شود.</p>
             <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="danger" type="submit" disabled={Number(amount)<1 || Number(amount)>refundable}>ثبت بازپرداخت</Button></div>
@@ -587,13 +588,20 @@ export default function DashboardApp() {
     const [busy,setBusy]=useState(false);
     const [settings,setSettings]=useState(null);
 
+    if (typeof document !== 'undefined' && data.settings?.currency_label) {
+        document.documentElement.dataset.currencyLabel = data.settings.currency_label;
+    }
+
     useEffect(()=>{
         let alive=true;
         const load=async()=>{
             setLoading(true);setError('');
             try{
                 let next={};
-                if(page==='overview') next.dashboard=unwrapData(await api('/dashboard'));
+                if(page==='overview') {
+                    const [dashboardPayload, settingsPayload] = await Promise.all([api('/dashboard'), api('/settings')]);
+                    next.dashboard=unwrapData(dashboardPayload);next.settings=unwrapData(settingsPayload);
+                }
                 if(page==='orders') next.orders=unwrapList(await api('/orders?per_page=100'));
                 if(page==='cashier'){
                     const [shift,orders]=await Promise.all([api('/cash-shift'),api('/orders?per_page=100&unsettled=1')]);
