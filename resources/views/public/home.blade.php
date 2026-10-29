@@ -21,7 +21,7 @@
             <div class="gil-hero-center">
                 <span class="gil-eyebrow"><i></i> KHANE GILASI · CAFÉ & RESTAURANT</span>
                 <p class="gil-welcome-script">طعم خوب، لحظهٔ خوب</p>
-                <h1>خانهٔ <em>گیلاسی</em></h1>
+                <h1>{{ $settings->name }}</h1>
                 <div class="gil-hero-signature"><span>COFFEE</span><i></i><span>KITCHEN</span><i></i><span>GOOD MOMENTS</span></div>
                 <p class="gil-hero-lead">از اولین عطر قهوه تا غذایی که تازه از آشپزخانه می‌آید؛ برای انتخاب، سفارش و قرار بعدی‌ات همه‌چیز را روشن و راحت کرده‌ایم.</p>
                 <div class="gil-hero-actions gil-hero-actions-centered">

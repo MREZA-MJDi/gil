@@ -76,22 +76,37 @@ if (root) {
         submit.disabled = true;
         root.querySelectorAll('[data-add-online-product], [data-online-option], [data-online-quantity]').forEach(control => { control.disabled = true; });
         message.textContent = uncertainSubmission ? 'در حال بررسی همان سفارش…' : 'در حال ثبت سفارش…';
-        const fields = new FormData(form);
+
         const key = pendingIdempotencyKey || idempotencyKey();
         pendingIdempotencyKey = key;
-        const payload = {
-            items: [...cart.values()].map(line => ({ product_id: line.product_id, quantity: line.quantity, options: line.options.map(option => ({ id: option.id })) })),
-            customer_name: String(fields.get('customer_name') || '').trim(),
-            customer_phone: String(fields.get('customer_phone') || '').trim(),
-            customer_note: String(fields.get('customer_note') || '').trim() || null,
-            payment_preference: String(fields.get('payment_preference') || 'at_counter'),
-            idempotency_key: key,
-        };
+        if (!pendingPayload) {
+            const fields = new FormData(form);
+            pendingPayload = {
+                items: [...cart.values()].map(line => ({
+                    product_id: line.product_id,
+                    quantity: line.quantity,
+                    options: line.options.map(option => ({ id: option.id })),
+                })),
+                customer_name: String(fields.get('customer_name') || '').trim(),
+                customer_phone: String(fields.get('customer_phone') || '').trim(),
+                customer_note: String(fields.get('customer_note') || '').trim() || null,
+                payment_preference: String(fields.get('payment_preference') || 'at_counter'),
+                idempotency_key: key,
+            };
+        }
+
+        let response = null;
         try {
-            const response = await fetch('/online-orders', {
-                method: 'POST', credentials: 'same-origin',
-                headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '', 'Idempotency-Key': key },
-                body: JSON.stringify(payload),
+            response = await fetch('/online-orders', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'Idempotency-Key': key,
+                },
+                body: JSON.stringify(pendingPayload),
             });
             let body = {};
             try { body = await response.json(); } catch { body = {}; }
@@ -99,19 +114,27 @@ if (root) {
                 const validation = body?.errors ? Object.values(body.errors).flat().find(Boolean) : null;
                 throw new Error(validation || body?.message || 'سفارش ثبت نشد؛ اطلاعات را بررسی و دوباره تلاش کن.');
             }
+
             const order = body?.data || {};
-            cart.clear(); form.reset(); pendingIdempotencyKey = null; pendingPayload = null; setCheckoutLocked(false); render();
+            cart.clear();
+            form.reset();
+            pendingIdempotencyKey = null;
+            pendingPayload = null;
+            setCheckoutLocked(false);
+            render();
             message.textContent = 'سفارش ' + (order.number || '') + ' ثبت شد. مبلغ نهایی: ' + money(order.total) + '. پرداخت هنوز ثبت نشده و هنگام تحویل یا در صندوق انجام می‌شود.';
         } catch (error) {
-            message.textContent = error?.message || 'ارتباط با سرور برقرار نشد. لطفاً دوباره تلاش کن.';
-            if (response && response.status >= 400 && response.status < 500 && response.status !== 429) {
+            const definiteClientError = response && response.status >= 400 && response.status < 500 && response.status !== 429;
+            if (definiteClientError) {
                 pendingIdempotencyKey = null;
                 pendingPayload = null;
                 setCheckoutLocked(false);
             } else {
-                // The server may have committed before a timeout/5xx. Freeze the same payload/key to prevent duplicates.
+                // A timeout/5xx may happen after the DB committed. Freeze inputs and retry
+                // the exact same payload with the same idempotency key to avoid duplicates.
                 setCheckoutLocked(true);
             }
+            message.textContent = error?.message || 'ارتباط با سرور برقرار نشد. اگر پاسخ قطعی نرسیده، دوباره با همان شناسه تلاش کن.';
             if (submit) submit.disabled = cart.size === 0;
         }
     });
