@@ -796,7 +796,7 @@ export default function DashboardApp() {
         {modal?.type==='order'&&<OrderModal products={modal.products} tables={modal.tables} onClose={()=>setModal(null)} onSubmit={createOrder}/>}
         {modal?.type==='product'&&<ProductModal key={modal.product?.id||'new'} product={modal.product} categories={data.categories||[]} onClose={()=>setModal(null)} onSave={createProduct}/>}
         {modal?.type==='category'&&<CategoryModal key={modal.category?.id || 'new'} category={modal.category} onClose={()=>setModal(null)} onSave={(payload,category)=>category?updateCategory(category,payload):createCategory(payload)}/>}
-        {modal?.type==='table-edit'&&<TableEditModal key={modal.table?.id} table={modal.table} onClose={()=>setModal(null)} onSave={(payload)=>editTable(modal.table,payload)}/>
+        {modal?.type==='table-edit'&&<TableEditModal key={modal.table?.id} table={modal.table} onClose={()=>setModal(null)} onSave={(payload)=>editTable(modal.table,payload)}/>}
         {modal?.type==='payment'&&<PaymentModal order={modal.order} onClose={()=>setModal(null)} onSubmit={submitPayment}/>}
         {modal?.type==='cancel'&&<CancelModal order={modal.order} onClose={()=>setModal(null)} onSubmit={submitCancel}/>}
         {modal?.type==='refund'&&<RefundModal payment={modal.payment} orderId={modal.orderId} onClose={()=>setModal(null)} onSubmit={submitRefund}/>}
