@@ -308,3 +308,24 @@
  .public-reservation-section .jalali-time-input{flex-basis:94px;width:94px}
  .public-reservation-section .jalali-calendar{width:min(310px,calc(100vw - 38px))}
 }
+
+
+/* GSAP owns motion while enabled; avoid a second CSS transition fighting its transforms. */
+.public-site.gsap-ready .reveal-card,
+.public-site.gsap-ready .value-card,
+.public-site.gsap-ready .moment-photo,
+.public-site.gsap-ready .story-copy,
+.public-site.gsap-ready .values-heading,
+.public-site.gsap-ready .moments-top,
+.public-site.gsap-ready .visit-copy,
+.public-site.gsap-ready .visit-details{transition:none}
+@media(prefers-reduced-motion:reduce){
+ .public-site.gsap-ready .reveal-card,
+ .public-site.gsap-ready .value-card,
+ .public-site.gsap-ready .moment-photo,
+ .public-site.gsap-ready .story-copy,
+ .public-site.gsap-ready .values-heading,
+ .public-site.gsap-ready .moments-top,
+ .public-site.gsap-ready .visit-copy,
+ .public-site.gsap-ready .visit-details{transition:none!important;transform:none!important;opacity:1!important}
+}
