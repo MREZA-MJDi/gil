@@ -260,12 +260,14 @@ function TablesPage({ tables, onCreate, onUpdate, onRotate, onRefresh }) {
 }
 
 function ReservationsPage({ reservations, tables, onCreate, onTransition, onRefresh }) {
-    const [form, setForm] = useState({ restaurant_table_id: '', customer_name: '', phone: '', party_size: '2', starts_at: '', duration_minutes: '90', notes: '' });
+    const emptyForm = { restaurant_table_id: '', customer_name: '', phone: '', party_size: '2', starts_at: '', duration_minutes: '90', notes: '' };
+    const [form, setForm] = useState(emptyForm);
+    const [requestKey, setRequestKey] = useState(() => idempotencyKey());
     const set = (key, value) => setForm(v => ({...v, [key]: value}));
     return <div className="page-content">
         <PageHeader title="رزرو میز" subtitle="رزرو با بازه زمانی و کنترل هم‌پوشانی برای هر میز؛ تغییر وضعیت در تاریخچه حسابرسی می‌شود." />
         <section className="panel op-card"><div className="panel-heading"><div><h2>ثبت رزرو جدید</h2><p>اگر میز مشخص شود، برخورد زمانی روی سرور کنترل می‌شود.</p></div></div>
-            <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onCreate({ ...form, restaurant_table_id: form.restaurant_table_id ? Number(form.restaurant_table_id) : null, party_size: Number(form.party_size), duration_minutes: Number(form.duration_minutes), starts_at: localDateTime(form.starts_at) }); }}>
+            <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onCreate({ ...form, restaurant_table_id: form.restaurant_table_id ? Number(form.restaurant_table_id) : null, party_size: Number(form.party_size), duration_minutes: Number(form.duration_minutes), starts_at: localDateTime(form.starts_at), idempotency_key: requestKey }).then(ok => { if (ok) { setForm(emptyForm); setRequestKey(idempotencyKey()); } }); }}>
                 <Field label="نام مشتری"><input value={form.customer_name} onChange={e => set('customer_name', e.target.value)} maxLength="150" required /></Field>
                 <Field label="تلفن"><input value={form.phone} onChange={e => set('phone', e.target.value)} maxLength="30" required /></Field>
                 <Field label="تعداد نفرات"><input type="number" min="1" max="50" value={form.party_size} onChange={e => set('party_size', e.target.value)} required /></Field>
@@ -661,7 +663,7 @@ export default function DashboardApp() {
     const updateTable=(table,payload)=>action(()=>api('/tables/'+table.id,{method:'PATCH',body:payload}),'میز به‌روزرسانی شد.',{close:false});
     const rotateTable=table=>action(()=>api('/tables/'+table.id+'/rotate-qr',{method:'POST',body:{}}),'QR قبلی باطل و لینک جدید تولید شد.',{close:false});
     const adjustInventory=payload=>action(()=>api('/inventory/adjustments',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'گردش موجودی ثبت شد.');
-    const createReservation=payload=>action(()=>api('/reservations',{method:'POST',body:payload}),'رزرو ثبت شد.');
+    const createReservation=payload=>action(()=>api('/reservations',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'رزرو ثبت شد.');
     const transitionReservation=(item,status)=>action(()=>api('/reservations/'+item.id+'/status',{method:'PATCH',body:{status}}),'وضعیت رزرو تغییر کرد.',{close:false});
     const respondFeedback=(item,payload)=>action(()=>api('/feedback/'+item.id+'/response',{method:'PATCH',body:payload}),'پاسخ بازخورد ذخیره شد.',{close:false});
     const createExpense=payload=>action(()=>api('/expenses',{method:'POST',body:payload}),'هزینه ثبت شد.');
