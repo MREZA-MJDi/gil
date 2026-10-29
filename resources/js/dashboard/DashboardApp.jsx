@@ -202,19 +202,20 @@ function CashierPage({ cashShift, orders, onRefresh, onOpenShift, onCloseShift, 
     </div>;
 }
 
-function MenuPage({ products, categories, onRefresh, onProduct, onProductStatus, onCategory }) {
+function MenuPage({ products, categories, onRefresh, onProduct, onProductStatus, onProductDelete, onCategory, onCategoryDelete }) {
     const [query, setQuery] = useState('');
     const [category, setCategory] = useState('all');
     const filtered = (products || []).filter(p => (category === 'all' || String(p.category_id) === category) && (String(p.name || '').toLowerCase().includes(query.toLowerCase()) || String(p.category?.name || '').toLowerCase().includes(query.toLowerCase())));
     return <div className="page-content">
         <PageHeader title="منو و محصولات" subtitle="قیمت، دسته، گزینه‌های محصول و وضعیت قابل سفارش بودن؛ تغییرها در دیتابیس ثبت می‌شوند." action="＋ محصول جدید" onAction={() => onProduct(null)} />
         <div className="op-toolbar"><input value={query} onChange={e => setQuery(e.target.value)} placeholder="جست‌وجوی نام محصول…" /><select value={category} onChange={e => setCategory(e.target.value)}><option value="all">همه دسته‌ها</option>{(categories || []).map(c => <option key={c.id} value={String(c.id)}>{c.name}</option>)}</select><Button onClick={() => onCategory(null)}>＋ دسته‌بندی</Button><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
+        {(categories || []).length > 0 && <section className="panel op-card"><div className="panel-heading"><div><h2>مدیریت دسته‌بندی‌ها</h2><p>نام و ترتیب دسته‌ها را تغییر بده؛ حذف دسته دارای محصول مجاز نیست.</p></div></div><div className="op-actions">{categories.map(c => <span className="op-category-manager-item" key={c.id}><b>{c.name}</b><Button onClick={() => onCategory(c)}>ویرایش</Button><Button kind="danger" onClick={() => onCategoryDelete(c)}>حذف</Button></span>)}</div></section>
         {filtered.length ? <div className="op-product-grid">{filtered.map(product => <article className="op-product-card" key={product.id}>
             {product.image_url ? <img src={product.image_url} alt="" /> : <div className="op-product-placeholder">☕</div>}
             <div className="op-product-body"><div className="op-product-top"><span>{product.category?.name || 'بدون دسته'}</span><Pill value={product.status} dictionary={productStatusLabel} /></div>
                 <h3>{product.name}</h3><b className="op-product-price">{money(product.base_price)}</b>
                 <div className="op-product-meta"><span>شناسه: {numberFa(product.id)}</span><span>{product.stock_quantity === null ? 'بدون رهگیری موجودی' : ('موجودی: ' + numberFa(product.stock_quantity))}</span></div>
-                <div className="op-actions"><Button onClick={() => onProduct(product)}>ویرایش</Button><Button onClick={() => onProductStatus(product, product.status === 'active' ? 'unavailable' : 'active')}>{product.status === 'active' ? 'ناموجود کردن' : 'فعال‌سازی'}</Button></div>
+                <div className="op-actions"><Button onClick={() => onProduct(product)}>ویرایش</Button><Button onClick={() => onProductStatus(product, product.status === 'active' ? 'unavailable' : 'active')}>{product.status === 'active' ? 'ناموجود کردن' : 'فعال‌سازی'}</Button><Button kind="danger" onClick={() => onProductDelete(product)}>حذف</Button></div>
             </div>
         </article>)}</div> : <Empty>محصولی پیدا نشد. یک محصول جدید بساز یا فیلتر را عوض کن.</Empty>}
     </div>;
@@ -236,7 +237,7 @@ function InventoryPage({ products, movements, onRefresh, onAdjust }) {
     </div>;
 }
 
-function TablesPage({ tables, onCreate, onUpdate, onRotate, onShowQr, onRefresh }) {
+function TablesPage({ tables, onCreate, onUpdate, onEdit, onDelete, onRotate, onShowQr, onRefresh }) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     return <div className="page-content">
@@ -253,10 +254,10 @@ function TablesPage({ tables, onCreate, onUpdate, onRotate, onShowQr, onRefresh 
             <div className="op-table-head"><div className="op-table-symbol">⌂</div><div><h3>{table.name}</h3><small>{table.description || 'میز سالن'}</small></div><Pill value={table.is_active ? 'active' : 'inactive'} dictionary={{active:'فعال',inactive:'غیرفعال'}} /></div>
             <div className="op-table-state"><b>{numberFa(table.open_orders_count || 0)}</b><span>سفارش باز</span></div>
             <a className="op-link" href={table.menu_url} target="_blank" rel="noreferrer">{table.menu_url}</a>
-            <div className="op-actions"><Button kind="primary" onClick={() => onShowQr(table)}>نمایش / چاپ QR</Button>
+            <div className="op-actions"><Button onClick={() => onEdit(table)}>ویرایش اطلاعات</Button><Button kind="primary" onClick={() => onShowQr(table)}>نمایش / چاپ QR</Button>
                 <Button onClick={() => { const url = new URL(table.menu_url, window.location.origin).href; if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(() => alert('لینک منوی این میز کپی شد.')).catch(() => window.prompt('لینک منو را کپی کن:', url)); else window.prompt('لینک منو را کپی کن:', url); }}>کپی لینک منو</Button>
                 <Button onClick={() => onRotate(table)}>تعویض QR</Button>
-                <Button kind={table.is_active ? 'danger' : 'primary'} onClick={() => onUpdate(table, { is_active: !table.is_active })}>{table.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}</Button>
+                <Button kind={table.is_active ? 'danger' : 'primary'} onClick={() => onUpdate(table, { is_active: !table.is_active })}>{table.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}</Button>{table.is_active && <Button kind="danger" onClick={() => onDelete(table)}>حذف / بایگانی</Button>}
             </div>
         </article>)}</div> : <Empty>هنوز میزی ایجاد نشده است.</Empty>}
         <p className="op-note">برای هر میز، تصویر QR از لینک اختصاصی آن ساخته می‌شود. تلفن مشتری باید به نشانی‌ای دسترسی داشته باشد که در APP_URL تنظیم کرده‌ای؛ آدرس localhost فقط روی خود سرور/کامپیوتر صندوق باز می‌شود.</p>
@@ -493,14 +494,29 @@ function ProductModal({ product, categories, onClose, onSave }) {
     </Modal>;
 }
 
-function CategoryModal({ onClose, onSave }) {
-    const [name,setName]=useState('');
-    const [sortOrder,setSortOrder]=useState('0');
-    return <Modal title="دسته‌بندی جدید" eyebrow="MENU CATEGORY" onClose={onClose}>
-        <form className="op-form" onSubmit={e=>{e.preventDefault();onSave({name:name.trim(),sort_order:Number(sortOrder),is_active:true});}}>
+function CategoryModal({ category, onClose, onSave }) {
+    const [name,setName]=useState(category?.name || '');
+    const [sortOrder,setSortOrder]=useState(String(category?.sort_order ?? 0));
+    const [isActive,setIsActive]=useState(category?.is_active !== false);
+    return <Modal title={category ? 'ویرایش دسته‌بندی' : 'دسته‌بندی جدید'} eyebrow="MENU CATEGORY" onClose={onClose}>
+        <form className="op-form" onSubmit={e=>{e.preventDefault();onSave({name:name.trim(),sort_order:Number(sortOrder),is_active:isActive},category);}}>
             <Field label="نام دسته"><input value={name} onChange={e=>setName(e.target.value)} maxLength="150" required /></Field>
             <Field label="ترتیب نمایش"><input type="number" min="0" value={sortOrder} onChange={e=>setSortOrder(e.target.value)} /></Field>
-            <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ایجاد دسته</Button></div>
+            <Field label="وضعیت"><select value={isActive ? '1' : '0'} onChange={e=>setIsActive(e.target.value === '1')}><option value="1">فعال</option><option value="0">غیرفعال</option></select></Field>
+            <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">{category ? 'ذخیره تغییرات' : 'ایجاد دسته'}</Button></div>
+        </form>
+    </Modal>;
+}
+
+function TableEditModal({ table, onClose, onSave }) {
+    const [name,setName]=useState(table?.name || '');
+    const [description,setDescription]=useState(table?.description || '');
+    return <Modal title="ویرایش میز" eyebrow="TABLE SETTINGS" onClose={onClose}>
+        <form className="op-form" onSubmit={e=>{e.preventDefault();onSave({name:name.trim(),description:description.trim() || null});}}>
+            <Field label="نام میز"><input value={name} onChange={e=>setName(e.target.value)} maxLength="80" required /></Field>
+            <Field label="توضیح"><input value={description} onChange={e=>setDescription(e.target.value)} maxLength="255" /></Field>
+            <p className="op-note">تغییر نام یا توضیح روی همان رکورد ذخیره می‌شود و لینک QR همین میز حفظ می‌شود.</p>
+            <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ذخیره تغییرات</Button></div>
         </form>
     </Modal>;
 }
@@ -714,8 +730,22 @@ export default function DashboardApp() {
     },'محصول و تصویر ذخیره شد.');
     const changeProductStatus=(product,status)=>action(()=>api('/products/'+product.id+'/status',{method:'PATCH',body:{status}}),'وضعیت محصول تغییر کرد.',{close:false});
     const createCategory=payload=>action(()=>api('/categories',{method:'POST',body:payload}),'دسته‌بندی ایجاد شد.');
+    const updateCategory=(category,payload)=>action(()=>api('/categories/'+category.id,{method:'PATCH',body:payload}),'دسته‌بندی به‌روزرسانی شد.');
+    const deleteCategory=category=>{
+        if(!window.confirm('دسته «'+category.name+'» حذف شود؟ اگر محصولی به آن متصل باشد، سرور حذف را رد می‌کند.')) return;
+        return action(()=>api('/categories/'+category.id,{method:'DELETE'}),'دسته‌بندی حذف شد.');
+    };
+    const deleteProduct=product=>{
+        if(!window.confirm('محصول «'+product.name+'» حذف شود؟ محصول دارای سابقه فروش یا گردش موجودی قابل حذف نیست و باید غیرفعال شود.')) return;
+        return action(()=>api('/products/'+product.id,{method:'DELETE'}),'محصول حذف شد.');
+    };
     const createTable=payload=>action(()=>api('/tables',{method:'POST',body:payload}),'میز ایجاد شد.');
     const updateTable=(table,payload)=>action(()=>api('/tables/'+table.id,{method:'PATCH',body:payload}),'میز به‌روزرسانی شد.',{close:false});
+    const editTable=(table,payload)=>action(()=>api('/tables/'+table.id,{method:'PATCH',body:payload}),'اطلاعات میز به‌روزرسانی شد.');
+    const archiveTable=table=>{
+        if(!window.confirm('میز «'+table.name+'» بایگانی و از دسترس منوی مشتری خارج شود؟ سوابق سفارش حذف نمی‌شوند.')) return;
+        return action(()=>api('/tables/'+table.id,{method:'PATCH',body:{is_active:false}}),'میز بایگانی شد؛ سوابق آن در دیتابیس باقی ماند.',{close:false});
+    };
     const rotateTable=table=>action(()=>api('/tables/'+table.id+'/rotate-qr',{method:'POST',body:{}}),'QR قبلی باطل و لینک جدید تولید شد.',{close:false});
     const adjustInventory=payload=>action(()=>api('/inventory/adjustments',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'گردش موجودی ثبت شد.');
     const createReservation=payload=>action(()=>api('/reservations',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'رزرو ثبت شد.');
@@ -736,9 +766,9 @@ export default function DashboardApp() {
         if(page==='overview') return <OverviewPage dashboard={data.dashboard} onNavigate={navigate} onNewOrder={newOrder} loading={loading} />;
         if(page==='orders') return <OrdersPage orders={data.orders} onRefresh={refresh} onDetails={orderDetails} onPrint={printDocument} onNewOrder={newOrder} onTransition={transition} onCancel={cancelOrder} />;
         if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} />;
-        if(page==='menu') return <MenuPage products={data.products} categories={data.categories} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onCategory={()=>setModal({type:'category'})} />;
+        if(page==='menu') return <MenuPage products={data.products} categories={data.categories} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onProductDelete={deleteProduct} onCategory={category=>setModal({type:'category',category})} onCategoryDelete={deleteCategory} />;
         if(page==='inventory') return <InventoryPage products={data.products} movements={data.movements} onRefresh={refresh} onAdjust={product=>setModal({type:'inventory',product})} />;
-        if(page==='tables') return <TablesPage tables={data.tables} onRefresh={refresh} onCreate={createTable} onUpdate={updateTable} onRotate={rotateTable} onShowQr={table=>setModal({type:'qr',table})} />;
+        if(page==='tables') return <TablesPage tables={data.tables} onRefresh={refresh} onCreate={createTable} onUpdate={updateTable} onEdit={table=>setModal({type:'table-edit',table})} onDelete={archiveTable} onRotate={rotateTable} onShowQr={table=>setModal({type:'qr',table})} />;
         if(page==='reservations') return <ReservationsPage reservations={data.reservations} tables={data.tables} onRefresh={refresh} onCreate={createReservation} onTransition={transitionReservation} />;
         if(page==='customers') return <CustomersPage feedback={data.feedback} onRefresh={refresh} onRespond={respondFeedback} />;
         if(page==='expenses') return <ExpensesPage expenses={data.expenses} onRefresh={refresh} onCreate={createExpense} />;
@@ -765,7 +795,8 @@ export default function DashboardApp() {
         </main>
         {modal?.type==='order'&&<OrderModal products={modal.products} tables={modal.tables} onClose={()=>setModal(null)} onSubmit={createOrder}/>}
         {modal?.type==='product'&&<ProductModal key={modal.product?.id||'new'} product={modal.product} categories={data.categories||[]} onClose={()=>setModal(null)} onSave={createProduct}/>}
-        {modal?.type==='category'&&<CategoryModal onClose={()=>setModal(null)} onSave={createCategory}/>}
+        {modal?.type==='category'&&<CategoryModal key={modal.category?.id || 'new'} category={modal.category} onClose={()=>setModal(null)} onSave={(payload,category)=>category?updateCategory(category,payload):createCategory(payload)}/>}
+        {modal?.type==='table-edit'&&<TableEditModal key={modal.table?.id} table={modal.table} onClose={()=>setModal(null)} onSave={(payload)=>editTable(modal.table,payload)}/>
         {modal?.type==='payment'&&<PaymentModal order={modal.order} onClose={()=>setModal(null)} onSubmit={submitPayment}/>}
         {modal?.type==='cancel'&&<CancelModal order={modal.order} onClose={()=>setModal(null)} onSubmit={submitCancel}/>}
         {modal?.type==='refund'&&<RefundModal payment={modal.payment} orderId={modal.orderId} onClose={()=>setModal(null)} onSubmit={submitRefund}/>}

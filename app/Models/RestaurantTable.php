@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RestaurantTable extends Model
 {
-    protected $fillable = ['name', 'token', 'is_active', 'description'];
+    protected $fillable = ['seed_key', 'name', 'token', 'is_active', 'description'];
 
     protected function casts(): array
     {

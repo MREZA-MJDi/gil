@@ -36,14 +36,32 @@ class RestaurantFoundationSeeder extends Seeder
                 continue;
             }
 
-            RestaurantTable::query()->firstOrCreate(
-                ['name' => $tableName],
-                [
+            // Keep a stable identity for environment-seeded tables so renaming or
+            // deactivating a table in the dashboard is preserved on future seed runs.
+            $seedKey = 'env-table:'.hash('sha256', $tableName);
+            $table = RestaurantTable::query()->where('seed_key', $seedKey)->first();
+
+            if (! $table) {
+                // Attach a key to an existing table before creating anything, avoiding
+                // a duplicate when an installation predates the seed_key column.
+                $table = RestaurantTable::query()->where('name', $tableName)->first();
+
+                if ($table) {
+                    if (! $table->seed_key) {
+                        $table->forceFill(['seed_key' => $seedKey])->save();
+                    }
+
+                    continue;
+                }
+
+                RestaurantTable::query()->create([
+                    'seed_key' => $seedKey,
+                    'name' => $tableName,
                     'token' => Str::random(48),
                     'is_active' => true,
                     'description' => null,
-                ],
-            );
+                ]);
+            }
         }
     }
 }
