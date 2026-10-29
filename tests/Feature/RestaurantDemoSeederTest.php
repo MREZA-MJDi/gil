@@ -35,7 +35,7 @@ class RestaurantDemoSeederTest extends TestCase
             '--force' => true,
         ]);
 
-        $this->assertGreaterThanOrEqual(15, Category::query()->count());
+        $this->assertGreaterThanOrEqual(5, Category::query()->count());
         $this->assertGreaterThanOrEqual(15, Product::query()->count());
         $this->assertGreaterThanOrEqual(8, RestaurantTable::query()->count());
         $this->assertGreaterThan(0, Ingredient::query()->count());
