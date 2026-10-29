@@ -17,6 +17,7 @@ function CustomerMenu() {
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
     const [paymentPreference, setPaymentPreference] = useState('at_counter');
+    const [paymentPreference, setPaymentPreference] = useState('at_counter');
     const [idempotencyKey, setIdempotencyKey] = useState('');
     const [submissionUncertain, setSubmissionUncertain] = useState(false);
 
@@ -235,6 +236,13 @@ function CustomerMenu() {
                 </select>
                 <small>این فقط روش ترجیحی است؛ تا ثبت پرداخت توسط کارکنان، سفارش تسویه‌نشده می‌ماند.</small>
             </label>
+            <fieldset className="customer-payment-preference">
+                <legend>روش پرداخت دلخواه</legend>
+                <label><input type="radio" name="payment-preference" value="at_counter" checked={paymentPreference==='at_counter'} disabled={busy || submissionUncertain} onChange={() => setPaymentPreference('at_counter')} /><span><b>پرداخت هنگام تحویل / در صندوق</b><small>اگر هنوز تصمیم نگرفته‌ای این گزینه مناسب است.</small></span></label>
+                <label><input type="radio" name="payment-preference" value="card_terminal" checked={paymentPreference==='card_terminal'} disabled={busy || submissionUncertain} onChange={() => setPaymentPreference('card_terminal')} /><span><b>کارت‌خوان</b><small>پرداخت توسط کارکنان ثبت می‌شود.</small></span></label>
+                <label><input type="radio" name="payment-preference" value="cash" checked={paymentPreference==='cash'} disabled={busy || submissionUncertain} onChange={() => setPaymentPreference('cash')} /><span><b>نقدی</b><small>انتخاب روش، رسید پرداخت ایجاد نمی‌کند.</small></span></label>
+                <p>این فقط ترجیح پرداخت است؛ سفارش زمانی تسویه‌شده محسوب می‌شود که پرداخت واقعی در صندوق ثبت شود.</p>
+            </fieldset>
             <div className="customer-price-breakdown">
                 <p><span>جمع اقلام</span><b>{money(subtotal, currency)}</b></p>
                 {Number(data.settings?.tax_basis_points || 0) > 0 && <p><span>مالیات ({numberFa(Number(data.settings.tax_basis_points) / 100)}٪)</span><b>{money(tax, currency)}</b></p>}

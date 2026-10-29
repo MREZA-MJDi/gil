@@ -25,6 +25,17 @@ import { jalaliDateTimeToGregorian } from './date-utils.js';
     window.addEventListener('scroll', updateHeader, { passive: true });
     updateHeader();
 
+    // Accessible, touch-friendly featured product carousel. No scroll-triggered animation library.
+    document.querySelectorAll('[data-food-carousel]').forEach(button => {
+        button.addEventListener('click', () => {
+            const track = document.querySelector('.gil-food-grid');
+            if (!track) return;
+            const factor = button.dataset.foodCarousel === 'next' ? 1 : -1;
+            track.scrollBy({ left: factor * Math.max(260, track.clientWidth * 0.82), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        });
+    });
+
+
     // Public reservation dates are entered in the Jalali calendar but stored as Gregorian
     // timestamps so Laravel/database queries remain consistent.
     document.querySelectorAll('[data-jalali-booking]').forEach(form => {

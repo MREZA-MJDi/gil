@@ -354,3 +354,151 @@
 @media(max-width:760px){.public-home-v2 .site-header{height:68px}.gil-hero{min-height:auto;padding:50px 20px 24px}.gil-hero-shade{background:linear-gradient(90deg,#171614ef,#171614c9),linear-gradient(0deg,#171614cc,transparent)}.gil-hero-layout{grid-template-columns:1fr;gap:30px}.gil-hero-copy{padding:10px 0 0}.gil-hero h1{font-size:clamp(42px,11vw,64px);letter-spacing:-1.5px}.gil-hero-copy>p{font-size:13px}.gil-hero-proof{margin-top:30px}.gil-hero-proof>div{padding-inline:10px}.gil-hero-proof b{font-size:11px}.gil-hero-proof span{font-size:10px}.gil-hero-feature{max-width:none;display:grid;grid-template-columns:120px 1fr;gap:0}.gil-hero-feature-image{height:100%;min-height:150px}.gil-hero-feature-body{display:block;padding:12px}.gil-hero-feature-body h2{font-size:16px}.gil-hero-feature-body p{display:none}.gil-hero-feature-body>strong{display:block;padding-top:7px}.gil-feature-link{grid-column:1/-1}.gil-hero-bottom{margin-top:28px;font-size:9px}.gil-category-strip{padding-block:30px}.gil-category-links{grid-template-columns:repeat(2,minmax(0,1fr))}.gil-menu-feature,.gil-ordering,.gil-gallery{padding-block:60px}.gil-section-heading,.gil-gallery-heading{align-items:start;flex-direction:column}.gil-section-heading-side{max-width:none}.gil-food-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.gil-food-photo{height:200px}.gil-food-meta{display:block;padding:12px 5px 6px}.gil-food-meta h3{font-size:14px}.gil-food-meta p{font-size:10px}.gil-food-meta>strong{display:block;padding-top:9px}.gil-food-options{padding:8px 5px}.gil-food-options span{font-size:9px}.gil-menu-footer{align-items:start;flex-direction:column}.gil-experience{grid-template-columns:1fr;padding:55px 20px;gap:35px}.gil-experience-images{min-height:420px}.gil-experience-image-main{inset-inline-start:45px;inset-inline-end:0;bottom:70px}.gil-experience-image-small{width:52%;height:200px}.gil-experience-copy h2{font-size:44px}.gil-ordering-grid{grid-template-columns:1fr}.gil-order-card{min-height:250px}.gil-event-banner{min-height:500px;padding:50px 22px}.gil-event-shade{background:linear-gradient(90deg,#181613eb,#181613b8)}.gil-event-content h2{font-size:45px}.gil-gallery-grid{grid-template-columns:1fr 1fr;grid-template-rows:280px 190px}.gil-gallery-large{grid-column:1/-1;grid-row:auto}.gil-final-cta{grid-template-columns:1fr;padding-block:50px;gap:10px}}
 @media(max-width:460px){.gil-hero-actions .gil-button{flex:1;padding:12px 11px;gap:10px;font-size:11px}.gil-food-grid{grid-template-columns:1fr}.gil-food-photo{height:260px}.gil-food-meta{display:flex}.gil-food-meta>strong{padding-top:5px}.gil-hero-proof>div{padding-inline:7px}.gil-hero-proof span{line-height:1.6}.gil-gallery-grid{grid-template-columns:1fr;grid-template-rows:230px 210px 210px}.gil-gallery-large{grid-column:auto}.public-booking-v2 .reserve-form-grid{grid-template-columns:1fr}.public-booking-v2 .reserve-datetime-field,.public-booking-v2 .reserve-notes-field{grid-column:auto}.public-booking-v2 .reserve-side-photo{aspect-ratio:16/9}}
 @media(prefers-reduced-motion:reduce){.gil-button,.gil-food-card,.gil-food-photo img,.gil-order-card,.gil-gallery-item img,.public-site .public-food-image>img{transition:none!important}.gil-button:hover,.gil-order-card:hover,.gil-category-links>a:hover{transform:none}}
+
+
+/* 2026 cinematic restaurant direction: real food photography, editorial typography,
+   low-motion interactions and functional navigation instead of forced scroll effects. */
+.public-home-v2{--gil-ink:#f6eee2;--gil-muted:#c1b5a3;--gil-paper:#211f1b;--gil-line:#494238;background:#141310;color:#f7efe4}
+.public-home-v2 .site-topline{position:absolute;inset:0 0 auto;height:30px;z-index:121;background:transparent;color:#e6d5bb}
+.public-home-v2 .site-topline-right{color:#e6c083}
+.public-home-v2 .site-header{position:absolute;top:28px;left:0;right:0;z-index:120;background:linear-gradient(180deg,#11100ed9,#11100e24);color:#fff7e9;border-color:#ffffff18;backdrop-filter:none}
+.public-home-v2 .site-header .site-brand-copy small{color:#d1c3af}
+.public-home-v2 .site-nav a{color:#f5eee2}
+.public-home-v2 .site-nav a:hover{color:#efbd66}
+.public-home-v2 .site-header-cta{background:#d79b3e;color:#20170e;border-color:#d79b3e}
+.public-home-v2 .site-menu-toggle span{background:#fff5e8}
+.public-home-v2 .site-nav-auth{border-color:#dcb36e}
+.public-home-v2 .site-nav-auth:hover{background:#dcb36e;color:#21180f}
+.public-home-v2 .gil-hero-cinematic{min-height:100svh;height:auto;padding:142px clamp(18px,5vw,82px) 24px;justify-content:center}
+.public-home-v2 .gil-hero-cinematic .gil-hero-photo{object-position:center 54%;filter:saturate(.84) contrast(1.08)}
+.public-home-v2 .gil-hero-cinematic .gil-hero-shade{background:linear-gradient(90deg,#0c0b09a8,#0c0b0960 35%,#0c0b095e 65%,#0c0b09a8),linear-gradient(180deg,#0d0c0bc7 0%,#0d0c0933 24%,#0d0c096b 60%,#0d0c0bf0 100%)}
+.public-home-v2 .gil-hero-center{width:min(900px,100%);margin:auto;text-align:center;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;padding:20px 0 26px}
+.public-home-v2 .gil-hero-center .gil-eyebrow{color:#f1d9b2;justify-content:center}
+.public-home-v2 .gil-welcome-script{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:clamp(25px,3.7vw,48px);color:#e3ad5d;line-height:1.15;margin:25px 0 4px;letter-spacing:.01em}
+.public-home-v2 .gil-hero-center h1{font-size:clamp(54px,9.5vw,120px);line-height:1.04;letter-spacing:-.035em;margin:8px 0 13px;text-shadow:0 5px 34px #0008}
+.public-home-v2 .gil-hero-center h1 em{font-style:normal;color:#f3eee5}
+.public-home-v2 .gil-hero-signature{display:flex;justify-content:center;align-items:center;gap:12px;color:#e6d4b9;font:10px 'DM Mono',Tahoma,monospace;letter-spacing:.24em;direction:ltr;margin-bottom:18px}
+.public-home-v2 .gil-hero-signature i{display:inline-block;width:28px;height:1px;background:#d6a65d}
+.public-home-v2 .gil-hero-lead{max-width:690px;font-size:clamp(13px,1.25vw,16px);line-height:2.1;color:#f0e7d8;margin:0}
+.public-home-v2 .gil-hero-actions-centered{justify-content:center;margin-top:25px}
+.public-home-v2 .gil-button{border-radius:999px;padding:13px 23px;gap:18px}
+.public-home-v2 .gil-button-gold{background:#e1a548;color:#1c160d;border-color:#e1a548;box-shadow:0 9px 30px #cb8b302e}
+.public-home-v2 .gil-button-gold:hover{background:#f1ba63;border-color:#f1ba63}
+.public-home-v2 .gil-button-glass{border-color:#ffffff9c;background:#18171342;color:#fff8ee}
+.public-home-v2 .gil-hero-special{display:flex;align-items:center;gap:13px;width:min(390px,100%);margin-top:31px;padding:11px 14px;background:#171511a6;border:1px solid #f2d7a047;border-radius:12px;text-align:right;color:#fff8ec;backdrop-filter:blur(14px)}
+.public-home-v2 .gil-hero-special-mark{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:10px;background:#e1a548;color:#20170b;font-size:21px}
+.public-home-v2 .gil-hero-special>span:nth-child(2){display:grid;gap:2px;flex:1;min-width:0}
+.public-home-v2 .gil-hero-special small{font-size:10px;color:#cfbea6}
+.public-home-v2 .gil-hero-special b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.public-home-v2 .gil-hero-special>strong{font-size:12px;color:#f1c573;white-space:nowrap}
+.public-home-v2 .gil-hero-special-arrow{color:#e9c17c;font-size:20px}
+.public-home-v2 .gil-hero-bottom-cinematic{width:min(1400px,100%);margin:24px auto 0;padding-top:14px;align-items:center;border-top-color:#ffffff3d;color:#e6d7c4;position:relative;z-index:1}
+.public-home-v2 .gil-hero-phone{display:flex;align-items:center;gap:10px;color:#fff4e4;font-size:12px}
+.public-home-v2 .gil-hero-phone>span{font-size:19px;color:#e5ad54}
+.public-home-v2 .gil-hero-scroll{display:flex;align-items:center;gap:13px;font-size:11px;color:#f4e6d2}
+.public-home-v2 .gil-hero-scroll b{display:grid;place-items:center;width:26px;height:26px;border:1px solid #ffffff70;border-radius:50%;font-size:15px}
+.public-home-v2 .gil-hero-edition{font:9px 'DM Mono',monospace;direction:ltr;letter-spacing:.17em;color:#d4c0a1}
+.public-home-v2 .gil-category-strip{grid-template-columns:230px minmax(0,1fr);gap:28px;padding-block:50px;border-color:#ffffff20;background:#171612}
+.public-home-v2 .gil-strip-intro h2{color:#f8f0e3;font-size:24px;line-height:1.45}
+.public-home-v2 .gil-strip-intro p{font-size:11px;line-height:1.9;color:#b9ab98;margin:9px 0 0}
+.public-home-v2 .gil-category-links{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.public-home-v2 .gil-category-links>a{display:flex;flex-direction:column;align-items:stretch;padding:0;gap:0;overflow:hidden;background:#221f1a;border:1px solid #ffffff20;border-radius:11px;color:#f7eee1;min-width:0}
+.public-home-v2 .gil-category-links>a:hover{transform:translateY(-4px);border-color:#dba74f;box-shadow:0 12px 30px #0004}
+.public-home-v2 .gil-category-image{display:block;position:relative;aspect-ratio:1.28/1;overflow:hidden;background:#332c21}
+.public-home-v2 .gil-category-image:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#13110ed1,transparent 58%)}
+.public-home-v2 .gil-category-image img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease;filter:saturate(.9)}
+.public-home-v2 .gil-category-links>a:hover .gil-category-image img{transform:scale(1.05)}
+.public-home-v2 .gil-category-number{position:absolute;z-index:1;top:10px;right:10px;background:#171511d6;border:1px solid #ffffff36;color:#edc47c;padding:4px 8px;border-radius:4px}
+.public-home-v2 .gil-category-arrow{position:absolute;z-index:1;bottom:10px;left:12px;color:#f5c26b;font-size:21px}
+.public-home-v2 .gil-category-copy{padding:13px 14px 15px;display:grid;gap:3px}
+.public-home-v2 .gil-category-copy b{font-size:14px}
+.public-home-v2 .gil-category-copy small{font-size:10px;line-height:1.6;color:#bcae99}
+.public-home-v2 .gil-menu-feature,.public-home-v2 .gil-ordering,.public-home-v2 .gil-gallery{background:#141310;color:#f7efe4;padding-block:clamp(58px,7vw,100px)}
+.public-home-v2 .gil-section-heading h2,.public-home-v2 .gil-gallery-heading h2{color:#f6efe5}
+.public-home-v2 .gil-section-heading h2 em,.public-home-v2 .gil-gallery-heading h2 em,.public-home-v2 .gil-final-cta h2 em{color:#e0a64f}
+.public-home-v2 .gil-section-heading-side p,.public-home-v2 .gil-gallery-heading>p{color:#c2b5a3}
+.public-home-v2 .gil-text-link{color:#edbf72;border-color:#a87b3a}
+.public-home-v2 .gil-menu-side-actions{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.public-home-v2 .gil-carousel-controls{display:flex;gap:8px;direction:ltr}
+.public-home-v2 .gil-carousel-controls button{width:39px;height:39px;border:1px solid #81715b;border-radius:50%;background:transparent;color:#f5d29a;font:26px/1 Georgia,serif;cursor:pointer;transition:background .2s,border-color .2s}
+.public-home-v2 .gil-carousel-controls button:hover{background:#dba64e;border-color:#dba64e;color:#21170b}
+.public-home-v2 .gil-food-grid{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 38px)/3);grid-template-columns:none;gap:19px;overflow-x:auto;overflow-y:hidden;padding:4px 2px 19px;scroll-snap-type:x mandatory;scroll-padding-inline:2px;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#9b7640 #2a261e}
+.public-home-v2 .gil-food-card{scroll-snap-align:start;background:#211f1a;border:1px solid #ffffff1e;border-radius:13px;padding:9px;display:flex;flex-direction:column;color:#f9f1e4}
+.public-home-v2 .gil-food-card:hover{border-color:#c9974c;box-shadow:0 20px 50px #0005}
+.public-home-v2 .gil-food-photo{height:clamp(220px,26vw,360px);border-radius:8px}
+.public-home-v2 .gil-food-photo img{filter:saturate(.92) contrast(1.03)}
+.public-home-v2 .gil-food-meta h3{color:#fbf0df;font-size:18px}
+.public-home-v2 .gil-food-meta p{color:#bdb09c}
+.public-home-v2 .gil-food-meta>strong{color:#efbd68}
+.public-home-v2 .gil-food-meta>strong small{color:#d6c5a9}
+.public-home-v2 .gil-food-options{border-color:#ffffff20}
+.public-home-v2 .gil-food-options span{color:#ded0bc;background:#343027}
+.public-home-v2 .gil-food-options i{color:#efbd68}
+.public-home-v2 .gil-menu-footer{border-color:#ffffff27}
+.public-home-v2 .gil-menu-footer>span{color:#c1b39f}
+.public-home-v2 .gil-button-dark{background:#e0a64f;color:#21180d;border-color:#e0a64f}
+.public-home-v2 .gil-button-dark:hover{background:#efbb68}
+.public-home-v2 .gil-experience{background:#201e19;border-block:1px solid #ffffff10}
+.public-home-v2 .gil-experience-image{border-color:#ffffff29}
+.public-home-v2 .gil-order-card{border-radius:13px;min-height:310px}
+.public-home-v2 .gil-order-card-dark{background:#24211c;border-color:#4c4130}
+.public-home-v2 .gil-order-card-light{background:#f5eee2;color:#242018}
+.public-home-v2 .gil-order-card-olive{background:#6d7048;border-color:#6d7048}
+.public-home-v2 .gil-event-banner{min-height:620px}
+.public-home-v2 .gil-event-content h2{max-width:650px}
+.public-home-v2 .gil-gallery-grid{gap:14px}
+.public-home-v2 .gil-gallery-item{border-radius:12px;border-color:#ffffff1f}
+.public-home-v2 .gil-gallery-item:after{background:linear-gradient(0deg,#14110de8,transparent 56%)}
+.public-home-v2 .gil-final-cta{background:#d9a14f;color:#20170d;border-radius:18px;margin-bottom:70px;padding:clamp(35px,5vw,68px);border:1px solid #f2c06d}
+.public-home-v2 .gil-final-cta .gil-eyebrow{color:#4d3820}
+.public-home-v2 .gil-final-cta h2{color:#21180d}
+.public-home-v2 .gil-final-cta h2 em{color:#6e361c}
+.public-home-v2 .gil-final-cta p{color:#3b2c1e}
+.public-home-v2 .gil-final-cta .gil-button-outline{color:#21180d;border-color:#6c4f2d}
+.public-home-v2 .site-footer{background:#0f0e0c}
+@media(max-width:1050px){
+    .public-home-v2 .gil-hero-cinematic{min-height:800px}
+    .public-home-v2 .gil-category-strip{grid-template-columns:1fr}
+    .public-home-v2 .gil-strip-intro{max-width:620px}
+    .public-home-v2 .gil-food-grid{grid-auto-columns:calc((100% - 19px)/2)}
+}
+@media(max-width:760px){
+    .public-home-v2 .site-topline{height:24px;padding-inline:18px}
+    .public-home-v2 .site-header{top:22px;padding-inline:18px;height:72px}
+    .public-home-v2 .site-header.is-scrolled{position:fixed;top:0;background:#141310f5;backdrop-filter:blur(16px);box-shadow:0 8px 30px #0004}
+    .public-home-v2 .gil-hero-cinematic{min-height:760px;height:auto;padding:125px 18px 22px}
+    .public-home-v2 .gil-hero-cinematic .gil-hero-shade{background:linear-gradient(0deg,#0d0c0bf5 0%,#0d0c0b83 48%,#0d0c0bd6 100%)}
+    .public-home-v2 .gil-welcome-script{font-size:32px;margin-top:17px}
+    .public-home-v2 .gil-hero-center h1{font-size:clamp(50px,14vw,76px);letter-spacing:-1.8px}
+    .public-home-v2 .gil-hero-signature{gap:7px;font-size:8px;letter-spacing:.13em}
+    .public-home-v2 .gil-hero-signature i{width:14px}
+    .public-home-v2 .gil-hero-lead{font-size:13px;line-height:2}
+    .public-home-v2 .gil-hero-bottom-cinematic{display:grid;grid-template-columns:1fr auto;gap:12px;margin-top:28px}
+    .public-home-v2 .gil-hero-edition{display:none}
+    .public-home-v2 .gil-hero-scroll{grid-column:1/-1;justify-content:center;margin-top:5px}
+    .public-home-v2 .gil-category-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .public-home-v2 .gil-category-image{aspect-ratio:1.15/1}
+    .public-home-v2 .gil-category-copy{padding:11px}
+    .public-home-v2 .gil-category-copy b{font-size:12px}
+    .public-home-v2 .gil-menu-feature,.public-home-v2 .gil-ordering,.public-home-v2 .gil-gallery{padding-block:58px}
+    .public-home-v2 .gil-section-heading{gap:10px}
+    .public-home-v2 .gil-food-grid{grid-auto-columns:80%;gap:12px;margin-inline:-1px}
+    .public-home-v2 .gil-food-photo{height:270px}
+    .public-home-v2 .gil-food-meta{display:flex;gap:12px}
+    .public-home-v2 .gil-food-meta h3{font-size:15px}
+    .public-home-v2 .gil-food-meta p{font-size:11px}
+    .public-home-v2 .gil-experience-images{min-height:390px}
+    .public-home-v2 .gil-order-card{min-height:250px}
+    .public-home-v2 .gil-event-banner{min-height:540px}
+    .public-home-v2 .gil-final-cta{margin-inline:18px;margin-bottom:45px}
+}
+@media(max-width:460px){
+    .public-home-v2 .gil-food-grid{grid-auto-columns:92%}
+    .public-home-v2 .gil-food-photo{height:260px}
+    .public-home-v2 .gil-category-strip{padding-block:32px}
+    .public-home-v2 .gil-hero-special{margin-top:22px}
+}
+@media(prefers-reduced-motion:reduce){
+    .public-home-v2 .gil-category-links>a,.public-home-v2 .gil-category-image img,.public-home-v2 .gil-carousel-controls button{transition:none}
+    .public-home-v2 .gil-category-links>a:hover{transform:none}
+}

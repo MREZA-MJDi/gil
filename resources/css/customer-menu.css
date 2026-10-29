@@ -11,3 +11,13 @@
 .customer-payment-preference select{display:block;width:100%;margin-top:7px;padding:12px;border:1px solid #d9d1c5;border-radius:10px;background:#fffdf8;color:inherit;font:inherit}
 .customer-payment-preference small{display:block;margin-top:6px;font-size:11px;line-height:1.8;color:#777064}
 .customer-checkout label.customer-payment-preference{margin-top:14px}
+
+.customer-payment-preference{border:1px solid var(--line,#e7e0d5);border-radius:14px;padding:14px;margin:15px 0;background:#fffdf8}
+.customer-payment-preference legend{font-weight:800;padding:0 6px}
+.customer-payment-preference label{display:flex;align-items:flex-start;gap:10px;padding:10px 4px;border-bottom:1px solid #eee8df;cursor:pointer}
+.customer-payment-preference label:last-of-type{border-bottom:0}
+.customer-payment-preference input{margin-top:5px;accent-color:#d99a3d}
+.customer-payment-preference label span{display:grid;gap:3px}
+.customer-payment-preference label b{font-size:13px}
+.customer-payment-preference label small{font-size:11px;color:#736d63;line-height:1.7}
+.customer-payment-preference>p{font-size:11px;line-height:1.8;color:#7a6e5d;margin:8px 0 0}

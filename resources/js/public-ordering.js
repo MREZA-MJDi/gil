@@ -12,6 +12,13 @@ if (root) {
     const form = document.getElementById('online-checkout-form');
     const submit = document.getElementById('online-checkout-submit');
     const message = document.getElementById('online-checkout-message');
+    let pendingIdempotencyKey = null;
+    let uncertainSubmission = false;
+    const setCheckoutLocked = locked => {
+        uncertainSubmission = locked;
+        root.querySelectorAll('[data-add-online-product], [data-online-option], [data-online-quantity], #online-checkout-form input, #online-checkout-form textarea, #online-checkout-form select').forEach(control => { control.disabled = locked; });
+        if (submit) submit.textContent = locked ? 'ارسال مجدد با همان شناسه' : 'ثبت سفارش بیرون‌بر ↗';
+    };
     const getTotal = () => [...cart.values()].reduce((sum, line) => sum + line.quantity * (line.price + line.options.reduce((n, option) => n + option.price, 0)), 0);
 
     function render() {
@@ -66,9 +73,11 @@ if (root) {
         event.preventDefault();
         if (cart.size === 0 || submit?.disabled) return;
         submit.disabled = true;
-        message.textContent = 'در حال ثبت سفارش…';
+        root.querySelectorAll('[data-add-online-product], [data-online-option], [data-online-quantity]').forEach(control => { control.disabled = true; });
+        message.textContent = uncertainSubmission ? 'در حال بررسی همان سفارش…' : 'در حال ثبت سفارش…';
         const fields = new FormData(form);
-        const key = idempotencyKey();
+        const key = pendingIdempotencyKey || idempotencyKey();
+        pendingIdempotencyKey = key;
         const payload = {
             items: [...cart.values()].map(line => ({ product_id: line.product_id, quantity: line.quantity, options: line.options.map(option => ({ id: option.id })) })),
             customer_name: String(fields.get('customer_name') || '').trim(),
@@ -90,10 +99,17 @@ if (root) {
                 throw new Error(validation || body?.message || 'سفارش ثبت نشد؛ اطلاعات را بررسی و دوباره تلاش کن.');
             }
             const order = body?.data || {};
-            cart.clear(); form.reset(); render();
+            cart.clear(); form.reset(); pendingIdempotencyKey = null; setCheckoutLocked(false); render();
             message.textContent = 'سفارش ' + (order.number || '') + ' ثبت شد. مبلغ نهایی: ' + money(order.total) + '. پرداخت هنوز ثبت نشده و هنگام تحویل یا در صندوق انجام می‌شود.';
         } catch (error) {
             message.textContent = error?.message || 'ارتباط با سرور برقرار نشد. لطفاً دوباره تلاش کن.';
+            if (response && response.status >= 400 && response.status < 500 && response.status !== 429) {
+                pendingIdempotencyKey = null;
+                setCheckoutLocked(false);
+            } else {
+                // The server may have committed before a timeout/5xx. Freeze the same payload/key to prevent duplicates.
+                setCheckoutLocked(true);
+            }
             if (submit) submit.disabled = cart.size === 0;
         }
     });

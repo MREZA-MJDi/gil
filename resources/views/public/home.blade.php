@@ -15,61 +15,63 @@
     </div>
     @include('public.partials.nav')
     <main class="gil-home">
-        <section class="gil-hero" id="home">
-            <img class="gil-hero-photo" src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=2200&q=90" alt="فضای رستوران با نور گرم و میزهای آماده سرو" fetchpriority="high">
+        <section class="gil-hero gil-hero-cinematic" id="home">
+            <img class="gil-hero-photo" src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=2400&q=90" alt="چیدمان غذاهای تازه برای یک وعده کامل" fetchpriority="high">
             <div class="gil-hero-shade"></div>
-            <div class="gil-hero-layout">
-                <div class="gil-hero-copy">
-                    <span class="gil-eyebrow"><i></i> GIL CAFE · KITCHEN · MOMENTS</span>
-                    <h1>برای طعم‌های<br><em>ماندگار</em> وقت بگذار.</h1>
-                    <p>قهوه‌ای که با دقت آماده می‌شود، غذایی که تازه از آشپزخانه می‌آید و تجربه‌ای که از انتخاب منو تا سفارش، شفاف و راحت پیش می‌رود.</p>
-                    <div class="gil-hero-actions">
-                        <a class="gil-button gil-button-gold" href="{{ route('public.menu') }}">کشف منو <span>↗</span></a>
-                        <a class="gil-button gil-button-glass" href="{{ route('public.reservations.create') }}">رزرو میز یا جشن <span>↗</span></a>
-                    </div>
-                    <div class="gil-hero-proof">
-                        <div><b>منوی زنده</b><span>قیمت و گزینه‌های ثبت‌شده</span></div>
-                        <div><b>سفارش مستقیم</b><span>ثبت و پیگیری از سیستم</span></div>
-                        <div><b>رزرو با هماهنگی</b><span>میز، تولد و مراسم</span></div>
-                    </div>
+            <div class="gil-hero-center">
+                <span class="gil-eyebrow"><i></i> KHANE GILASI · CAFÉ & RESTAURANT</span>
+                <p class="gil-welcome-script">طعم خوب، لحظهٔ خوب</p>
+                <h1>خانهٔ <em>گیلاسی</em></h1>
+                <div class="gil-hero-signature"><span>COFFEE</span><i></i><span>KITCHEN</span><i></i><span>GOOD MOMENTS</span></div>
+                <p class="gil-hero-lead">از اولین عطر قهوه تا غذایی که تازه از آشپزخانه می‌آید؛ برای انتخاب، سفارش و قرار بعدی‌ات همه‌چیز را روشن و راحت کرده‌ایم.</p>
+                <div class="gil-hero-actions gil-hero-actions-centered">
+                    <a class="gil-button gil-button-gold" href="{{ route('public.menu') }}">منو و سفارش <span>↗</span></a>
+                    <a class="gil-button gil-button-glass" href="{{ route('public.reservations.create') }}">رزرو میز یا جشن <span>↗</span></a>
                 </div>
-                <aside class="gil-hero-feature">
-                    @if ($featuredProducts->isNotEmpty())
-                        @php($heroProduct = $featuredProducts->first())
-                        <div class="gil-hero-feature-image">
-                            @if ($heroProduct->image_url)
-                                <img src="{{ $heroProduct->image_url }}" alt="{{ $heroProduct->name }}">
-                            @else
-                                <img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=900&q=85" alt="فنجان قهوه">
-                            @endif
-                            <span class="gil-feature-tag">پیشنهاد از منوی کافه</span>
-                        </div>
-                        <div class="gil-hero-feature-body">
-                            <div><small>پیشنهاد امروز</small><h2>{{ $heroProduct->name }}</h2><p>{{ $heroProduct->description ?: 'جزئیات و گزینه‌های این محصول در منوی به‌روز نمایش داده می‌شود.' }}</p></div>
-                            <strong>{{ number_format($heroProduct->base_price) }} <small>{{ $settings->currency_label }}</small></strong>
-                        </div>
-                        <a class="gil-feature-link" href="{{ route('public.menu') }}">مشاهدهٔ منو <span>↗</span></a>
-                    @else
-                        <div class="gil-hero-feature-image"><img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=900&q=85" alt="فنجان قهوه تازه"></div>
-                        <div class="gil-hero-feature-body"><div><small>منوی خانه گیلاسی</small><h2>طعم موردعلاقه‌ات را پیدا کن.</h2></div></div>
-                        <a class="gil-feature-link" href="{{ route('public.menu') }}">مشاهدهٔ منو <span>↗</span></a>
-                    @endif
-                </aside>
+                @if ($featuredProducts->isNotEmpty())
+                    @php($heroProduct = $featuredProducts->first())
+                    <a class="gil-hero-special" href="{{ route('public.menu') }}">
+                        <span class="gil-hero-special-mark">✳</span>
+                        <span><small>از منوی امروز</small><b>{{ $heroProduct->name }}</b></span>
+                        <strong>{{ number_format($heroProduct->base_price) }} <small>{{ $settings->currency_label }}</small></strong>
+                        <span class="gil-hero-special-arrow">↗</span>
+                    </a>
+                @endif
             </div>
-            <div class="gil-hero-bottom"><span>یک میز برای دیدار؛ یک فنجان برای مکث.</span><span>01 — GILASI EXPERIENCE</span></div>
+            <div class="gil-hero-bottom gil-hero-bottom-cinematic">
+                @if ($settings->phone)
+                    <a class="gil-hero-phone" href="tel:{{ preg_replace('/[^\d+]/', '', $settings->phone) }}"><span>☎</span><b>{{ $settings->phone }}</b></a>
+                @else
+                    <span class="gil-hero-phone"><span>✳</span><b>میزت را انتخاب کن؛ لحظه‌ات را بساز.</b></span>
+                @endif
+                <a class="gil-hero-scroll" href="#menu"><span>برای کشف منو پایین برو</span><b>↓</b></a>
+                <span class="gil-hero-edition">01 — THE GILASI EXPERIENCE</span>
+            </div>
         </section>
 
         <section class="gil-category-strip section-wrap" aria-label="دسته‌بندی منو">
-            <div class="gil-strip-intro"><span class="gil-eyebrow">EXPLORE THE MENU</span><h2>از کجا شروع کنیم؟</h2></div>
+            <div class="gil-strip-intro">
+                <span class="gil-eyebrow">EXPLORE THE MENU</span>
+                <h2>هوسِ کدام طعم را کرده‌ای؟</h2>
+                <p>از یک اسپرسوی کوتاه تا یک وعدهٔ کامل؛ از دسته‌بندی شروع کن.</p>
+            </div>
             <div class="gil-category-links">
                 @forelse ($categories as $category)
+                    @php($categoryProduct = $category->products->first())
                     <a href="{{ route('public.menu') }}#category-{{ $category->id }}">
-                        <span class="gil-category-number">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
-                        <b>{{ $category->name }}</b>
-                        <span class="gil-category-arrow">↗</span>
+                        <span class="gil-category-image">
+                            @if ($categoryProduct && $categoryProduct->image_url)
+                                <img src="{{ $categoryProduct->image_url }}" alt="" loading="lazy">
+                            @else
+                                <img src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=700&q=82" alt="" loading="lazy">
+                            @endif
+                            <span class="gil-category-number">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                            <span class="gil-category-arrow">↗</span>
+                        </span>
+                        <span class="gil-category-copy"><b>{{ $category->name }}</b><small>{{ number_format($category->products->count()) }} انتخاب از منو</small></span>
                     </a>
                 @empty
-                    <a href="{{ route('public.menu') }}"><b>منو را ببین</b><span class="gil-category-arrow">↗</span></a>
+                    <a href="{{ route('public.menu') }}"><span class="gil-category-image"><img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=700&q=82" alt="" loading="lazy"></span><span class="gil-category-copy"><b>منوی کافه</b><small>مشاهدهٔ همهٔ انتخاب‌ها</small></span><span class="gil-category-arrow">↗</span></a>
                 @endforelse
             </div>
         </section>
@@ -77,7 +79,7 @@
         <section class="gil-menu-feature section-wrap" id="menu">
             <div class="gil-section-heading">
                 <div><span class="gil-eyebrow">MADE FOR YOUR MOOD</span><h2>انتخاب‌های<br><em>خوش‌طعم</em> ما.</h2></div>
-                <div class="gil-section-heading-side"><p>منو از محصولات فعال مجموعه می‌آید؛ قیمت و افزودنی‌ها را باز کن، انتخاب کن و سفارشت را مستقیم ثبت کن.</p><a class="gil-text-link" href="{{ route('public.menu') }}">دیدن منوی کامل <span>↗</span></a></div>
+                <div class="gil-section-heading-side"><p>این بخش از محصولات فعال پایگاه داده ساخته می‌شود؛ قیمت و گزینه‌ها همان اطلاعاتی‌اند که در پنل ثبت شده‌اند.</p><div class="gil-menu-side-actions"><a class="gil-text-link" href="{{ route('public.menu') }}">دیدن منوی کامل <span>↗</span></a><div class="gil-carousel-controls" aria-label="حرکت بین محصولات"><button type="button" data-food-carousel="prev" aria-label="محصولات قبلی">‹</button><button type="button" data-food-carousel="next" aria-label="محصولات بعدی">›</button></div></div></div>
             </div>
             <div class="gil-food-grid">
                 @forelse ($featuredProducts as $index => $product)
