@@ -1,3 +1,8 @@
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
+
 (() => {
     const site = document.querySelector('.public-site');
     if (!site) return;
@@ -33,16 +38,34 @@
         '.reveal-card, .value-card, .moment-photo, .story-copy, .values-heading, .moments-top, .visit-copy, .visit-details'
     );
 
-    if ('IntersectionObserver' in window && !reduceMotion) {
-        const revealObserver = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-in-view');
-                    revealObserver.unobserve(entry.target);
+    if (!reduceMotion) {
+        site.classList.add('gsap-ready');
+        gsap.fromTo('.hero-copy .eyebrow',
+            { autoAlpha: 0, y: 18 },
+            { autoAlpha: 1, y: 0, duration: 0.65, ease: 'power2.out', delay: 0.08, overwrite: 'auto' }
+        );
+        gsap.fromTo('.hero-copy h1',
+            { autoAlpha: 0, y: 26 },
+            { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: 0.16, overwrite: 'auto' }
+        );
+        gsap.fromTo(['.hero-description', '.hero-actions', '.hero-social-proof'],
+            { autoAlpha: 0, y: 20 },
+            { autoAlpha: 1, y: 0, duration: 0.65, stagger: 0.12, ease: 'power2.out', delay: 0.3, overwrite: 'auto' }
+        );
+        gsap.fromTo('.hero-visual',
+            { autoAlpha: 0, y: 22, scale: 0.985 },
+            { autoAlpha: 1, y: 0, scale: 1, duration: 0.95, ease: 'power3.out', delay: 0.18, overwrite: 'auto' }
+        );
+        revealItems.forEach(item => {
+            gsap.fromTo(item,
+                { autoAlpha: 0, y: 24 },
+                {
+                    autoAlpha: 1, y: 0, duration: 0.72, ease: 'power2.out', overwrite: 'auto',
+                    scrollTrigger: { trigger: item, start: 'top 88%', once: true },
+                    onComplete: () => item.classList.add('is-in-view'),
                 }
-            });
-        }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' });
-        revealItems.forEach(item => revealObserver.observe(item));
+            );
+        });
     } else {
         revealItems.forEach(item => item.classList.add('is-in-view'));
     }
