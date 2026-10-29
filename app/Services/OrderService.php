@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\ProductStatus;
+use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\Product;
@@ -55,6 +56,19 @@ class OrderService
                 ->map(fn ($v) => (int) $v)->unique()->sort()->values();
             $options = $optionIds->isEmpty() ? collect() : ProductOption::query()
                 ->whereIn('id', $optionIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+
+            $requestedQuantities = collect($input['items'])
+                ->groupBy(fn (array $item) => (int) $item['product_id'])
+                ->map(fn ($items) => (int) $items->sum(fn (array $item) => (int) $item['quantity']));
+
+            foreach ($requestedQuantities as $productId => $quantity) {
+                $product = $products->get((int) $productId);
+                if ($product->stock_quantity !== null && (int) $product->stock_quantity < (int) $quantity) {
+                    throw ValidationException::withMessages([
+                        'items' => "موجودی «{$product->name}» کافی نیست؛ موجودی فعلی {$product->stock_quantity} عدد است.",
+                    ]);
+                }
+            }
 
             $lines = [];
             $subtotal = 0;
@@ -133,6 +147,27 @@ class OrderService
             ]);
 
             $order->items()->createMany($lines);
+            foreach ($requestedQuantities as $productId => $quantity) {
+                $product = $products->get((int) $productId);
+                // A null stock quantity means stock tracking is intentionally disabled for this product.
+                if ($product->stock_quantity === null) continue;
+
+                $before = (int) $product->stock_quantity;
+                $after = $before - (int) $quantity;
+                $product->forceFill(['stock_quantity' => $after])->save();
+
+                InventoryMovement::query()->create([
+                    'product_id' => $product->id,
+                    'order_id' => $order->id,
+                    'user_id' => $userId,
+                    'movement_type' => 'order',
+                    'quantity_delta' => -(int) $quantity,
+                    'stock_before' => $before,
+                    'stock_after' => $after,
+                    'reason' => 'مصرف موجودی برای سفارش '.$order->number,
+                ]);
+            }
+
             OrderStatusHistory::query()->create([
                 'order_id' => $order->id,
                 'user_id' => $userId,
@@ -195,6 +230,36 @@ class OrderService
             }
             if ($order->netPaid() > 0) {
                 throw ValidationException::withMessages(['order' => 'سفارش دارای پرداخت باید از مسیر بازپرداخت اصلاح شود.']);
+            }
+
+            $items = $order->items()->get(['id', 'product_id', 'quantity']);
+            $trackedProductIds = $items->pluck('product_id')->filter()->unique()->values();
+            $trackedProducts = $trackedProductIds->isEmpty()
+                ? collect()
+                : Product::query()->whereIn('id', $trackedProductIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+
+            foreach ($items->groupBy('product_id') as $productId => $productItems) {
+                if (! $productId || ! $trackedProducts->has((int) $productId)) continue;
+
+                $product = $trackedProducts->get((int) $productId);
+                // If tracking was intentionally disabled after the sale, do not invent an on-hand balance.
+                if ($product->stock_quantity === null) continue;
+
+                $quantity = (int) $productItems->sum('quantity');
+                $before = (int) $product->stock_quantity;
+                $after = $before + $quantity;
+                $product->forceFill(['stock_quantity' => $after])->save();
+
+                InventoryMovement::query()->create([
+                    'product_id' => $product->id,
+                    'order_id' => $order->id,
+                    'user_id' => $userId,
+                    'movement_type' => 'order_cancelled',
+                    'quantity_delta' => $quantity,
+                    'stock_before' => $before,
+                    'stock_after' => $after,
+                    'reason' => 'بازگشت موجودی پس از لغو سفارش '.$order->number,
+                ]);
             }
 
             $from = $order->status;
