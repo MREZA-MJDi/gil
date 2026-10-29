@@ -68,7 +68,7 @@
     position:relative;
     isolation:isolate;
     background-color:#30261f;
-    background-image:linear-gradient(115deg,rgba(24,18,14,.43),rgba(28,21,16,.18) 52%,rgba(24,18,14,.42)),url('/images/login-background.webp');
+    background-image:linear-gradient(115deg,rgba(24,18,14,.43),rgba(28,21,16,.18) 52%,rgba(24,18,14,.42)),url('/images/cafe-hero.webp');
     background-position:center;
     background-size:cover;
     background-repeat:no-repeat;
@@ -91,7 +91,7 @@
 @media(max-width:720px){
     .admin-auth-body{
         background-color:#30261f;
-        background-image:linear-gradient(180deg,rgba(24,18,14,.36),rgba(24,18,14,.15) 38%,rgba(24,18,14,.3)),url('/images/login-background.webp');
+        background-image:linear-gradient(180deg,rgba(24,18,14,.36),rgba(24,18,14,.15) 38%,rgba(24,18,14,.3)),url('/images/cafe-hero.webp');
         background-position:center;
         background-size:cover;
         background-repeat:no-repeat;
