@@ -11,8 +11,8 @@
     <nav class="site-nav" data-site-nav aria-label="ناوبری اصلی">
         <a href="{{ route('home') }}#home">@if (request()->routeIs('home')) Home @else خانه @endif</a>
         <a href="{{ route('public.menu') }}">@if (request()->routeIs('home')) Menu @else منو و خوراکی‌ها @endif</a>
-        <a href="{{ route('home') }}#story">@if (request()->routeIs('home')) About @else داستان ما @endif</a>
-        <a href="{{ route('home') }}#moments">@if (request()->routeIs('home')) Blog @else فضای کافه @endif</a>
+        <a href="{{ route('home') }}#reservation">@if (request()->routeIs('home')) Reservations @else رزرو میز @endif</a>
+        <a href="{{ route('home') }}#story">@if (request()->routeIs('home')) Our Story @else داستان ما @endif</a>
         <a href="{{ route('home') }}#visit">@if (request()->routeIs('home')) Contact @else تماس و مسیر @endif</a>
         @auth
             @if (auth()->user()->is_admin)
@@ -28,5 +28,5 @@
             <a class="site-nav-auth site-nav-login" href="{{ route('admin.login') }}">ورود کارکنان <span>↗</span></a>
         @endauth
     </nav>
-    <a class="site-header-cta" href="{{ request()->routeIs('home') ? '#reservation' : route('public.menu') }}">@if (request()->routeIs('home')) Reservation @else منو را ببین @endif <span>↗</span></a>
+    <a class="site-header-cta" href="{{ route('public.menu') }}">@if (request()->routeIs('home')) Order Now @else منو را ببین @endif <span>↗</span></a>
 </header>
