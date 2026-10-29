@@ -15,7 +15,7 @@ class AdminUserSeeder extends Seeder
         $name = config('admin.name', 'مدیر خانه گیلاسی');
 
         // Local-only shortcut for a disposable development database. Production always requires a strong password.
-        $minimumPasswordLength = app()->environment('local') ? 1 : 14;
+        $minimumPasswordLength = config('app.env') === 'local' ? 1 : 14;
 
         if (! $email || ! $password || strlen($password) < $minimumPasswordLength) {
             throw new RuntimeException('ADMIN_EMAIL و ADMIN_PASSWORD را تعریف کنید؛ در production رمز باید حداقل ۱۴ کاراکتر باشد.');
