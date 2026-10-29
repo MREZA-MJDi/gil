@@ -172,6 +172,13 @@ function CustomerMenu() {
                     <div className="customer-product-info">
                         <h3>{product.name}</h3>
                         {product.description && <p className="customer-product-description">{product.description}</p>}
+                        {product.ingredients && <p className="customer-food-ingredients"><b>ترکیبات:</b> {product.ingredients}</p>}
+                        {Array.isArray(product.dietary_tags) && product.dietary_tags.length > 0 && <div className="customer-food-tags">{product.dietary_tags.map(tag => <span key={tag}>{tag}</span>)}</div>}
+                        {Array.isArray(product.allergens) && product.allergens.length > 0 && <div className="customer-allergen-warning"><b>آلرژن‌های اعلام‌شده:</b> {product.allergens.join('، ')}<small>اگر حساسیت غذایی داری، قبل از سفارش با کارکنان کافه تأیید کن.</small></div>}
+                        {(product.calories !== null && product.calories !== undefined || product.preparation_time_minutes !== null && product.preparation_time_minutes !== undefined) && <div className="customer-food-meta">
+                            {product.calories !== null && product.calories !== undefined && <span>{numberFa(product.calories)} کیلوکالری / وعده</span>}
+                            {product.preparation_time_minutes !== null && product.preparation_time_minutes !== undefined && <span>آماده‌سازی حدود {numberFa(product.preparation_time_minutes)} دقیقه</span>}
+                        </div>}
                         <strong className="customer-product-price">{money(product.base_price, currency)}</strong>
                         {options.length > 0 && <fieldset className="customer-product-options">
                             <legend>انتخاب سایز / افزودنی</legend>
