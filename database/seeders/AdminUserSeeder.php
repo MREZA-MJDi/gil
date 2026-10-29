@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
@@ -10,20 +11,22 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
+        $phone = PhoneNumber::normalize((string) config('admin.phone'));
+        $password = (string) config('admin.password');
         $email = config('admin.email');
-        $password = config('admin.password');
         $name = config('admin.name', 'مدیر خانه گیلاسی');
 
-        // Local-only shortcut for a disposable development database. Production always requires a strong password.
-        $minimumPasswordLength = config('app.env') === 'local' ? 1 : 14;
-
-        if (! $email || ! $password || strlen($password) < $minimumPasswordLength) {
-            throw new RuntimeException('ADMIN_EMAIL و ADMIN_PASSWORD را تعریف کنید؛ در production رمز باید حداقل ۱۴ کاراکتر باشد.');
+        if (! $phone || ! PhoneNumber::isValid($phone) || strlen($password) < 14) {
+            throw new RuntimeException('ADMIN_PHONE معتبر و ADMIN_PASSWORD با حداقل ۱۴ نویسه را در محیط امن تنظیم کنید.');
         }
 
-        User::query()->updateOrCreate(
-            ['email' => $email],
-            ['name' => $name, 'password' => $password, 'is_admin' => true],
-        );
+        $attributes = [
+            'name' => $name,
+            'email' => $email ?: null,
+            'password' => $password,
+            'is_admin' => true,
+        ];
+
+        User::query()->updateOrCreate(['phone' => $phone], $attributes);
     }
 }
