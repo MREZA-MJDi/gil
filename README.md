@@ -57,3 +57,21 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+## Advanced restaurant workflows
+
+### Recipes and ingredient stock
+- Create base ingredients in **رسپی و مواد اولیه** using base units: \`g\` (grams), \`ml\` (millilitres), or \`pcs\` (pieces). Stock and recipe quantities accept up to three decimal places.
+- Attach ingredients and per-item amounts to each menu product. Estimated ingredient cost uses each item's saved cost per base unit.
+- Order creation checks and consumes recipe ingredients in the same database transaction. Eligible cancellations restore ingredients using the immutable recipe snapshot captured at the time of sale.
+- Product stock tracking and ingredient stock tracking are separate. Products without a recipe continue to use product-level stock only.
+
+### Website orders and public reservations
+- Public menu checkout stores takeaway orders as source \`website\`; the order is visible in the admin queue, and it is not marked paid automatically.
+- \`/reserve\` accepts table requests, birthdays, consultations, private events, and catering inquiries. Requests start as pending until a staff member confirms capacity and details.
+
+### External order intake bridge
+- Signed normalized intake endpoints are available at \`POST /api/integrations/orders/snappfood\` and \`POST /api/integrations/orders/partner\`. This is a trusted adapter contract, **not a claim that Snappfood's live/private API has already been connected**.
+- Configure a private \`ORDER_WEBHOOK_SECRET\` with at least 32 characters. Send \`X-Gil-Signature: sha256=<hex HMAC-SHA256 of the exact raw request body>\`.
+- External product IDs must be mapped by the adapter to this system's \`product_id\`. The app recalculates prices using its own catalog, deduplicates by external order ID, and does not assume marketplace payment is settled. Production status/refund/settlement synchronization needs official API access and a dedicated adapter.

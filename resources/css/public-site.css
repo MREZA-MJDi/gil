@@ -240,3 +240,67 @@
 .site-nav-logout-button{font-family:inherit;cursor:pointer;background:transparent}
 .site-nav-logout-button:hover{background:#f3ded6;border-color:#e4b5a5;color:#a63c2b!important}
 @media(max-width:840px){.site-nav-auth{justify-content:flex-start;padding:12px 0;border:0;border-radius:0;background:transparent;border-bottom:1px solid #e7e0d3;width:100%;font-size:12px}.site-nav-auth:hover{background:transparent;color:var(--pub-red)!important}.site-nav-logout{display:block;width:100%}.site-nav-logout-button{border-radius:0}.site-nav-dashboard{background:transparent;border-color:#e7e0d3}}
+
+
+/* Public booking and online takeaway order */
+.public-site .reserve-page{display:grid;grid-template-columns:minmax(250px,.72fr) minmax(0,1.28fr);gap:44px;padding-block:68px 90px;align-items:start}
+.public-site .reserve-intro{position:sticky;top:130px;padding:28px 0}
+.public-site .reserve-intro h1{font-size:clamp(34px,4vw,58px);line-height:1.35;letter-spacing:-1.7px;margin:20px 0}
+.public-site .reserve-intro h1 em{font-style:normal;color:var(--pub-red)}
+.public-site .reserve-intro>p{font-size:15px;line-height:2;color:var(--pub-ink-soft)}
+.public-site .reserve-assurance{display:flex;gap:13px;align-items:flex-start;background:var(--pub-paper);border:1px solid var(--pub-line);border-radius:16px;padding:16px;margin-top:28px}
+.public-site .reserve-assurance>span{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:#e7efdf;color:#2f684c}
+.public-site .reserve-assurance b,.public-site .reserve-assurance small{display:block}
+.public-site .reserve-assurance small{font-size:12px;line-height:1.9;color:var(--pub-muted);margin-top:5px}
+.public-site .reserve-form-panel{background:var(--pub-paper);border:1px solid var(--pub-line);border-radius:24px;padding:clamp(20px,3vw,36px);box-shadow:0 16px 50px #342a1b0b}
+.public-site .reserve-form-heading{border-bottom:1px solid var(--pub-line);padding-bottom:18px;margin-bottom:22px}
+.public-site .reserve-form-heading h2{font-size:25px;margin:8px 0}
+.public-site .reserve-form-heading p,.public-site .reserve-form label small{color:var(--pub-muted);font-size:12px;line-height:1.8;margin-bottom:0}
+.public-site .reserve-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.public-site .reserve-form label{display:flex;flex-direction:column;gap:7px;min-width:0}
+.public-site .reserve-form label>span{font-size:13px;font-weight:750}
+.public-site .reserve-form label>span b{color:var(--pub-red)}
+.public-site .reserve-form input,.public-site .reserve-form select,.public-site .reserve-form textarea,.public-site .online-checkout-form input,.public-site .online-checkout-form textarea{width:100%;min-width:0;border:1px solid #d7d1c4;background:#fffefa;color:var(--pub-ink);border-radius:10px;padding:11px 12px;outline-offset:2px}
+.public-site .reserve-form input:focus,.public-site .reserve-form select:focus,.public-site .reserve-form textarea:focus,.public-site .online-checkout-form input:focus,.public-site .online-checkout-form textarea:focus{outline:2px solid #c94e3266;border-color:var(--pub-red)}
+.public-site .reserve-form textarea,.public-site .online-checkout-form textarea{resize:vertical}
+.public-site .reserve-notes-field{grid-column:1/-1}
+.public-site .reserve-form-footer{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-top:24px;padding-top:20px;border-top:1px solid var(--pub-line)}
+.public-site .reserve-form-footer p{font-size:12px;color:var(--pub-muted);line-height:1.9;margin:0;max-width:430px}
+.public-site .reserve-errors{background:#fff1ed;border:1px solid #e4a497;color:#8f3929;border-radius:12px;padding:14px;margin-bottom:18px}
+.public-site .reserve-errors ul{margin:6px 0 0;padding-right:20px;font-size:13px}
+.public-site .reserve-honeypot{position:absolute;inset-inline-start:-10000px;width:1px;height:1px;overflow:hidden}
+.public-site .reserve-success{max-width:900px;padding-block:110px 130px;text-align:center;min-height:54vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.public-site .reserve-success-mark{width:66px;height:66px;border-radius:50%;display:grid;place-items:center;background:#e5efdc;color:#2f684c;font-size:34px;margin-bottom:22px}
+.public-site .reserve-success h1{font-size:clamp(30px,4vw,48px);margin:14px 0}
+.public-site .reserve-success>p{max-width:640px;line-height:2;color:var(--pub-ink-soft)}
+.public-site .reserve-success-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.public-site .online-order-panel{margin-block:40px 72px;background:var(--pub-paper);border:1px solid var(--pub-line);border-radius:24px;padding:clamp(20px,3vw,36px)}
+.public-site .online-order-heading h2{font-size:clamp(24px,3vw,34px);margin:8px 0}
+.public-site .online-order-heading p{color:var(--pub-ink-soft);font-size:13px;line-height:1.9;max-width:780px}
+.public-site .public-option-choice{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px dashed var(--pub-line);cursor:pointer}
+.public-site .public-option-choice input{accent-color:var(--pub-green);width:17px;height:17px;flex:0 0 auto}
+.public-site .public-option-choice span{flex:1}
+.public-site .public-option-choice b{font-size:12px;white-space:nowrap}
+.public-site .public-option-choice small{font-size:10px;color:var(--pub-muted);margin-inline-start:5px}
+.public-site .public-order-controls{display:flex;align-items:end;gap:10px;margin-top:14px;flex-wrap:wrap}
+.public-site .public-order-controls label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--pub-muted)}
+.public-site .public-order-controls input{width:86px;padding:8px;border:1px solid var(--pub-line);border-radius:9px;background:#fffefa}
+.public-site .public-order-controls .button{padding:9px 12px;font-size:12px}
+.public-site .online-cart-empty{padding:20px;border:1px dashed var(--pub-line);border-radius:12px;color:var(--pub-muted);font-size:13px}
+.public-site .online-cart-items{display:grid;gap:8px}
+.public-site .online-cart-row{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:14px 2px;border-bottom:1px solid var(--pub-line)}
+.public-site .online-cart-row>div:first-child{display:grid;gap:3px}
+.public-site .online-cart-row small{font-size:11px;color:var(--pub-muted)}
+.public-site .online-cart-actions{display:flex;align-items:center;gap:8px}
+.public-site .online-cart-actions button{border:1px solid var(--pub-line);background:white;border-radius:8px;padding:5px 9px;color:var(--pub-ink)}
+.public-site .online-cart-total{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;border-top:1px solid var(--pub-line);padding-top:18px;margin-top:18px}
+.public-site .online-cart-total b{font-size:24px;color:var(--pub-green)}
+.public-site .online-cart-total small{width:100%;font-size:11px;color:var(--pub-muted)}
+.public-site .online-checkout-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:22px}
+.public-site .online-checkout-form label{display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:700}
+.public-site .online-checkout-form .online-checkout-note{grid-column:1/-1}
+.public-site .online-checkout-form button{justify-self:start}
+.public-site #online-checkout-message{align-self:center;color:var(--pub-green);font-size:12px;line-height:1.8;margin:0}
+.public-site .online-checkout-form button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:900px){.public-site .reserve-page{grid-template-columns:1fr;gap:18px;padding-block:34px 60px}.public-site .reserve-intro{position:static;padding:0}.public-site .reserve-intro h1{font-size:36px}.public-site .reserve-intro>p{font-size:14px}.public-site .reserve-assurance{margin-top:18px}}
+@media(max-width:560px){.public-site .reserve-form-grid,.public-site .online-checkout-form{grid-template-columns:1fr}.public-site .reserve-notes-field,.public-site .online-checkout-form .online-checkout-note{grid-column:auto}.public-site .reserve-form-footer{align-items:stretch;flex-direction:column}.public-site .reserve-form-footer .button{justify-content:center}.public-site .online-cart-row{align-items:flex-start;flex-direction:column}.public-site .online-cart-actions{width:100%;justify-content:flex-start}.public-site .online-cart-actions button:last-child{margin-inline-start:auto}}
