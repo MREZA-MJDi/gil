@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#f4efe6">
     <meta name="description" content="{{ $settings->name }}؛ قهوه تخصصی، خوراکی‌های خوش‌حال‌کننده و مکث‌هایی برای حال بهتر.">
     <title>{{ $settings->name }} — قهوه، آشپزخانه، لحظه‌ها</title>
@@ -90,6 +91,16 @@
                 <figure class="moment-photo moment-photo-small"><img src="https://images.unsplash.com/photo-1559305616-3f99cd43e353?auto=format&fit=crop&w=900&q=85" alt="بار قهوه و تجهیزات کافه" loading="lazy"><figcaption>made with care <span>↗</span></figcaption></figure>
                 <div class="moments-caption"><span>✳</span><p>همه‌چیز از یک<br>مکث کوچک شروع می‌شود.</p><a href="#visit" class="text-link">بیا ببینمت <span>↗</span></a></div>
             </div>
+        </section>
+
+        <section class="reservation-section cup-stop" id="reservation" data-cup-stop>
+            <div class="reservation-section-heading">
+                <span class="section-kicker">PLAN A LITTLE PAUSE</span>
+                <h2>جای تو <em>محفوظ؟</em></h2>
+                <p>درخواست رزروت را بفرست؛ بعد از بررسی تیم ما، وضعیت رزرو از طریق تماس با شماره‌ای که ثبت می‌کنی پیگیری می‌شود.</p>
+            </div>
+            <div id="public-reservation-app" data-endpoint="{{ route('public.reservations.store') }}"></div>
+            <noscript><p class="reservation-noscript">برای ثبت درخواست رزرو، جاوااسکریپت مرورگرت را فعال کن یا با کافه تماس بگیر.</p></noscript>
         </section>
 
         <section class="visit-section cup-stop" id="visit" data-cup-stop>
