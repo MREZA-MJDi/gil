@@ -41,13 +41,18 @@ class PrintController extends Controller
         ]);
         if (isset($data['payment_id']) && ! $order->payments()->whereKey($data['payment_id'])->exists()) abort(422, 'پرداخت متعلق به این سفارش نیست.');
 
+        $wasPrintedBefore = PrintLog::query()
+            ->where('order_id', $order->id)
+            ->where('type', $data['type'])
+            ->exists();
+
         $log = PrintLog::query()->create([
             'order_id' => $order->id,
             'payment_id' => $data['payment_id'] ?? null,
             'user_id' => $request->user()->id,
             'type' => $data['type'],
-            'document_number' => strtoupper($data['type']).'-'.now()->format('Ymd').'-'.Str::upper(Str::random(6)),
-            'is_reprint' => (bool) ($data['is_reprint'] ?? false),
+            'document_number' => $order->number ?: 'KG-'.now()->format('ymd').'-'.$order->id,
+            'is_reprint' => (bool) ($data['is_reprint'] ?? false) || $wasPrintedBefore,
             'printed_at' => now(),
         ]);
         return response()->json(['data' => $log], 201);
