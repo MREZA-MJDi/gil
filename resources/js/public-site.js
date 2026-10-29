@@ -48,7 +48,7 @@ gsap.registerPlugin(ScrollTrigger);
             { autoAlpha: 0, y: 26 },
             { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: 0.16, overwrite: 'auto' }
         );
-        gsap.fromTo(['.hero-description', '.hero-actions', '.hero-social-proof'],
+        gsap.fromTo('.hero-description, .hero-actions, .hero-social-proof',
             { autoAlpha: 0, y: 20 },
             { autoAlpha: 1, y: 0, duration: 0.65, stagger: 0.12, ease: 'power2.out', delay: 0.3, overwrite: 'auto' }
         );
@@ -72,6 +72,17 @@ gsap.registerPlugin(ScrollTrigger);
 
     if (!cup || reduceMotion || !('requestAnimationFrame' in window)) {
         if (cup) cup.remove();
+        let fallbackScrollQueued = false;
+        const updateHeaderOnScroll = () => {
+            if (fallbackScrollQueued) return;
+            fallbackScrollQueued = true;
+            window.requestAnimationFrame(() => {
+                fallbackScrollQueued = false;
+                updateHeader();
+            });
+        };
+        window.addEventListener('scroll', updateHeaderOnScroll, { passive: true });
+        window.addEventListener('resize', updateHeader, { passive: true });
         updateHeader();
         return;
     }
