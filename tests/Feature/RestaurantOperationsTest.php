@@ -82,38 +82,40 @@ class RestaurantOperationsTest extends TestCase
         $this->get('/menu')->assertOk()->assertSee('منو برای')->assertSee('لاته تست');
     }
 
-    public function test_local_seeder_accepts_development_password_only_in_local_environment(): void
+    public function test_local_admin_seeder_uses_mobile_and_strong_password_credentials(): void
     {
         config([
             'app.env' => 'local',
-            'admin.name' => 'Local Demo Admin',
-            'admin.email' => 'local-demo@example.test',
-            'admin.password' => 'password',
+            'admin.name' => 'Local Test Admin',
+            'admin.phone' => '09121230001',
+            'admin.email' => null,
+            'admin.password' => 'local-test-password-123456',
         ]);
 
         Artisan::call('db:seed', ['--class' => \Database\Seeders\AdminUserSeeder::class]);
 
         $this->post('/admin/login', [
-            'email' => 'local-demo@example.test',
-            'password' => 'password',
+            'phone' => '09121230001',
+            'password' => 'local-test-password-123456',
         ])->assertRedirect(route('admin.dashboard'));
 
-        $this->assertAuthenticatedAs(User::query()->where('email', 'local-demo@example.test')->first());
+        $this->assertAuthenticatedAs(User::query()->where('phone', '+989121230001')->first());
     }
 
-    public function test_admin_login_works_with_seeded_env_configuration(): void
+    public function test_admin_login_works_with_seeded_mobile_configuration(): void
     {
         config([
             'admin.name' => 'Seeded Test Admin',
-            'admin.email' => 'seeded-admin@example.test',
-            'admin.password' => 'seeded-test-password-12345',
+            'admin.phone' => '+989121230002',
+            'admin.email' => null,
+            'admin.password' => 'seeded-test-password-123456',
         ]);
 
         Artisan::call('db:seed', ['--class' => \Database\Seeders\AdminUserSeeder::class]);
 
         $this->post('/admin/login', [
-            'email' => 'seeded-admin@example.test',
-            'password' => 'seeded-test-password-12345',
+            'phone' => '09121230002',
+            'password' => 'seeded-test-password-123456',
         ])->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticated();
