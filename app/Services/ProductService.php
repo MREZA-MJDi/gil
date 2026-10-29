@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ProductStatus;
+use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\ProductOption;
 use Illuminate\Http\UploadedFile;
@@ -30,6 +31,17 @@ class ProductService
                 $attributes['sort_order'] = $attributes['sort_order'] ?? 0;
 
                 $product = Product::query()->create($attributes);
+                if ($product->stock_quantity !== null) {
+                    InventoryMovement::query()->create([
+                        'product_id' => $product->id,
+                        'user_id' => $userId,
+                        'movement_type' => 'opening',
+                        'quantity_delta' => (int) $product->stock_quantity,
+                        'stock_before' => 0,
+                        'stock_after' => (int) $product->stock_quantity,
+                        'reason' => 'ثبت موجودی اولیه هنگام ایجاد محصول',
+                    ]);
+                }
                 if ($optionsProvided) $this->syncOptions($product, $options);
 
                 $this->audit->record('product.created', $product, [], [
@@ -53,6 +65,13 @@ class ProductService
         try {
             $product = DB::transaction(function () use ($productId, $data, $newPath, &$oldPath, $userId) {
                 $product = Product::query()->whereKey($productId)->lockForUpdate()->firstOrFail();
+                $oldStock = $product->stock_quantity;
+                $stockWasProvided = array_key_exists('stock_quantity', $data);
+                if ($stockWasProvided && $oldStock !== null && $data['stock_quantity'] === null) {
+                    throw ValidationException::withMessages([
+                        'stock_quantity' => 'رهگیری موجودی برای محصولی که گردش موجودی دارد قابل خاموش‌کردن نیست؛ موجودی را با اصلاح انبار مدیریت کنید.',
+                    ]);
+                }
                 $oldValues = $product->only(['name', 'category_id', 'base_price', 'status', 'sort_order', 'stock_quantity', 'low_stock_threshold']);
                 $optionsProvided = array_key_exists('options', $data);
                 $options = $data['options'] ?? [];
@@ -65,6 +84,21 @@ class ProductService
 
                 // Only explicitly submitted fields are changed; omitted status/stock/options stay intact.
                 $product->fill($data)->save();
+                if ($stockWasProvided && $product->stock_quantity !== null) {
+                    $before = $oldStock === null ? 0 : (int) $oldStock;
+                    $after = (int) $product->stock_quantity;
+                    if ($before !== $after) {
+                        InventoryMovement::query()->create([
+                            'product_id' => $product->id,
+                            'user_id' => $userId,
+                            'movement_type' => $oldStock === null ? 'opening' : 'stocktake',
+                            'quantity_delta' => $after - $before,
+                            'stock_before' => $before,
+                            'stock_after' => $after,
+                            'reason' => $oldStock === null ? 'فعال‌سازی رهگیری و ثبت موجودی اولیه' : 'اصلاح شمارش موجودی از مشخصات محصول',
+                        ]);
+                    }
+                }
                 if ($optionsProvided) $this->syncOptions($product, $options);
 
                 $this->audit->record('product.updated', $product, $oldValues, [
