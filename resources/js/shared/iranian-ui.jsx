@@ -102,7 +102,8 @@ export function JalaliDateTimePicker({value = '', onChange, includeTime = false,
     </div>;
 }
 
-export function MoneyInput({value = '', onChange, currency = 'تومان', ...props}) {
+export function MoneyInput({value = '', onChange, currency, ...props}) {
+    const currencyText = currency || (typeof document !== 'undefined' ? document.documentElement.dataset.currencyLabel : '') || 'تومان';
     const inputRef = useRef(null);
     const [display, setDisplay] = useState(() => groupedNumber(value));
     useEffect(() => setDisplay(groupedNumber(value)), [value]);
@@ -125,8 +126,8 @@ export function MoneyInput({value = '', onChange, currency = 'تومان', ...pr
     };
     return <div className="money-input-wrap">
         <input {...props} ref={inputRef} type="text" dir="ltr" inputMode="numeric" autoComplete="off" value={display} onChange={change}
-            aria-label={props['aria-label'] || (currency ? 'مبلغ به ' + currency : 'مبلغ')}
+            aria-label={props['aria-label'] || (currencyText ? 'مبلغ به ' + currencyText : 'مبلغ')}
             className={('money-input ' + (props.className || '')).trim()} />
-        {currency && <span className="money-input-currency">{currency}</span>}
+        {currencyText && <span className="money-input-currency">{currencyText}</span>}
     </div>;
 }
