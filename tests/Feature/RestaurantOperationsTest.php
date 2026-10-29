@@ -465,4 +465,111 @@ class RestaurantOperationsTest extends TestCase
             'discount' => 0,
         ];
     }
+
+    public function test_public_reservation_requires_a_table_before_confirmation(): void
+    {
+        $startsAt = \Illuminate\Support\Carbon::now(config('app.timezone'))->addDays(5)->setTime(17, 0);
+        $reservation = \App\Models\Reservation::query()->create([
+            'reference' => 'RSV-PUBLIC-001',
+            'customer_name' => 'مشتری رزرو',
+            'phone' => '+989121234567',
+            'party_size' => 2,
+            'starts_at' => $startsAt,
+            'duration_minutes' => 90,
+            'ends_at' => $startsAt->copy()->addMinutes(90),
+            'status' => 'pending',
+            'source' => 'public',
+            'idempotency_key' => 'public-transition-test-01',
+            'idempotency_hash' => hash('sha256', 'reservation-1'),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->patchJson('/admin/api/reservations/'.$reservation->id.'/status', ['status' => 'confirmed'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('restaurant_table_id');
+
+        $this->assertSame('pending', $reservation->fresh()->status->value);
+    }
+
+    public function test_public_reservation_can_be_confirmed_after_assigning_an_active_table(): void
+    {
+        $table = RestaurantTable::query()->create([
+            'name' => 'میز رزرو تست',
+            'token' => \Illuminate\Support\Str::random(48),
+            'is_active' => true,
+        ]);
+        $startsAt = \Illuminate\Support\Carbon::now(config('app.timezone'))->addDays(6)->setTime(18, 0);
+        $reservation = \App\Models\Reservation::query()->create([
+            'reference' => 'RSV-PUBLIC-002',
+            'customer_name' => 'مشتری رزرو دوم',
+            'phone' => '+989121234568',
+            'party_size' => 3,
+            'starts_at' => $startsAt,
+            'duration_minutes' => 90,
+            'ends_at' => $startsAt->copy()->addMinutes(90),
+            'status' => 'pending',
+            'source' => 'public',
+            'idempotency_key' => 'public-transition-test-02',
+            'idempotency_hash' => hash('sha256', 'reservation-2'),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->patchJson('/admin/api/reservations/'.$reservation->id.'/status', [
+                'status' => 'confirmed',
+                'restaurant_table_id' => $table->id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'confirmed')
+            ->assertJsonPath('data.table.id', $table->id);
+
+        $this->assertSame($table->id, $reservation->fresh()->restaurant_table_id);
+    }
+
+    public function test_reservation_confirmation_rejects_overlapping_table_windows(): void
+    {
+        $table = RestaurantTable::query()->create([
+            'name' => 'میز هم‌پوشانی تست',
+            'token' => \Illuminate\Support\Str::random(48),
+            'is_active' => true,
+        ]);
+        $startsAt = \Illuminate\Support\Carbon::now(config('app.timezone'))->addDays(7)->setTime(18, 0);
+        \App\Models\Reservation::query()->create([
+            'reference' => 'RSV-PUBLIC-003',
+            'restaurant_table_id' => $table->id,
+            'customer_name' => 'رزرو موجود',
+            'phone' => '+989121234569',
+            'party_size' => 2,
+            'starts_at' => $startsAt,
+            'duration_minutes' => 90,
+            'ends_at' => $startsAt->copy()->addMinutes(90),
+            'status' => 'confirmed',
+            'source' => 'public',
+            'idempotency_key' => 'public-transition-test-03',
+            'idempotency_hash' => hash('sha256', 'reservation-3'),
+        ]);
+        $pending = \App\Models\Reservation::query()->create([
+            'reference' => 'RSV-PUBLIC-004',
+            'customer_name' => 'رزرو تداخل',
+            'phone' => '+989121234570',
+            'party_size' => 2,
+            'starts_at' => $startsAt->copy()->addMinutes(30),
+            'duration_minutes' => 90,
+            'ends_at' => $startsAt->copy()->addMinutes(120),
+            'status' => 'pending',
+            'source' => 'public',
+            'idempotency_key' => 'public-transition-test-04',
+            'idempotency_hash' => hash('sha256', 'reservation-4'),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->patchJson('/admin/api/reservations/'.$pending->id.'/status', [
+                'status' => 'confirmed',
+                'restaurant_table_id' => $table->id,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('restaurant_table_id');
+
+        $this->assertSame('pending', $pending->fresh()->status->value);
+    }
+
 }
