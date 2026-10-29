@@ -792,3 +792,11 @@
     .dark-hero-scroll span{animation:none}
     .experience-card,.experience-photo img,.journey-card,.dark-action,.dark-food-photo>img{transition:none!important}
 }
+
+
+/* Match the pink primary accent in the supplied dark restaurant reference. */
+.public-home .site-header-cta{background:#f2a9ad;color:#241d1e!important}
+.public-home .site-header-cta:hover{background:#ffc1c4}
+.public-home .site-brand-copy b em{color:#f2a9ad}
+.hero-bowl-image{transform:translateX(-50%) scale(1.14)}
+@media(max-width:560px){.hero-bowl-image{transform:translateX(-50%) scale(1.09)}}
