@@ -430,7 +430,7 @@ function OrderModal({ products, tables, onClose, onSubmit }) {
 }
 
 function ProductModal({ product, categories, onClose, onSave }) {
-    const [form,setForm]=useState({category_id:String(product?.category_id || categories?.[0]?.id || ''),name:product?.name || '',description:product?.description || '',base_price:String(product?.base_price ?? ''),status:product?.status || 'active',stock_quantity:product?.stock_quantity === null || product?.stock_quantity === undefined ? '' : String(product.stock_quantity),low_stock_threshold:product?.low_stock_threshold === null || product?.low_stock_threshold === undefined ? '' : String(product.low_stock_threshold), options:(product?.options || []).filter(o=>o.is_active).map(o=>({id:o.id,name:o.name,type:o.type,price:String(o.price),is_active:true}))});
+    const [form,setForm]=useState({category_id:String(product?.category_id || categories?.[0]?.id || ''),name:product?.name || '',description:product?.description || '',base_price:String(product?.base_price ?? ''),status:product?.status || 'active',stock_quantity:product?.stock_quantity === null || product?.stock_quantity === undefined ? '' : String(product.stock_quantity),low_stock_threshold:product?.low_stock_threshold === null || product?.low_stock_threshold === undefined ? '' : String(product.low_stock_threshold), options:(product?.options || []).map(o=>({id:o.id,name:o.name,type:o.type,price:String(o.price),is_active:Boolean(o.is_active)}))});
     const set=(key,value)=>setForm(v=>({...v,[key]:value}));
     const addOption=()=>set('options',[...form.options,{name:'',type:'addon',price:'0',is_active:true}]);
     const updateOption=(i,key,value)=>set('options',form.options.map((o,index)=>index===i?{...o,[key]:value}:o));
@@ -451,6 +451,7 @@ function ProductModal({ product, categories, onClose, onSave }) {
                     <input value={option.name} onChange={e=>updateOption(i,'name',e.target.value)} placeholder="نام گزینه" maxLength="100" required />
                     <select value={option.type} onChange={e=>updateOption(i,'type',e.target.value)}><option value="size">سایز</option><option value="addon">افزودنی</option></select>
                     <input type="number" min="0" value={option.price} onChange={e=>updateOption(i,'price',e.target.value)} aria-label="قیمت گزینه" required />
+                    <label className="op-option-active"><input type="checkbox" checked={Boolean(option.is_active)} onChange={e=>updateOption(i,'is_active',e.target.checked)} />فعال</label>
                     <Button type="button" kind="danger" onClick={()=>removeOption(i)}>حذف</Button>
                 </div>)}
             </div>
@@ -722,7 +723,7 @@ function InventoryModal({ product, products, onClose, onSubmit }) {
     const [reason,setReason]=useState('');
     const selected=tracked.find(p=>String(p.id)===productId);
     return <Modal title="اصلاح موجودی" eyebrow="INVENTORY MOVEMENT" onClose={onClose}>
-        {tracked.length===0?<Empty>ابتدا برای حداقل یک محصول مقدار موجودی اولیه تعریف کن.</Empty>:<form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({product_id:Number(productId),direction,quantity:Number(quantity),reason:reason.trim(),idempotency_key:idempotencyKey()});}}>
+        {tracked.length===0?<Empty>ابتدا برای حداقل یک محصول مقدار موجودی اولیه تعریف کن.</Empty>:<form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({product_id:Number(productId),direction,quantity:Number(quantity),reason:reason.trim()});}}>
             <Field label="محصول"><select value={productId} onChange={e=>setProductId(e.target.value)}>{tracked.map(p=><option key={p.id} value={p.id}>{p.name} · موجودی {numberFa(p.stock_quantity)}</option>)}</select></Field>
             <Field label="جهت حرکت"><select value={direction} onChange={e=>setDirection(e.target.value)}><option value="in">ورود کالا / افزایش</option><option value="out">خروج / ضایعات / مصرف</option></select></Field>
             <Field label="تعداد"><input type="number" min="1" value={quantity} onChange={e=>setQuantity(e.target.value)} required /></Field>
