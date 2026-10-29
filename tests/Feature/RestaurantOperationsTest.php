@@ -54,6 +54,11 @@ class RestaurantOperationsTest extends TestCase
         $this->getJson('/admin/api/dashboard')->assertUnauthorized();
     }
 
+    public function test_admin_dashboard_redirects_guests_to_admin_login_route(): void
+    {
+        $this->get('/admin')->assertRedirect(route('admin.login'));
+    }
+
     public function test_admin_login_works_with_seeded_env_configuration(): void
     {
         config([
