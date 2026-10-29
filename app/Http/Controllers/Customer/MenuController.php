@@ -72,6 +72,7 @@ class MenuController extends Controller
 
         $data['restaurant_table_id'] = $table->id;
         $data['channel'] = 'dine_in';
+        $data['source'] = 'qr';
 
         return response()->json([
             'data' => tap($orders->create($data, null), fn ($order) => $order->load('items'))

@@ -69,7 +69,7 @@ class RestaurantOperationsTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('روزت را')
+            ->assertSee('طعم خوب')
             ->assertSee('لاته تست')
             ->assertSee('ورود کارکنان');
 
@@ -449,6 +449,119 @@ class RestaurantOperationsTest extends TestCase
           ->assertJsonPath('data.counted_cash', 1400)
           ->assertJsonPath('data.difference', 0)
           ->assertJsonPath('data.status', 'closed');
+    }
+
+    public function test_recipe_ingredients_are_consumed_atomically_and_restored_when_an_order_is_cancelled(): void
+    {
+        $this->actingAs($this->admin);
+        $ingredient = \App\Models\Ingredient::query()->create([
+            'name' => 'دانه قهوه تست',
+            'unit' => 'g',
+            'stock_quantity' => '100.000',
+            'low_stock_threshold' => '10.000',
+            'cost_per_unit' => 25,
+            'is_active' => true,
+        ]);
+
+        $this->putJson('/admin/api/products/'.$this->product->id.'/recipe', [
+            'ingredients' => [['ingredient_id' => $ingredient->id, 'quantity' => 18]],
+        ])->assertOk()
+          ->assertJsonPath('data.recipe_ingredients.0.id', $ingredient->id);
+
+        $created = $this->postJson('/admin/api/orders', $this->orderPayload(2), [
+            'Idempotency-Key' => 'recipe-consumption-order-0001',
+        ])->assertCreated();
+
+        $this->assertSame('64.000', $ingredient->fresh()->stock_quantity);
+        $orderId = $created->json('data.id');
+        $this->assertSame(18.0, (float) Order::query()->findOrFail($orderId)->items()->first()->recipe_snapshot[0]['quantity']);
+
+        $this->postJson('/admin/api/orders/'.$orderId.'/cancel', ['reason' => 'لغو سفارش تست'])
+            ->assertOk();
+
+        $this->assertSame('100.000', $ingredient->fresh()->stock_quantity);
+        $this->assertSame(5, $this->product->fresh()->stock_quantity);
+        $this->assertDatabaseHas('ingredient_inventory_movements', [
+            'ingredient_id' => $ingredient->id,
+            'order_id' => $orderId,
+            'movement_type' => 'order_cancelled',
+            'stock_after' => '100.000',
+        ]);
+    }
+
+    public function test_public_takeaway_order_is_unpaid_and_saved_in_the_main_order_system(): void
+    {
+        $this->postJson('/online-orders', [
+            'items' => [['product_id' => $this->product->id, 'quantity' => 1]],
+            'customer_name' => 'مشتری سایت',
+            'customer_phone' => '09120000000',
+            'customer_note' => 'برای تحویل حضوری',
+            'idempotency_key' => 'public-website-order-0001',
+        ])->assertCreated()
+          ->assertJsonPath('data.status', 'new')
+          ->assertJsonPath('data.payment_status', 'unpaid');
+
+        $order = Order::query()->where('customer_phone', '09120000000')->firstOrFail();
+        $this->assertSame('website', $order->source);
+        $this->assertSame('takeaway', $order->channel);
+        $this->assertSame(125000, $order->subtotal);
+        $this->assertSame(4, $this->product->fresh()->stock_quantity);
+    }
+
+    public function test_public_birthday_request_is_recorded_as_pending_for_staff_confirmation(): void
+    {
+        $this->post('/reserve', [
+            'customer_name' => 'مشتری جشن',
+            'phone' => '09121111111',
+            'email' => 'birthday@example.test',
+            'purpose' => 'birthday',
+            'occasion_name' => 'تولد تست',
+            'party_size' => 8,
+            'starts_at' => now()->addDays(4)->format('Y-m-d\TH:i'),
+            'duration_minutes' => 120,
+            'estimated_budget' => 5000000,
+            'notes' => 'کیک و تزیین ساده',
+            'idempotency_key' => 'public-birthday-request-0001',
+            'website' => '',
+        ])->assertRedirect(route('public.reservations.received'));
+
+        $reservation = \App\Models\Reservation::query()->where('phone', '09121111111')->firstOrFail();
+        $this->assertSame('website', $reservation->source);
+        $this->assertSame('birthday', $reservation->purpose);
+        $this->assertSame('pending', $reservation->status->value);
+        $this->assertSame('تولد تست', $reservation->occasion_name);
+        $this->assertNull($reservation->created_by);
+    }
+
+    public function test_signed_marketplace_webhook_creates_one_order_for_replayed_external_order(): void
+    {
+        config(['integrations.order_webhook_secret' => str_repeat('X', 40)]);
+        $body = json_encode([
+            'external_order_id' => 'marketplace-order-42',
+            'customer_name' => 'مشتری بیرونی',
+            'customer_phone' => '09123333333',
+            'items' => [['product_id' => $this->product->id, 'quantity' => 1]],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        $signature = 'sha256='.hash_hmac('sha256', $body, str_repeat('X', 40));
+        $server = [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_ACCEPT' => 'application/json',
+            'HTTP_X_GIL_SIGNATURE' => $signature,
+        ];
+
+        $this->call('POST', '/api/integrations/orders/snappfood', [], [], [], $server, $body)
+            ->assertCreated()
+            ->assertJsonPath('data.payment_status', 'unpaid');
+
+        $this->call('POST', '/api/integrations/orders/snappfood', [], [], [], $server, $body)
+            ->assertOk();
+
+        $this->assertSame(1, Order::query()->count());
+        $order = Order::query()->firstOrFail();
+        $this->assertSame('snappfood', $order->source);
+        $this->assertSame('snappfood', $order->external_provider);
+        $this->assertSame('marketplace-order-42', $order->external_order_id);
+        $this->assertSame('unpaid', $order->payment_status->value);
     }
 
     private function orderPayload(int $quantity): array
