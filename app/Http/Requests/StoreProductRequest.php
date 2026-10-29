@@ -11,13 +11,17 @@ class StoreProductRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $options = $this->input('options');
-        if (is_string($options)) {
-            $decoded = json_decode($options, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                $this->merge(['options' => $decoded]);
+        $decodedFields = [];
+        foreach (['options', 'allergens', 'dietary_tags'] as $field) {
+            $value = $this->input($field);
+            if (is_string($value)) {
+                $decoded = json_decode($value, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $decodedFields[$field] = $decoded;
+                }
             }
         }
+        if ($decodedFields !== []) $this->merge($decodedFields);
     }
 
     public function rules(): array
@@ -26,6 +30,13 @@ class StoreProductRequest extends FormRequest
             'category_id' => ['required', 'integer', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:3000'],
+            'ingredients' => ['nullable', 'string', 'max:5000'],
+            'allergens' => ['nullable', 'array', 'max:30'],
+            'allergens.*' => ['string', 'max:80'],
+            'dietary_tags' => ['nullable', 'array', 'max:30'],
+            'dietary_tags.*' => ['string', 'max:80'],
+            'calories' => ['nullable', 'integer', 'min:0', 'max:10000'],
+            'preparation_time_minutes' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'base_price' => ['required', 'integer', 'min:0', 'max:1000000000000'],
             'unit' => ['nullable', 'string', 'max:50'],
             'status' => ['sometimes', Rule::in(['active','inactive','unavailable'])],
