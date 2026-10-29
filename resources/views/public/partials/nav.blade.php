@@ -10,6 +10,19 @@
         <a href="{{ route('home') }}#story">داستان ما</a>
         <a href="{{ route('home') }}#moments">فضای کافه</a>
         <a href="{{ route('home') }}#visit">تماس و مسیر</a>
+        @auth
+            @if (auth()->user()->is_admin)
+                <a class="site-nav-auth site-nav-dashboard" href="{{ route('admin.dashboard') }}">پنل مدیریت <span>↗</span></a>
+                <form class="site-nav-logout" method="POST" action="{{ route('admin.logout') }}">
+                    @csrf
+                    <button class="site-nav-auth site-nav-logout-button" type="submit">خروج <span>↗</span></button>
+                </form>
+            @else
+                <a class="site-nav-auth" href="{{ route('admin.login') }}">ورود کارکنان</a>
+            @endif
+        @else
+            <a class="site-nav-auth site-nav-login" href="{{ route('admin.login') }}">ورود کارکنان <span>↗</span></a>
+        @endauth
     </nav>
     <a class="site-header-cta" href="{{ route('public.menu') }}">منو را ببین <span>↗</span></a>
 </header>
