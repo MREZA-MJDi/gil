@@ -238,6 +238,11 @@ class RestaurantOperationsTest extends TestCase
         ]);
         Product::query()->whereKey($this->product->id)->update([
             'description' => 'قهوه تست با توضیحات کامل',
+            'ingredients' => 'قهوه، شیر',
+            'allergens' => json_encode(['شیر'], JSON_UNESCAPED_UNICODE),
+            'dietary_tags' => json_encode(['گیاهی نیست'], JSON_UNESCAPED_UNICODE),
+            'calories' => 180,
+            'preparation_time_minutes' => 7,
         ]);
         ProductOption::query()->create([
             'product_id' => $this->product->id,
@@ -274,6 +279,11 @@ class RestaurantOperationsTest extends TestCase
             ->assertJsonPath('data.categories.0.products.0.name', 'محصول تست')
             ->assertJsonPath('data.categories.0.products.0.base_price', 125000)
             ->assertJsonPath('data.categories.0.products.0.description', 'قهوه تست با توضیحات کامل')
+            ->assertJsonPath('data.categories.0.products.0.ingredients', 'قهوه، شیر')
+            ->assertJsonPath('data.categories.0.products.0.allergens.0', 'شیر')
+            ->assertJsonPath('data.categories.0.products.0.dietary_tags.0', 'گیاهی نیست')
+            ->assertJsonPath('data.categories.0.products.0.calories', 180)
+            ->assertJsonPath('data.categories.0.products.0.preparation_time_minutes', 7)
             ->assertJsonPath('data.categories.0.products.0.options.0.name', 'سایز بزرگ')
             ->assertJsonPath('data.categories.0.products.0.options.0.price', 25000)
             ->assertJsonPath('data.categories.0.products.0.options.1.name', 'سیروپ')
