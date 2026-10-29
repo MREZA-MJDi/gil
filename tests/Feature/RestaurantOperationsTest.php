@@ -254,6 +254,88 @@ class RestaurantOperationsTest extends TestCase
         $this->assertSame(5, $this->product->fresh()->stock_quantity);
     }
 
+    public function test_order_state_transitions_and_print_endpoints_follow_the_saved_order(): void
+    {
+        $this->actingAs($this->admin);
+        $created = $this->postJson('/admin/api/orders', $this->orderPayload(1), [
+            'Idempotency-Key' => 'order-status-test-0001',
+        ])->assertCreated();
+        $orderId = $created->json('data.id');
+
+        $this->patchJson('/admin/api/orders/'.$orderId.'/status', ['status' => 'delivered'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['status']);
+
+        foreach (['confirmed', 'preparing', 'ready', 'delivered'] as $status) {
+            $this->patchJson('/admin/api/orders/'.$orderId.'/status', ['status' => $status])->assertOk()
+                ->assertJsonPath('data.status', $status);
+        }
+
+        $this->getJson('/admin/api/orders/'.$orderId.'/invoice')->assertOk()->assertJsonPath('type', 'invoice');
+        $this->getJson('/admin/api/orders/'.$orderId.'/kitchen-slip')->assertOk()->assertJsonPath('type', 'kitchen');
+        $this->getJson('/admin/api/orders/'.$orderId.'/receipt')->assertUnprocessable();
+    }
+
+    public function test_reservation_creation_is_idempotent_and_prevents_table_overlap(): void
+    {
+        $this->actingAs($this->admin);
+        $table = RestaurantTable::query()->create([
+            'name' => 'میز رزرو تست',
+            'token' => str_repeat('c', 64),
+            'is_active' => true,
+        ]);
+        $startsAt = now()->addDay()->startOfHour()->format('Y-m-d H:i:s');
+        $payload = [
+            'restaurant_table_id' => $table->id,
+            'customer_name' => 'مشتری تست',
+            'phone' => '09120000000',
+            'party_size' => 3,
+            'starts_at' => $startsAt,
+            'duration_minutes' => 90,
+            'notes' => 'تست رزرو',
+        ];
+
+        $first = $this->postJson('/admin/api/reservations', $payload, [
+            'Idempotency-Key' => 'reservation-test-key-01',
+        ])->assertCreated();
+        $retry = $this->postJson('/admin/api/reservations', $payload, [
+            'Idempotency-Key' => 'reservation-test-key-01',
+        ])->assertOk();
+
+        $this->assertSame($first->json('data.id'), $retry->json('data.id'));
+        $this->assertSame(1, \App\Models\Reservation::query()->count());
+
+        $conflicting = $payload;
+        $conflicting['starts_at'] = now()->parse($startsAt)->addMinutes(30)->format('Y-m-d H:i:s');
+        $this->postJson('/admin/api/reservations', $conflicting, [
+            'Idempotency-Key' => 'reservation-test-key-02',
+        ])->assertUnprocessable()->assertJsonValidationErrors(['restaurant_table_id']);
+
+        $this->assertSame(1, \App\Models\Reservation::query()->count());
+    }
+
+    public function test_cash_shift_close_reconciles_opening_balance_and_movements(): void
+    {
+        $this->actingAs($this->admin);
+        $shift = $this->postJson('/admin/api/cash-shift/open', ['opening_cash' => 1000])->assertCreated();
+        $shiftId = $shift->json('data.id');
+
+        $this->postJson('/admin/api/cash-shift/'.$shiftId.'/movements', [
+            'direction' => 'in', 'amount' => 500, 'reason' => 'شارژ صندوق',
+        ], ['Idempotency-Key' => 'cash-movement-test-0001'])->assertCreated();
+        $this->postJson('/admin/api/cash-shift/'.$shiftId.'/movements', [
+            'direction' => 'out', 'amount' => 100, 'reason' => 'تنخواه تست',
+        ], ['Idempotency-Key' => 'cash-movement-test-0002'])->assertCreated();
+
+        $this->postJson('/admin/api/cash-shift/'.$shiftId.'/close', [
+            'counted_cash' => 1400, 'note' => 'تست تطبیق صندوق',
+        ])->assertOk()
+          ->assertJsonPath('data.expected_cash', 1400)
+          ->assertJsonPath('data.counted_cash', 1400)
+          ->assertJsonPath('data.difference', 0)
+          ->assertJsonPath('data.status', 'closed');
+    }
+
     private function orderPayload(int $quantity): array
     {
         return [
