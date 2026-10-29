@@ -4,109 +4,118 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#f4efe6">
-    <meta name="description" content="{{ $settings->name }}؛ قهوه تخصصی، خوراکی‌های خوش‌حال‌کننده و مکث‌هایی برای حال بهتر.">
-    <title>{{ $settings->name }} — قهوه، آشپزخانه، لحظه‌ها</title>
+    <meta name="theme-color" content="#191919">
+    <meta name="description" content="{{ $settings->name }}؛ مزه‌های تازه، غذای خوشمزه و لحظه‌هایی برای باهم‌بودن.">
+    <title>{{ $settings->name }} — Fresh flavors, good company</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="public-site public-home">
     @include('public.partials.nav')
     <main>
-        <section class="hero-section hero-fullbleed cup-stop" id="home" data-cup-stop>
-            <div class="hero-center">
-                <span class="hero-script">Welcome to</span>
-                <h1>KHANE GILASI</h1>
-                <div class="hero-category"><span></span> CAFÉ &amp; RESTAURANT <span></span></div>
-                <p class="hero-description">Good food brings people together. At Khane Gilasi, we serve fresh ingredients with real taste, in a warm and friendly atmosphere.</p>
-                <div class="hero-actions hero-centered-actions">
-                    <a class="button hero-button-book" href="#reservation">Book a Table</a>
-                    <a class="button hero-button-menu" href="{{ route('public.menu') }}">View Menus</a>
+        <section class="dark-food-hero cup-stop" id="home" data-cup-stop>
+            <div class="dark-hero-copy">
+                <span class="delivery-pill"><i></i> FRESHLY MADE · READY FOR YOU</span>
+                <h1>Pan-Asian Crave <span>Fresh Flavors,</span> <b>or Enjoy Here</b></h1>
+                <p class="dark-hero-description">Bold flavors, fresh ingredients, and comforting favorites — made for sharing, staying in, or enjoying around our table.</p>
+                <div class="dark-hero-actions">
+                    <a class="dark-action primary" href="{{ route('public.menu') }}"><span>↗</span> Order Now</a>
+                    <a class="dark-action secondary" href="#reservation"><span>⌑</span> Reserve Table</a>
+                    <a class="dark-action tertiary" href="{{ route('public.menu') }}"><span>＋</span> View Menu</a>
+                </div>
+                <div class="hero-proof-row">
+                    <span class="proof-stars" aria-hidden="true">✦ ✦ ✦ ✦ ✦</span>
+                    <span>Fresh ingredients</span><i></i><span>Made with care</span>
                 </div>
             </div>
-            @if ($settings->phone)
-                <a class="hero-phone" href="tel:{{ preg_replace('/[^0-9+]/', '', $settings->phone) }}">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 2.8 10 2l2 4.5-2.2 2.1a15.3 15.3 0 0 0 5.6 5.6l2.1-2.2 4.5 2-.8 3.4a2.2 2.2 0 0 1-2.4 1.7C10 18.1 5.9 14 4.9 5.2a2.2 2.2 0 0 1 1.7-2.4Z" fill="currentColor"/></svg>
-                    <span>{{ $settings->phone }}</span>
-                </a>
-            @endif
-            <div class="hero-bottom-note">FRESH INGREDIENTS <span>✳</span> WARM HOSPITALITY</div>
-            <a class="hero-scroll" href="#menu" aria-label="Scroll to menu"><span></span></a>
+            <div class="dark-hero-art" aria-label="A fresh bowl prepared in our kitchen">
+                <div class="hero-art-halo"></div>
+                <div class="hero-art-swoop"></div>
+                <span class="hero-produce tomato tomato-one" aria-hidden="true"></span>
+                <span class="hero-produce tomato tomato-two" aria-hidden="true"></span>
+                <span class="hero-produce leaf leaf-one" aria-hidden="true"></span>
+                <span class="hero-produce leaf leaf-two" aria-hidden="true"></span>
+                <span class="hero-produce leaf leaf-three" aria-hidden="true"></span>
+                <img class="hero-bowl-image" src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&amp;fit=crop&amp;w=1300&amp;q=90" alt="A colorful bowl of fresh food with vegetables and herbs" fetchpriority="high">
+                <div class="hero-art-label"><span>GILASI KITCHEN</span><i></i><span>MADE FRESH</span></div>
+            </div>
+            <a class="dark-hero-scroll" href="#experience" aria-label="Scroll to discover"><span></span></a>
         </section>
 
-        <section class="ticker-section" aria-label="چیزهای خوب کافه"><div class="ticker-track"><span>قهوهٔ تازه</span><i>✳</i><span>آشپزخانهٔ گرم</span><i>✳</i><span>موسیقی ملایم</span><i>✳</i><span>آدم‌های دوست‌داشتنی</span><i>✳</i><span>قهوهٔ تازه</span><i>✳</i><span>آشپزخانهٔ گرم</span><i>✳</i><span>موسیقی ملایم</span><i>✳</i><span>آدم‌های دوست‌داشتنی</span><i>✳</i></div></section>
-
-        <section class="section-wrap menu-section cup-stop" id="menu" data-cup-stop>
-            <div class="section-heading">
-                <div><span class="section-kicker">THE GOOD STUFF</span><h2>چیزهای خوشمزه<br><span>در انتظار تو.</span></h2></div>
-                <div class="section-heading-aside"><p>از اولین جرعهٔ صبح تا آخرین لقمهٔ عصر؛ چیزی پیدا می‌شود که حال و هوایت را عوض کند.</p><a class="text-link" href="{{ route('public.menu') }}">دیدن همهٔ منو <span>↗</span></a></div>
+        <section class="dark-experience-section cup-stop" id="experience" data-cup-stop>
+            <div class="dark-section-kicker">ONE KITCHEN, TWO EXPERIENCES</div>
+            <h2>One Kitchen<br><span>Two Experiences</span></h2>
+            <p class="dark-section-lead">Same kitchen. Same care. A little more choice in how you enjoy it.</p>
+            <div class="experience-grid">
+                <a class="experience-card" href="{{ route('public.menu') }}">
+                    <div class="experience-photo"><img src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&amp;fit=crop&amp;w=900&amp;q=85" alt="Fresh bowl served from the kitchen" loading="lazy"><span class="experience-number">01</span><span class="experience-arrow">↗</span></div>
+                    <div class="experience-card-copy"><span>MADE FOR YOUR MOMENT</span><h3>Enjoy Here</h3><p>Settle in, take your time, and make a meal of the moment.</p></div>
+                </a>
+                <a class="experience-card" href="{{ route('public.menu') }}">
+                    <div class="experience-photo"><img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&amp;fit=crop&amp;w=900&amp;q=85" alt="Fresh meal packed with colorful ingredients" loading="lazy"><span class="experience-number">02</span><span class="experience-arrow">↗</span></div>
+                    <div class="experience-card-copy"><span>YOUR FAVORITES, YOUR WAY</span><h3>Enjoy Anywhere</h3><p>Explore the menu and bring something delicious to your day.</p></div>
+                </a>
             </div>
-            <div class="featured-grid">
+        </section>
+
+        <section class="dark-belief-section cup-stop" id="story" data-cup-stop>
+            <div class="belief-image-strip">
+                <div><img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&amp;fit=crop&amp;w=800&amp;q=85" alt="Fresh food prepared with colorful vegetables" loading="lazy"></div>
+                <div><img src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&amp;fit=crop&amp;w=800&amp;q=85" alt="Fresh bowl served at the table" loading="lazy"></div>
+                <div><img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&amp;fit=crop&amp;w=800&amp;q=85" alt="Fresh ingredients and herbs" loading="lazy"></div>
+            </div>
+            <span class="belief-leaf belief-leaf-left" aria-hidden="true">✦</span>
+            <p class="belief-statement">We believe great food <span>shouldn’t compromise on quality,</span> no matter where you enjoy it.</p>
+            <span class="belief-leaf belief-leaf-right" aria-hidden="true">✦</span>
+        </section>
+
+        <section class="dark-journey-section cup-stop" id="moments" data-cup-stop>
+            <div class="dark-journey-heading">
+                <span class="dark-section-kicker">A STORY MADE TO BE SHARED</span>
+                <h2>Our <span>Journey</span></h2>
+                <p>Good food is just the beginning. The best part is the moments that come with it.</p>
+            </div>
+            <div class="journey-timeline">
+                <article class="journey-item"><span class="journey-dot"></span><div class="journey-card"><div><h3>The Beginning</h3><span>CHAPTER 01</span></div><p>A simple idea: make good food with care, and welcome everyone to the table.</p></div></article>
+                <article class="journey-item"><span class="journey-dot"></span><div class="journey-card"><div><h3>Finding Our Flavor</h3><span>CHAPTER 02</span></div><p>Bringing fresh ingredients and familiar favorites together in every plate.</p></div></article>
+                <article class="journey-item"><span class="journey-dot"></span><div class="journey-card"><div><h3>More Ways to Enjoy</h3><span>CHAPTER 03</span></div><p>Making it easier to explore the menu, reserve a table, and find your next favorite.</p></div></article>
+                <article class="journey-item"><span class="journey-dot"></span><div class="journey-card"><div><h3>And We're Just Getting Started</h3><span>THE NEXT CHAPTER</span></div><p>More meals, more memories, and always a seat for you.</p></div></article>
+            </div>
+        </section>
+
+        <section class="dark-menu-section cup-stop" id="menu" data-cup-stop>
+            <div class="dark-menu-heading">
+                <div><span class="dark-section-kicker">FROM OUR MENU</span><h2>Find your <span>new favorite.</span></h2></div>
+                <a class="dark-text-link" href="{{ route('public.menu') }}">Explore the full menu <span>↗</span></a>
+            </div>
+            <div class="dark-featured-grid">
                 @forelse ($featuredProducts as $index => $product)
-                    <article class="food-card reveal-card">
-                        <a href="{{ route('public.menu') }}" class="food-card-image">
+                    <article class="dark-food-card">
+                        <a href="{{ route('public.menu') }}" class="dark-food-photo">
                             @if ($product->image_url)
                                 <img src="{{ $product->image_url }}" alt="{{ $product->name }}" loading="lazy">
                             @else
-                                <div class="food-image-placeholder food-placeholder-{{ $index % 4 }}"><span>{{ ['☕','🥐','🍰','🥪'][$index % 4] }}</span><small>{{ $settings->name }}</small></div>
+                                <div class="dark-food-placeholder dark-food-placeholder-{{ $index % 3 }}"><span>{{ ['✦','✳','❋'][$index % 3] }}</span><small>KHANE GILASI</small></div>
                             @endif
-                            <span class="food-card-number">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
-                            <span class="food-card-arrow">↗</span>
+                            <span class="dark-food-index">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
+                            <span class="dark-food-arrow">↗</span>
                         </a>
-                        <div class="food-card-info"><div><h3>{{ $product->name }}</h3><p>{{ $product->description ?: 'آماده‌شده با دقت و مواد اولیهٔ باکیفیت.' }}</p></div><strong>{{ number_format($product->base_price) }} <small>{{ $settings->currency_label }}</small></strong></div>
-                        @if ($product->options->isNotEmpty())
-                            <div class="food-card-options">@foreach ($product->options->take(2) as $option)<span>{{ $option->name }} @if($option->price > 0) · +{{ number_format($option->price) }}@endif</span>@endforeach</div>
-                        @endif
+                        <div class="dark-food-info"><div><h3>{{ $product->name }}</h3><p>{{ $product->description ?: 'Prepared with care and fresh ingredients.' }}</p></div><strong>{{ number_format($product->base_price) }} <small>{{ $settings->currency_label }}</small></strong></div>
                     </article>
                 @empty
-                    <div class="catalog-empty"><span>✳</span><h3>منو در حال آماده‌شدن است.</h3><p>به‌زودی چیزهای خوشمزهٔ کافه در اینجا معرفی می‌شوند.</p><a class="text-link" href="{{ route('public.menu') }}">بازکردن صفحهٔ منو <span>↗</span></a></div>
+                    <div class="dark-menu-empty"><span>✳</span><h3>Something good is on the way.</h3><p>Our menu is getting ready. Check back soon.</p></div>
                 @endforelse
             </div>
-            <div class="menu-bottom-note"><span>✳</span><p>سلیقه‌ها متفاوت‌اند؛ برای انتخاب دقیق، جزئیات مواد اولیه و افزودنی‌ها را در منو ببین.</p><a class="button button-outline" href="{{ route('public.menu') }}">منوی کامل <span>↗</span></a></div>
+            <div class="dark-menu-foot"><span>✳</span><p>All cravings welcome. Browse the menu for ingredients, options, and details.</p><a class="dark-action secondary" href="{{ route('public.menu') }}">View Full Menu <span>↗</span></a></div>
         </section>
 
-        <section class="story-section cup-stop" id="story" data-cup-stop>
-            <div class="story-left"><div class="story-image-main"><img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=1100&q=85" alt="دست‌ها در حال آماده‌کردن قهوه" loading="lazy"></div><div class="story-image-small"><img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=650&q=85" alt="فضای گرم یک کافه" loading="lazy"></div><span class="story-roundel">MADE<br>WITH<br>CARE <b>✳</b></span></div>
-            <div class="story-copy"><span class="section-kicker">A PLACE TO JUST BE</span><h2>قرار نیست<br>همه‌چیز <em>با عجله</em><br>اتفاق بیفتد.</h2><p>ما به چیزهای ساده‌ای باور داریم: قهوه‌ای که وقت کافی برای دم‌کشیدن داشته باشد، غذایی که تازه آماده شود، و فضایی که در آن مجبور نباشی نقش خاصی بازی کنی.</p><p>اینجا می‌توانی کار کنی، با دوستت گپ بزنی یا فقط به فنجانت نگاه کنی و نفسی تازه کنی. همین هم کافی‌ست.</p><a href="{{ route('public.menu') }}" class="text-link">با منوی ما آشنا شو <span>↗</span></a><div class="story-signature">take a breath. take a sip. <span>♡</span></div></div>
+        <section class="dark-reservation-section cup-stop" id="reservation" data-cup-stop>
+            <div class="reservation-copy"><span class="dark-section-kicker">SAVE YOUR SEAT</span><h2>Let's make it<br><span>a plan.</span></h2><p>Planning a visit? Send us a reservation request and our team will follow up to confirm the details.</p></div>
+            <div class="dark-reservation-form"><div id="public-reservation-app" data-endpoint="{{ route('public.reservations.store') }}"></div><noscript><p>Enable JavaScript to submit a reservation request.</p></noscript></div>
         </section>
 
-        <section class="values-section cup-stop" id="ritual" data-cup-stop>
-            <div class="values-heading"><span class="section-kicker">THE GILASI RITUAL</span><h2>خوبی در <span>جزئیات</span> است.</h2><p>سه دلیل کوچک برای اینکه بخشی از روزت را به ما بسپاری.</p></div>
-            <div class="values-grid">
-                <article class="value-card"><span class="value-number">01</span><div class="value-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M13 24h31l-3 27H18z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M44 29h7q9 1 5 11-2 6-13 5M22 18c-5-5 5-7 0-12m11 12c-5-5 5-7 0-12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></div><h3>قهوه با حوصله</h3><p>از انتخاب دانه تا لحظهٔ سرو، توجه به جزئیات بخشی از تجربه است.</p><span class="value-doodle">☼</span></article>
-                <article class="value-card value-card-featured"><span class="value-number">02</span><div class="value-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 25h36v27H14z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M10 25h44l-4-11H14z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M25 52V38h14v14M18 19h28" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></div><h3>خوراکی تازه</h3><p>برای هر محصول، توضیحات و گزینه‌های قابل انتخاب را شفاف در منو می‌بینی.</p><span class="value-doodle">✳</span></article>
-                <article class="value-card"><span class="value-number">03</span><div class="value-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 52S8 39 8 22q0-12 12-12 8 0 12 9 4-9 12-9 12 0 12 12Q56 39 32 52Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M20 31q12 9 24 0" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></div><h3>جای خودت</h3><p>برای قرار با دوست‌ها، یک ساعت کار یا چند دقیقه سکوت.</p><span class="value-doodle">♡</span></article>
-            </div>
-        </section>
-
-        <section class="moments-section cup-stop" id="moments" data-cup-stop>
-            <div class="moments-top"><div><span class="section-kicker">LITTLE MOMENTS, BIG FEELINGS</span><h2>یک گوشهٔ دنج<br>برای <em>لحظه‌های تو.</em></h2></div><p>صبح آرام، عصر شلوغ، یک قرار غیرمنتظره. هر بار می‌تواند داستان خودش را داشته باشد.</p></div>
-            <div class="moments-collage">
-                <figure class="moment-photo moment-photo-large"><img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=85" alt="فضای داخلی یک کافه دنج" loading="lazy"><figcaption>your little corner <span>↗</span></figcaption></figure>
-                <figure class="moment-photo moment-photo-tall"><img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=85" alt="فنجان قهوه روی میز" loading="lazy"><figcaption>first sip of the day <span>↗</span></figcaption></figure>
-                <figure class="moment-photo moment-photo-small"><img src="https://images.unsplash.com/photo-1559305616-3f99cd43e353?auto=format&fit=crop&w=900&q=85" alt="بار قهوه و تجهیزات کافه" loading="lazy"><figcaption>made with care <span>↗</span></figcaption></figure>
-                <div class="moments-caption"><span>✳</span><p>همه‌چیز از یک<br>مکث کوچک شروع می‌شود.</p><a href="#visit" class="text-link">بیا ببینمت <span>↗</span></a></div>
-            </div>
-        </section>
-
-        <section class="reservation-section cup-stop" id="reservation" data-cup-stop>
-            <div class="reservation-section-heading">
-                <span class="section-kicker">PLAN A LITTLE PAUSE</span>
-                <h2>جای تو <em>محفوظ؟</em></h2>
-                <p>درخواست رزروت را بفرست؛ بعد از بررسی تیم ما، وضعیت رزرو از طریق تماس با شماره‌ای که ثبت می‌کنی پیگیری می‌شود.</p>
-            </div>
-            <div id="public-reservation-app" data-endpoint="{{ route('public.reservations.store') }}"></div>
-            <noscript><p class="reservation-noscript">برای ثبت درخواست رزرو، جاوااسکریپت مرورگرت را فعال کن یا با کافه تماس بگیر.</p></noscript>
-        </section>
-
-        <section class="visit-section cup-stop" id="visit" data-cup-stop>
-            <div class="visit-sunburst" aria-hidden="true">✳</div>
-            <div class="visit-copy"><span class="section-kicker">YOUR TABLE IS WAITING</span><h2>یک فنجان<br>با هم؟</h2><p>برای یک قرار کوتاه، یک شروع تازه یا استراحت بین کارها؛ در را باز می‌گذاریم.</p><div class="visit-actions"><a class="button button-cream" href="{{ route('public.menu') }}">اول منو را ببین <span>↗</span></a>@if ($settings->phone)<a class="button button-ghost-light" href="tel:{{ preg_replace('/[^0-9+]/', '', $settings->phone) }}">تماس بگیر</a>@endif</div></div>
-            <div class="visit-details">
-                <div class="visit-detail"><span>آدرس</span><b>{{ $settings->address ?: 'آدرس کافه را از بخش تنظیمات تکمیل کنید.' }}</b></div>
-                <div class="visit-detail"><span>تلفن</span><b>{{ $settings->phone ?: 'شماره تماس ثبت نشده است.' }}</b></div>
-                <div class="visit-detail"><span>تجربهٔ آنلاین</span><b>منو و قیمت‌ها را هر زمان ببین.</b></div>
-                <a class="visit-map-link" href="https://www.google.com/maps/search/?api=1&query={{ urlencode($settings->address ?: $settings->name) }}" target="_blank" rel="noopener noreferrer">بازکردن مسیر در نقشه <span>↗</span></a>
-            </div>
+        <section class="dark-visit-section cup-stop" id="visit" data-cup-stop>
+            <div class="dark-visit-copy"><span class="dark-section-kicker">YOUR TABLE IS WAITING</span><h2>Good food.<br><span>Good company.</span></h2><p>A little pause, a new favorite, or a table shared with friends. We'd love to see you.</p><div class="dark-visit-actions"><a class="dark-action primary" href="{{ route('public.menu') }}">Explore Menu <span>↗</span></a>@if ($settings->phone)<a class="dark-action secondary" href="tel:{{ preg_replace('/[^0-9+]/', '', $settings->phone) }}">Call Us</a>@endif</div></div>
+            <div class="dark-visit-details"><div><span>ADDRESS</span><b>{{ $settings->address ?: 'Add your cafe address in Settings.' }}</b></div><div><span>PHONE</span><b>{{ $settings->phone ?: 'No phone number added yet.' }}</b></div><a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($settings->address ?: $settings->name) }}" target="_blank" rel="noopener noreferrer">Get directions <span>↗</span></a></div>
         </section>
     </main>
     @include('public.partials.footer')
