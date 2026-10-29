@@ -77,8 +77,13 @@
             <div class="online-order-heading"><span class="section-kicker">TAKEAWAY / ONLINE</span><h2>سبد سفارش بیرون‌بر</h2><p>اقلام را اضافه کن؛ سفارش پس از ثبت در پنل مجموعه دیده می‌شود. مبلغ نهایی در سرور محاسبه می‌شود و پرداخت در این نسخه هنگام تحویل یا در صندوق است.</p></div>
             <div id="online-cart-empty" class="online-cart-empty">هنوز چیزی به سبد اضافه نکرده‌ای.</div>
             <div id="online-cart-items" class="online-cart-items"></div>
-            <div class="online-cart-total"><span>جمع تخمینی سبد</span><b id="online-cart-total">۰ تومان</b><small>قیمت و افزودنی‌ها در سرور دوباره بررسی می‌شوند.</small></div>
+            <div class="online-cart-total"><span>جمع تخمینی سبد</span><b id="online-cart-total">۰ {{ $settings->currency_label }}</b><small>قیمت و افزودنی‌ها در سرور دوباره بررسی می‌شوند.</small></div>
             <form id="online-checkout-form" class="online-checkout-form">
+                <label><span>روش پرداخت موردنظر *</span><select name="payment_preference" required>
+                    <option value="at_counter">پرداخت در صندوق / هنگام تحویل</option>
+                    <option value="cash">نقدی</option>
+                    <option value="card_terminal">کارت‌خوان</option>
+                </select><small>این انتخاب روش ترجیحی است؛ پرداخت زمانی انجام‌شده محسوب می‌شود که در صندوق ثبت شود.</small></label>
                 <label><span>نام و نام خانوادگی *</span><input name="customer_name" autocomplete="name" required maxlength="150"></label>
                 <label><span>شماره تماس *</span><input name="customer_phone" autocomplete="tel" inputmode="tel" required maxlength="30"></label>
                 <label class="online-checkout-note"><span>توضیح سفارش (اختیاری)</span><textarea name="customer_note" rows="2" maxlength="2000" placeholder="مثلاً بدون شکر یا توضیح ضروری"></textarea></label>

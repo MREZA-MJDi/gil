@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 const numberFa = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0));

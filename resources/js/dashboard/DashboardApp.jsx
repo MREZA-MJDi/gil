@@ -31,6 +31,8 @@ const reservationStatusLabel = { pending: 'در انتظار', confirmed: 'تأ�
 const feedbackStatusLabel = { new: 'جدید', reviewing: 'در حال بررسی', resolved: 'رسیدگی‌شده', closed: 'بسته‌شده' };
 const reservationPurposeLabel = { table: 'رزرو میز', birthday: 'تولد', consultation: 'مشاوره', private_event: 'مراسم خصوصی', catering: 'کترینگ' };
 const paymentMethodLabel = { cash: 'نقدی', card_terminal: 'کارت‌خوان (ثبت کاربر)', online: 'آنلاین', other: 'سایر' };
+const paymentPreferenceLabel = { cash: 'نقدی', card_terminal: 'کارت‌خوان', at_counter: 'در صندوق / هنگام تحویل' };
+const orderSourceLabel = { staff: 'ثبت پرسنل', qr: 'QR میز', website: 'سفارش سایت', snappfood: 'اسنپ‌فود', partner: 'سرویس بیرونی' };
 const expenseCategoryLabel = { rent: 'اجاره', payroll: 'حقوق', utilities: 'قبوض', ingredients: 'مواد اولیه', repairs: 'تعمیرات', packaging: 'بسته‌بندی', transport: 'حمل‌ونقل', other: 'سایر' };
 const currencyLabel = () => window.__restaurantCurrencyLabel || document.querySelector('meta[name="currency-label"]')?.content || 'تومان';
 const money = value => new Intl.NumberFormat('fa-IR-u-nu-arabext', { maximumFractionDigits: 0 }).format(Number(value || 0)) + ' ' + currencyLabel();
@@ -147,7 +149,7 @@ function OrdersPage({ orders, tables, onRefresh, onDetails, onPrint, onNewOrder,
             {filtered.length ? <TableWrap><thead><tr><th>شماره سفارش</th><th>کانال / میز</th><th>مبلغ</th><th>آماده‌سازی</th><th>تسویه</th><th>ثبت‌شده</th><th>عملیات</th></tr></thead><tbody>
                 {filtered.map(order => <tr key={order.id}>
                     <td><button className="op-text-button mono" onClick={() => onDetails(order.id)}>{order.number || ('#' + order.id)}</button></td>
-                    <td>{channelLabel(order)}<small className="op-subtext">{order.customer_name || order.customer_phone || 'بدون مشخصات مشتری'}</small></td>
+                    <td>{channelLabel(order)}<small className="op-subtext">{order.customer_name || order.customer_phone || 'بدون مشخصات مشتری'}</small><small className="op-subtext">{orderSourceLabel[order.source] || 'ثبت پرسنل'} · پرداخت ترجیحی: {paymentPreferenceLabel[order.payment_preference] || 'در صندوق / هنگام تحویل'}</small></td>
                     <td className="amount-cell">{money(order.total)}</td><td><Pill value={order.status} dictionary={orderStatusLabel} /></td><td><Pill value={order.payment_status} dictionary={paymentStatusLabel} /></td><td>{dateTime(order.created_at)}</td>
                     <td><div className="op-actions">
                         <Button onClick={() => onDetails(order.id)}>جزئیات</Button>
