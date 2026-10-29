@@ -12,6 +12,8 @@ function CustomerMenu() {
     const [notice, setNotice] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
+    const [idempotencyKey, setIdempotencyKey] = useState('');
+    const [submissionUncertain, setSubmissionUncertain] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -25,26 +27,36 @@ function CustomerMenu() {
         return () => { active = false; };
     }, [token]);
 
-    const add = product => setCart(items => {
+    const add = product => {
+        if (busy || submissionUncertain) return;
+        setIdempotencyKey('');
+        setCart(items => {
         const existing = items.find(item => item.product_id === product.id && item.options.length === 0);
         if (existing) return items.map(item => item === existing ? { ...item, quantity: item.quantity + 1 } : item);
         return [...items, { product_id: product.id, quantity: 1, options: [] }];
-    });
-    const changeQty = (id, delta) => setCart(items => items.map(item => item.product_id === id ? { ...item, quantity: item.quantity + delta } : item).filter(item => item.quantity > 0));
+        });
+    };
+    const changeQty = (id, delta) => {
+        if (busy || submissionUncertain) return;
+        setIdempotencyKey('');
+        setCart(items => items.map(item => item.product_id === id ? { ...item, quantity: item.quantity + delta } : item).filter(item => item.quantity > 0));
+    };
 
     async function submitOrder() {
         if (!cart.length || busy) return;
         setBusy(true);
         setNotice('');
+        let response = null;
+        const requestKey = idempotencyKey || crypto.randomUUID();
+        setIdempotencyKey(requestKey);
         try {
-            const idempotencyKey = crypto.randomUUID();
-            const response = await fetch('/menu/' + encodeURIComponent(token) + '/orders', {
+            response = await fetch('/menu/' + encodeURIComponent(token) + '/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                    'Idempotency-Key': idempotencyKey,
+                    'Idempotency-Key': requestKey,
                 },
                 body: JSON.stringify({
                     channel: 'dine_in',
@@ -57,9 +69,18 @@ function CustomerMenu() {
             const payload = await response.json();
             if (!response.ok) throw new Error(payload.message || 'ثبت سفارش انجام نشد.');
             setCart([]);
+            setIdempotencyKey('');
+            setSubmissionUncertain(false);
             setNotice('سفارش ' + payload.data.number + ' ثبت شد. مبلغ: ' + money(payload.data.total));
         } catch (error) {
-            setNotice(error.message || 'ارتباط با سرور برقرار نشد.');
+            if (response && response.status < 500) {
+                setIdempotencyKey('');
+                setSubmissionUncertain(false);
+            } else {
+                // Keep the same request key and freeze edits so a retry cannot create a duplicate order.
+                setSubmissionUncertain(true);
+            }
+            setNotice(error.message || 'ارتباط با سرور برقرار نشد؛ برای جلوگیری از سفارش تکراری، با همان محتوا دوباره تلاش کن.');
         } finally {
             setBusy(false);
         }
@@ -77,7 +98,7 @@ function CustomerMenu() {
                     <h3>{product.name}</h3>
                     {product.description && <p>{product.description}</p>}
                     <strong>{money(product.base_price)}</strong>
-                    <button onClick={() => add(product)}>افزودن به سفارش ＋</button>
+                    <button disabled={busy || submissionUncertain} onClick={() => add(product)}>افزودن به سفارش ＋</button>
                 </div>
             </article>)}</div>
         </section>)}
@@ -88,14 +109,15 @@ function CustomerMenu() {
                 return <div className="cart-row" key={item.product_id}>
                     <span>{product?.name || 'محصول'} × {item.quantity.toLocaleString('fa-IR')}</span>
                     <div>
-                        <button onClick={() => changeQty(item.product_id, -1)} aria-label="کم کردن">−</button>
-                        <button onClick={() => changeQty(item.product_id, 1)} aria-label="زیاد کردن">＋</button>
+                        <button disabled={busy || submissionUncertain} onClick={() => changeQty(item.product_id, -1)} aria-label="کم کردن">−</button>
+                        <button disabled={busy || submissionUncertain} onClick={() => changeQty(item.product_id, 1)} aria-label="زیاد کردن">＋</button>
                     </div>
                 </div>;
             })}
-            <label>نام (اختیاری)<input value={customerName} onChange={e => setCustomerName(e.target.value)} maxLength={150} /></label>
-            <label>شماره تماس (اختیاری)<input value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} maxLength={30} inputMode="tel" /></label>
-            <button className="customer-submit" disabled={!cart.length || busy} onClick={submitOrder}>{busy ? 'در حال ثبت…' : 'ثبت سفارش'}</button>
+            <label>نام (اختیاری)<input disabled={busy || submissionUncertain} value={customerName} onChange={e => setCustomerName(e.target.value)} maxLength={150} /></label>
+            <label>شماره تماس (اختیاری)<input disabled={busy || submissionUncertain} value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} maxLength={30} inputMode="tel" /></label>
+            <button className="customer-submit" disabled={!cart.length || busy} onClick={submitOrder}>{busy ? 'در حال ثبت…' : submissionUncertain ? 'ارسال مجدد با همان شناسه' : 'ثبت سفارش'}</button>
+            {submissionUncertain && <p role="alert">پاسخ قطعی از سرور نرسید. محتوای سفارش قفل شده است؛ ارسال مجدد از همان شناسه استفاده می‌کند تا سفارش تکراری ساخته نشود.</p>}
             <p>مبلغ نهایی در سمت سرور محاسبه می‌شود. پرداخت از این صفحه انجام نمی‌شود.</p>
         </section>
     </div>;
