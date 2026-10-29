@@ -623,6 +623,12 @@ export default function DashboardApp() {
         return ()=>{alive=false;};
     },[page,reloadVersion]);
 
+    useEffect(() => {
+        if (!['overview', 'orders', 'cashier'].includes(page)) return undefined;
+        const timer = window.setInterval(() => setReloadVersion(version => version + 1), 15000);
+        return () => window.clearInterval(timer);
+    }, [page]);
+
     const navigate=next=>{setPage(next);setMobileNav(false);setError('');};
     const notify=message=>{setNotice(message);window.setTimeout(()=>setNotice(''),5000);};
     const refresh=()=>setReloadVersion(v=>v+1);
