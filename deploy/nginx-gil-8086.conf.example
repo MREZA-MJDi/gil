@@ -1,0 +1,37 @@
+server {
+    listen 8086;
+    listen [::]:8086;
+
+    server_name 45.149.79.155 _;
+    root /var/www/gil/public;
+    index index.php;
+    charset utf-8;
+    client_max_body_size 10m;
+
+    access_log /var/log/nginx/gil-8086.access.log;
+    error_log  /var/log/nginx/gil-8086.error.log;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico {
+        access_log off;
+        log_not_found off;
+    }
+
+    location = /robots.txt {
+        access_log off;
+        log_not_found off;
+    }
+
+    # Confirm this socket exists with: ls -l /run/php/
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.5-fpm.sock;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
