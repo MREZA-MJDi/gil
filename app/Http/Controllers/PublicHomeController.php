@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProductStatus;
 use App\Models\Category;
-use App\Models\Product;
 use App\Models\RestaurantSetting;
 use Illuminate\Contracts\View\View;
 
