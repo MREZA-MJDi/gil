@@ -111,11 +111,18 @@ class ReservationController extends Controller
 
     public function transition(Request $request, Reservation $reservation, AuditLogger $audit): JsonResponse
     {
-        $data = $request->validate(['status' => ['required', Rule::enum(ReservationStatus::class)]]);
+        $data = $request->validate([
+            'status' => ['required', Rule::enum(ReservationStatus::class)],
+            'restaurant_table_id' => ['sometimes', 'nullable', 'integer', 'exists:restaurant_tables,id'],
+        ]);
+
         return DB::transaction(function () use ($data, $reservation, $audit, $request) {
             $locked = Reservation::query()->whereKey($reservation->id)->lockForUpdate()->firstOrFail();
             $from = $locked->status;
             $to = ReservationStatus::from($data['status']);
+            $tableId = array_key_exists('restaurant_table_id', $data)
+                ? ($data['restaurant_table_id'] === null ? null : (int) $data['restaurant_table_id'])
+                : $locked->restaurant_table_id;
 
             $allowed = match ($from) {
                 ReservationStatus::Pending => [ReservationStatus::Confirmed, ReservationStatus::Cancelled],
@@ -127,9 +134,49 @@ class ReservationController extends Controller
                 throw ValidationException::withMessages(['status' => 'تغییر وضعیت رزرو از این مرحله مجاز نیست.']);
             }
 
-            $locked->forceFill(['status' => $to])->save();
-            $audit->record('reservation.status_changed', $locked, ['status' => $from->value], ['status' => $to->value], null, $request->user()->id);
+            if ($to === ReservationStatus::Confirmed && $locked->source === 'public' && ! $tableId) {
+                throw ValidationException::withMessages(['restaurant_table_id' => 'برای تأیید درخواست مشتری ابتدا یک میز فعال تخصیص بده.']);
+            }
+
+            if ($tableId) {
+                $table = RestaurantTable::query()->whereKey($tableId)->lockForUpdate()->first();
+                if (! $table || ! $table->is_active) {
+                    throw ValidationException::withMessages(['restaurant_table_id' => 'میز انتخاب‌شده فعال نیست.']);
+                }
+
+                $startsAt = $locked->starts_at;
+                $endsAt = $locked->ends_at ?: $startsAt->copy()->addMinutes((int) $locked->duration_minutes);
+                $conflict = Reservation::query()
+                    ->where('id', '!=', $locked->id)
+                    ->where('restaurant_table_id', $table->id)
+                    ->whereIn('status', [
+                        ReservationStatus::Pending->value,
+                        ReservationStatus::Confirmed->value,
+                        ReservationStatus::Arrived->value,
+                    ])
+                    ->where('starts_at', '<', $endsAt)
+                    ->where('ends_at', '>', $startsAt)
+                    ->exists();
+
+                if ($conflict) {
+                    throw ValidationException::withMessages(['restaurant_table_id' => 'این میز در بازه زمانی رزرو دیگری قرار دارد.']);
+                }
+            }
+
+            $old = [
+                'status' => $from->value,
+                'restaurant_table_id' => $locked->restaurant_table_id,
+            ];
+            $locked->forceFill([
+                'status' => $to,
+                'restaurant_table_id' => $tableId,
+            ])->save();
+
+            $audit->record('reservation.status_changed', $locked, $old, [
+                'status' => $to->value,
+                'restaurant_table_id' => $locked->restaurant_table_id,
+            ], null, $request->user()->id);
+
             return response()->json(['data' => $locked->load('table:id,name')]);
         }, attempts: 3);
-    }
-}
+    }}
