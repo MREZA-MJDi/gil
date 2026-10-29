@@ -445,7 +445,6 @@ class RestaurantDemoSeeder extends Seeder
         ]);
         DB::table('order_status_history')->where('order_id', $order->id)->update([
             'created_at' => $demoTime,
-            'updated_at' => $demoTime,
         ]);
         DB::table('payments')->where('order_id', $order->id)->update([
             'paid_at' => $demoTime,
