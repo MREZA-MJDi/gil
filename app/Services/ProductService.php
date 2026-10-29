@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ProductStatus;
+use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\ProductOption;
 use Illuminate\Http\UploadedFile;
@@ -30,6 +31,17 @@ class ProductService
                 $attributes['sort_order'] = $attributes['sort_order'] ?? 0;
 
                 $product = Product::query()->create($attributes);
+                if ($product->stock_quantity !== null) {
+                    InventoryMovement::query()->create([
+                        'product_id' => $product->id,
+                        'user_id' => $userId,
+                        'movement_type' => 'opening',
+                        'quantity_delta' => (int) $product->stock_quantity,
+                        'stock_before' => 0,
+                        'stock_after' => (int) $product->stock_quantity,
+                        'reason' => 'ثبت موجودی اولیه هنگام ایجاد محصول',
+                    ]);
+                }
                 if ($optionsProvided) $this->syncOptions($product, $options);
 
                 $this->audit->record('product.created', $product, [], [
@@ -53,7 +65,14 @@ class ProductService
         try {
             $product = DB::transaction(function () use ($productId, $data, $newPath, &$oldPath, $userId) {
                 $product = Product::query()->whereKey($productId)->lockForUpdate()->firstOrFail();
-                $oldValues = $product->only(['name', 'category_id', 'base_price', 'status', 'sort_order', 'stock_quantity', 'low_stock_threshold']);
+                $oldStock = $product->stock_quantity;
+                $stockWasProvided = array_key_exists('stock_quantity', $data);
+                if ($stockWasProvided && $oldStock !== null && $data['stock_quantity'] === null) {
+                    throw ValidationException::withMessages([
+                        'stock_quantity' => 'رهگیری موجودی برای محصولی که گردش موجودی دارد قابل خاموش‌کردن نیست؛ موجودی را با اصلاح انبار مدیریت کنید.',
+                    ]);
+                }
+                $oldValues = $product->only(['name', 'category_id', 'base_price', 'description', 'ingredients', 'allergens', 'dietary_tags', 'calories', 'preparation_time_minutes', 'status', 'sort_order', 'stock_quantity', 'low_stock_threshold']);
                 $optionsProvided = array_key_exists('options', $data);
                 $options = $data['options'] ?? [];
                 unset($data['options']);
@@ -65,12 +84,31 @@ class ProductService
 
                 // Only explicitly submitted fields are changed; omitted status/stock/options stay intact.
                 $product->fill($data)->save();
+                if ($stockWasProvided && $product->stock_quantity !== null) {
+                    $before = $oldStock === null ? 0 : (int) $oldStock;
+                    $after = (int) $product->stock_quantity;
+                    if ($before !== $after) {
+                        InventoryMovement::query()->create([
+                            'product_id' => $product->id,
+                            'user_id' => $userId,
+                            'movement_type' => $oldStock === null ? 'opening' : 'stocktake',
+                            'quantity_delta' => $after - $before,
+                            'stock_before' => $before,
+                            'stock_after' => $after,
+                            'reason' => $oldStock === null ? 'فعال‌سازی رهگیری و ثبت موجودی اولیه' : 'اصلاح شمارش موجودی از مشخصات محصول',
+                        ]);
+                    }
+                }
                 if ($optionsProvided) $this->syncOptions($product, $options);
 
                 $this->audit->record('product.updated', $product, $oldValues, [
                     'name' => $product->name, 'category_id' => $product->category_id,
-                    'base_price' => $product->base_price, 'status' => $product->status->value,
-                    'sort_order' => $product->sort_order, 'stock_quantity' => $product->stock_quantity,
+                    'base_price' => $product->base_price, 'description' => $product->description,
+                    'ingredients' => $product->ingredients, 'allergens' => $product->allergens,
+                    'dietary_tags' => $product->dietary_tags, 'calories' => $product->calories,
+                    'preparation_time_minutes' => $product->preparation_time_minutes,
+                    'status' => $product->status->value, 'sort_order' => $product->sort_order,
+                    'stock_quantity' => $product->stock_quantity,
                 ], null, $userId);
 
                 return $product->load(['category', 'options']);

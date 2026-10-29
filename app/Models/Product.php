@@ -13,7 +13,7 @@ class Product extends Model
     protected $appends = ['image_url'];
 
     protected $fillable = [
-        'category_id', 'name', 'description', 'image_path', 'base_price', 'unit',
+        'category_id', 'name', 'description', 'ingredients', 'allergens', 'dietary_tags', 'calories', 'preparation_time_minutes', 'image_path', 'base_price', 'unit',
         'status', 'sort_order', 'stock_quantity', 'low_stock_threshold',
     ];
 
@@ -25,6 +25,10 @@ class Product extends Model
             'sort_order' => 'integer',
             'stock_quantity' => 'integer',
             'low_stock_threshold' => 'integer',
+            'allergens' => 'array',
+            'dietary_tags' => 'array',
+            'calories' => 'integer',
+            'preparation_time_minutes' => 'integer',
         ];
     }
 
@@ -36,6 +40,16 @@ class Product extends Model
     public function options(): HasMany
     {
         return $this->hasMany(ProductOption::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function inventoryMovements(): HasMany
+    {
+        return $this->hasMany(InventoryMovement::class);
     }
 
     public function scopeOnMenu(Builder $query): Builder

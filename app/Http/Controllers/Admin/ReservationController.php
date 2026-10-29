@@ -29,6 +29,9 @@ class ReservationController extends Controller
 
     public function store(Request $request, AuditLogger $audit): JsonResponse
     {
+        $request->merge([
+            'idempotency_key' => trim((string) $request->header('Idempotency-Key', $request->input('idempotency_key'))),
+        ]);
         $data = $request->validate([
             'restaurant_table_id' => ['nullable','integer','exists:restaurant_tables,id'],
             'customer_name' => ['required','string','max:150'],
@@ -38,13 +41,32 @@ class ReservationController extends Controller
             'starts_at' => ['required','date','after:now'],
             'duration_minutes' => ['sometimes','integer','min:30','max:360'],
             'notes' => ['nullable','string','max:1000'],
+            'idempotency_key' => ['required','string','min:16','max:64','regex:/^[A-Za-z0-9._:-]+$/'],
         ]);
 
         $startsAt = Carbon::parse($data['starts_at']);
         $duration = (int) ($data['duration_minutes'] ?? 90);
         $endsAt = $startsAt->copy()->addMinutes($duration);
+        $idempotencyHash = hash('sha256', json_encode([
+            'restaurant_table_id' => isset($data['restaurant_table_id']) ? (int) $data['restaurant_table_id'] : null,
+            'customer_name' => trim($data['customer_name']),
+            'phone' => trim($data['phone']),
+            'email' => isset($data['email']) ? trim($data['email']) : null,
+            'party_size' => (int) $data['party_size'],
+            'starts_at' => $startsAt->toIso8601String(),
+            'duration_minutes' => $duration,
+            'notes' => isset($data['notes']) ? trim($data['notes']) : null,
+        ], JSON_THROW_ON_ERROR));
 
-        $reservation = DB::transaction(function () use ($data, $startsAt, $endsAt, $duration, $request, $audit) {
+        $reservation = DB::transaction(function () use ($data, $startsAt, $endsAt, $duration, $idempotencyHash, $request, $audit) {
+            $existing = Reservation::query()->where('idempotency_key', $data['idempotency_key'])->first();
+            if ($existing) {
+                if (! hash_equals((string) $existing->idempotency_hash, $idempotencyHash)) {
+                    throw ValidationException::withMessages(['idempotency_key' => 'این کلید قبلاً برای رزرو دیگری استفاده شده است.']);
+                }
+                return $existing->load('table:id,name');
+            }
+
             $table = null;
             if (! empty($data['restaurant_table_id'])) {
                 $table = RestaurantTable::query()->whereKey($data['restaurant_table_id'])->lockForUpdate()->first();
@@ -71,6 +93,7 @@ class ReservationController extends Controller
                 'status' => ReservationStatus::Pending,
                 'source' => 'staff',
                 'created_by' => $request->user()->id,
+                'idempotency_hash' => $idempotencyHash,
             ]);
             $audit->record('reservation.created', $reservation, [], [
                 'reference' => $reservation->reference,
@@ -83,7 +106,7 @@ class ReservationController extends Controller
             return $reservation->load('table:id,name');
         }, attempts: 3);
 
-        return response()->json(['data' => $reservation], 201);
+        return response()->json(['data' => $reservation], $reservation->wasRecentlyCreated ? 201 : 200);
     }
 
     public function transition(Request $request, Reservation $reservation, AuditLogger $audit): JsonResponse

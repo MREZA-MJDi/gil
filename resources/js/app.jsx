@@ -1,6 +1,5 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import './dashboard/dashboard.css';
 import DashboardApp from './dashboard/DashboardApp.jsx';
 
 const dashboardMount = document.getElementById('app');
