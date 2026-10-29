@@ -67,7 +67,18 @@ class RestaurantOperationsTest extends TestCase
             'base_price' => 95000,
         ])->save();
 
-        $this->get('/')->assertOk()->assertSee('روزت را')->assertSee('لاته تست');
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('روزت را')
+            ->assertSee('لاته تست')
+            ->assertSee('ورود کارکنان');
+
+        $this->actingAs($this->admin)->get('/')
+            ->assertOk()
+            ->assertSee('پنل مدیریت')
+            ->assertSee('خروج')
+            ->assertSee(route('admin.logout'), false);
+
         $this->get('/menu')->assertOk()->assertSee('منو برای')->assertSee('لاته تست');
     }
 
