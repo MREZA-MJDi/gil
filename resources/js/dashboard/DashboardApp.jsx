@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { api, idempotencyKey, unwrapData, unwrapList } from './api.js';
+import QRCode from 'qrcode';
 
 const navItems = [
     ['overview', 'نمای کلی', '◫'],
@@ -233,7 +234,7 @@ function InventoryPage({ products, movements, onRefresh, onAdjust }) {
     </div>;
 }
 
-function TablesPage({ tables, onCreate, onUpdate, onRotate, onRefresh }) {
+function TablesPage({ tables, onCreate, onUpdate, onRotate, onShowQr, onRefresh }) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     return <div className="page-content">
@@ -250,12 +251,13 @@ function TablesPage({ tables, onCreate, onUpdate, onRotate, onRefresh }) {
             <div className="op-table-head"><div className="op-table-symbol">⌂</div><div><h3>{table.name}</h3><small>{table.description || 'میز سالن'}</small></div><Pill value={table.is_active ? 'active' : 'inactive'} dictionary={{active:'فعال',inactive:'غیرفعال'}} /></div>
             <div className="op-table-state"><b>{numberFa(table.open_orders_count || 0)}</b><span>سفارش باز</span></div>
             <a className="op-link" href={table.menu_url} target="_blank" rel="noreferrer">{table.menu_url}</a>
-            <div className="op-actions"><Button onClick={() => { navigator.clipboard?.writeText(new URL(table.menu_url, window.location.origin).href).then(() => alert('لینک QR کپی شد.')).catch(() => window.prompt('لینک را کپی کن:', new URL(table.menu_url, window.location.origin).href)); }}>کپی لینک QR</Button>
+            <div className="op-actions"><Button kind="primary" onClick={() => onShowQr(table)}>نمایش / چاپ QR</Button>
+                <Button onClick={() => { const url = new URL(table.menu_url, window.location.origin).href; if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(() => alert('لینک منوی این میز کپی شد.')).catch(() => window.prompt('لینک منو را کپی کن:', url)); else window.prompt('لینک منو را کپی کن:', url); }}>کپی لینک منو</Button>
                 <Button onClick={() => onRotate(table)}>تعویض QR</Button>
                 <Button kind={table.is_active ? 'danger' : 'primary'} onClick={() => onUpdate(table, { is_active: !table.is_active })}>{table.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}</Button>
             </div>
         </article>)}</div> : <Empty>هنوز میزی ایجاد نشده است.</Empty>}
-        <p className="op-note">این بخش لینک امن هر میز را آماده می‌کند. برای برچسب QR قابل اسکن، باید تصویر QR با پکیج تولید QR ساخته شود؛ لینک به‌تنهایی تصویر بارکد نیست.</p>
+        <p className="op-note">برای هر میز، تصویر QR از لینک اختصاصی آن ساخته می‌شود. تلفن مشتری باید به نشانی‌ای دسترسی داشته باشد که در APP_URL تنظیم کرده‌ای؛ آدرس localhost فقط روی خود سرور/کامپیوتر صندوق باز می‌شود.</p>
     </div>;
 }
 
@@ -683,7 +685,7 @@ export default function DashboardApp() {
         if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} />;
         if(page==='menu') return <MenuPage products={data.products} categories={data.categories} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onCategory={()=>setModal({type:'category'})} />;
         if(page==='inventory') return <InventoryPage products={data.products} movements={data.movements} onRefresh={refresh} onAdjust={product=>setModal({type:'inventory',product})} />;
-        if(page==='tables') return <TablesPage tables={data.tables} onRefresh={refresh} onCreate={createTable} onUpdate={updateTable} onRotate={rotateTable} />;
+        if(page==='tables') return <TablesPage tables={data.tables} onRefresh={refresh} onCreate={createTable} onUpdate={updateTable} onRotate={rotateTable} onShowQr={table=>setModal({type:'qr',table})} />;
         if(page==='reservations') return <ReservationsPage reservations={data.reservations} tables={data.tables} onRefresh={refresh} onCreate={createReservation} onTransition={transitionReservation} />;
         if(page==='customers') return <CustomersPage feedback={data.feedback} onRefresh={refresh} onRespond={respondFeedback} />;
         if(page==='expenses') return <ExpensesPage expenses={data.expenses} onRefresh={refresh} onCreate={createExpense} />;
@@ -716,6 +718,7 @@ export default function DashboardApp() {
         {modal?.type==='refund'&&<RefundModal payment={modal.payment} orderId={modal.orderId} onClose={()=>setModal(null)} onSubmit={submitRefund}/>}
         {modal?.type==='details'&&<OrderDetailsModal order={detailOrder} onClose={()=>setModal(null)} onPrint={printDocument} onRefund={showRefund}/>}
         {modal?.type==='inventory'&&<InventoryModal product={modal.product} products={data.products||[]} onClose={()=>setModal(null)} onSubmit={adjustInventory}/>}
+        {modal?.type==='qr'&&<QRCodeModal table={modal.table} onClose={()=>setModal(null)} />}
         {notice&&<div className="toast-message" role="status"><span>✓</span>{notice}<button type="button" aria-label="بستن پیام" onClick={()=>setNotice('')}>×</button></div>}
         {busy&&<div className="op-busy" aria-live="polite"><span className="op-spinner"/>در حال ثبت عملیات…</div>}
     </div>;
@@ -738,5 +741,69 @@ function InventoryModal({ product, products, onClose, onSubmit }) {
             <Field label="علت (اجباری)"><input value={reason} onChange={e=>setReason(e.target.value)} minLength="3" maxLength="500" required placeholder="مثلاً رسید خرید شماره ۱۲ یا ضایعات" /></Field>
             <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ثبت گردش انبار</Button></div>
         </form>}
+    </Modal>;
+}
+
+
+
+function QRCodeModal({ table, onClose }) {
+    const [qrDataUrl, setQrDataUrl] = useState('');
+    const [qrError, setQrError] = useState('');
+    const [linkCopied, setLinkCopied] = useState(false);
+    const absoluteUrl = useMemo(() => {
+        try { return new URL(table.menu_url, window.location.origin).href; }
+        catch { return table.menu_url; }
+    }, [table.menu_url]);
+
+    useEffect(() => {
+        let active = true;
+        setQrDataUrl('');
+        setQrError('');
+        QRCode.toDataURL(absoluteUrl, {
+            errorCorrectionLevel: 'H',
+            margin: 2,
+            width: 420,
+            color: { dark: '#211f1c', light: '#ffffff' },
+        }).then(url => { if (active) setQrDataUrl(url); })
+          .catch(() => { if (active) setQrError('ساخت تصویر QR ناموفق شد. لینک مستقیم منو همچنان قابل استفاده است.'); });
+        return () => { active = false; };
+    }, [absoluteUrl]);
+
+    const copyLink = async () => {
+        try {
+            await navigator.clipboard.writeText(absoluteUrl);
+            setLinkCopied(true);
+        } catch {
+            window.prompt('لینک منوی این میز را کپی کن:', absoluteUrl);
+        }
+    };
+
+    const printLabel = () => {
+        if (!qrDataUrl) return;
+        const popup = window.open('', '_blank', 'width=520,height=650');
+        if (!popup) {
+            setQrError('مرورگر پنجره چاپ را مسدود کرده است؛ Pop-up را برای این سایت فعال کن.');
+            return;
+        }
+        const safeName = escapeHtml(table.name);
+        popup.document.open();
+        popup.document.write('<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>QR '+safeName+'</title><style>@page{size:A6 portrait;margin:8mm}body{font-family:Tahoma,Arial,sans-serif;text-align:center;color:#211f1c}h1{font-size:22px;margin:8px 0}p{font-size:12px;overflow-wrap:anywhere;line-height:1.8}img{width:90mm;height:90mm;max-width:100%;object-fit:contain}footer{margin-top:12px;font-size:11px}</style></head><body><h1>منوی دیجیتال</h1><h2>'+safeName+'</h2><img alt="QR منو" src="'+qrDataUrl+'"><p>دوربین گوشی را روی QR بگیر و منو را باز کن.</p><p>'+escapeHtml(absoluteUrl)+'</p><footer>با انتخاب شما، سفارش ثبت می‌شود.</footer><script>window.addEventListener("load",function(){window.focus();setTimeout(function(){window.print();},250);});</script></body></html>');
+        popup.document.close();
+    };
+
+    return <Modal title={'QR منوی '+table.name} eyebrow="TABLE QR / PRINT LABEL" onClose={onClose}>
+        <div className="op-qr-preview">
+            {qrDataUrl ? <img src={qrDataUrl} alt={'QR منوی '+table.name} /> : <div className="op-qr-placeholder">{qrError || 'در حال ساخت QR…'}</div>}
+            <h3>{table.name}</h3>
+            <p>با اسکن این کد، مشتری منوی همین میز را می‌بیند و سفارش به همین میز متصل می‌شود.</p>
+        </div>
+        <Field label="لینک منوی اختصاصی"><input readOnly value={absoluteUrl} onFocus={e=>e.target.select()} /></Field>
+        {qrError && <Errors message={qrError} />}
+        <div className="op-form-actions op-qr-actions">
+            <Button kind="primary" disabled={!qrDataUrl} onClick={printLabel}>چاپ برچسب QR</Button>
+            <Button onClick={copyLink}>{linkCopied?'لینک کپی شد':'کپی لینک منو'}</Button>
+            <Button onClick={()=>window.open(absoluteUrl,'_blank','noopener,noreferrer')}>پیش‌نمایش منو</Button>
+        </div>
+        <p className="op-note">اگر QR روی گوشی باز نشد، APP_URL باید دامنه یا IP قابل دسترسی از شبکه مشتریان باشد؛ localhost یا آدرس داخلی سرور از گوشی باز نمی‌شود.</p>
     </Modal>;
 }
