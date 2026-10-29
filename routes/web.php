@@ -62,6 +62,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:access-admin'])
         Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
         Route::get('/tables', [RestaurantTableController::class, 'index'])->name('tables.index');
         Route::post('/tables', [RestaurantTableController::class, 'store'])->name('tables.store');
+        Route::patch('/tables/{table}', [RestaurantTableController::class, 'update'])->name('tables.update');
         Route::post('/tables/{table}/rotate-qr', [RestaurantTableController::class, 'rotateToken'])->name('tables.rotate-qr');
 
         Route::get('/cash-shift', [CashShiftController::class, 'current'])->name('cash-shift.current');
