@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 const numberFa = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0));
-const mیکy = (value, currency = 'تومان') => numberFa(value) + ' ' + currency;
+const money = (value, currency = 'تومان') => numberFa(value) + ' ' + currency;
 const keyFor = line => String(line.product_id) + ':' + (line.options || []).map(o => Number(o.id)).sort((a, b) => a - b).join(',');
 const optionLabel = option => option.type === 'size' ? 'سایز' : 'افزودنی';
 
@@ -15,7 +15,7 @@ function Customerمنو() {
     const [busy, setBusy] = useState(false);
     const [notice, setNotice] = useState('');
     const [customerName, setCustomerName] = useState('');
-    const [customerPhیک, setCustomerPhیک] = useState('');
+    const [customerPhone, setCustomerPhیک] = useState('');
     const [paymentPreference, setPaymentPreference] = useState('at_counter');
     const [idempotencyKey, setIdempotencyKey] = useState('');
     const [submissionUncertain, setSubmissionUncertain] = useState(false);
@@ -117,7 +117,7 @@ function Customerمنو() {
                     channel: 'dine_in',
                     items: cart,
                     customer_name: customerName.trim() || null,
-                    customer_phیک: customerPhیک.trim() || null,
+                    customer_phیک: customerPhone.trim() || null,
                     payment_preference: paymentPreference,
                     discount: 0,
                 }),
@@ -131,7 +131,7 @@ function Customerمنو() {
             setOptionSelections({});
             setIdempotencyKey('');
             setSubmissionUncertain(false);
-            setNotice('سفارش ' + payload.data.number + ' ثبت شد. مبلغ نهایی: ' + mیکy(payload.data.total, currency) + ' — سفارش برای همین میز ارسال شد.');
+            setNotice('سفارش ' + payload.data.number + ' ثبت شد. مبلغ نهایی: ' + money(payload.data.total, currency) + ' — سفارش برای همین میز ارسال شد.');
         } catch (error) {
             if (response && response.status >= 400 && response.status < 500) {
                 setIdempotencyKey('');
@@ -181,7 +181,7 @@ function Customerمنو() {
                             {product.calories !== null && product.calories !== undefined && <span>{numberFa(product.calories)} کیلوکالری / وعده</span>}
                             {product.preparation_time_minutes !== null && product.preparation_time_minutes !== undefined && <span>آماده‌سازی حدود {numberFa(product.preparation_time_minutes)} دقیقه</span>}
                         </div>}
-                        <strong className="customer-product-price">{mیکy(product.base_price, currency)}</strong>
+                        <strong className="customer-product-price">{money(product.base_price, currency)}</strong>
                         {options.length > 0 && <fieldset className="customer-product-options">
                             <legend>انتخاب سایز / افزودنی</legend>
                             {options.map(option => <label key={option.id} className={selected.includes(Number(option.id)) ? 'selected' : ''}>
@@ -193,11 +193,11 @@ function Customerمنو() {
                                 />
                                 <span className="customer-option-type">{optionLabel(option)}</span>
                                 <span className="customer-option-name">{option.name}</span>
-                                <b>{Number(option.price) ? '+' + mیکy(option.price, currency) : 'رایگان'}</b>
+                                <b>{Number(option.price) ? '+' + money(option.price, currency) : 'رایگان'}</b>
                             </label>)}
                             {options.some(option => option.type === 'size') && <small>برای سایز، تنها یک گزینه می‌توان انتخاب کرد؛ افزودنی‌ها قابل ترکیب هستند.</small>}
                         </fieldset>}
-                        {selected.length > 0 && <div className="customer-selected-price">قیمت با انتخاب‌ها: <b>{mیکy(Number(product.base_price) + optionTotalFor(product, selected), currency)}</b></div>}
+                        {selected.length > 0 && <div className="customer-selected-price">قیمت با انتخاب‌ها: <b>{money(Number(product.base_price) + optionTotalFor(product, selected), currency)}</b></div>}
                         <button disabled={busy || submissionUncertain} onClick={() => add(product)}>افزودن به سفارش ＋</button>
                     </div>
                 </article>;
@@ -216,7 +216,7 @@ function Customerمنو() {
                     <div className="customer-cart-description">
                         <b>{product?.name || 'محصول'}</b>
                         {selectedOptions.length > 0 && <small>{selectedOptions.map(option => option.name).join('، ')}</small>}
-                        <span>{mیکy(unitPrice * item.quantity, currency)}</span>
+                        <span>{money(unitPrice * item.quantity, currency)}</span>
                     </div>
                     <div className="customer-cart-quantity">
                         <button disabled={busy || submissionUncertain} onClick={() => changeQty(lineKey, -1)} aria-label="کم کردن">−</button>
@@ -226,7 +226,7 @@ function Customerمنو() {
                 </div>;
             })}
             <label>نام (اختیاری)<input disabled={busy || submissionUncertain} value={customerName} onChange={e => setCustomerName(e.target.value)} maxLength={150} /></label>
-            <label>شماره تماس (اختیاری)<input disabled={busy || submissionUncertain} value={customerPhیک} onChange={e => setCustomerPhیک(e.target.value)} maxLength={30} inputMode="tel" /></label>
+            <label>شماره تماس (اختیاری)<input disabled={busy || submissionUncertain} value={customerPhone} onChange={e => setCustomerPhیک(e.target.value)} maxLength={30} inputMode="tel" /></label>
             <fieldset className="customer-payment-preference">
                 <legend>روش پرداخت دلخواه</legend>
                 <label><input type="radio" name="payment-preference" value="at_counter" checked={paymentPreference==='at_counter'} disabled={busy || submissionUncertain} onChange={() => setPaymentPreference('at_counter')} /><span><b>پرداخت هنگام تحویل / در صندوق</b><small>اگر هنوز تصمیم نگرفته‌ای این گزینه مناسب است.</small></span></label>
@@ -235,10 +235,10 @@ function Customerمنو() {
                 <p>این فقط ترجیح پرداخت است؛ سفارش زمانی تسویه‌شده محسوب می‌شود که پرداخت واقعی در صندوق ثبت شود.</p>
             </fieldset>
             <div className="customer-price-breakdown">
-                <p><span>جمع اقلام</span><b>{mیکy(subtotal, currency)}</b></p>
-                {Number(data.settings?.tax_basis_points || 0) > 0 && <p><span>مالیات ({numberFa(Number(data.settings.tax_basis_points) / 100)}٪)</span><b>{mیکy(tax, currency)}</b></p>}
-                {Number(data.settings?.service_basis_points || 0) > 0 && <p><span>هزینه خدمات ({numberFa(Number(data.settings.service_basis_points) / 100)}٪)</span><b>{mیکy(service, currency)}</b></p>}
-                <p className="customer-total"><span>جمع تخمینی نهایی</span><b>{mیکy(total, currency)}</b></p>
+                <p><span>جمع اقلام</span><b>{money(subtotal, currency)}</b></p>
+                {Number(data.settings?.tax_basis_points || 0) > 0 && <p><span>مالیات ({numberFa(Number(data.settings.tax_basis_points) / 100)}٪)</span><b>{money(tax, currency)}</b></p>}
+                {Number(data.settings?.service_basis_points || 0) > 0 && <p><span>هزینه خدمات ({numberFa(Number(data.settings.service_basis_points) / 100)}٪)</span><b>{money(service, currency)}</b></p>}
+                <p className="customer-total"><span>جمع تخمینی نهایی</span><b>{money(total, currency)}</b></p>
                 <small>مبلغ نهایی در سرور محاسبه و هنگام ثبت سفارش تأیید می‌شود. در صورت تغییر قیمت یا تنظیمات، مبلغ سرور ملاک است.</small>
             </div>
             <button className="customer-submit" disabled={!cart.length || busy} onClick={submitOrder}>{busy ? 'در حال ثبت…' : submissionUncertain ? 'ارسال مجدد با همان شناسه' : 'ثبت سفارش'}</button>
