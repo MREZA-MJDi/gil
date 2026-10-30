@@ -157,6 +157,5 @@
         </section>
     </main>
     @include('public.partials.footer')
-    @include('public.partials.traveling-cup')
 </body>
 </html>
