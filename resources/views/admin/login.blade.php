@@ -36,7 +36,7 @@
         <aside class="auth-brand-panel" aria-label="خانه گیلاسی">
             <div class="auth-brand-top"><span class="auth-mark">خ</span><span><b>خانه گیلاسی</b><small>کافه و رستوران</small></span></div>
             <div class="auth-brand-copy">
-                <span class="auth-brand-kicker">OPERATIONS, IN ONE PLACE</span>
+                <span class="auth-brand-kicker">تمام عملیات، در یک پنل</span>
                 <h2>از سفارش تا صندوق، همه‌چیز مرتب.</h2>
                 <p>یک پنل یکپارچه برای پیگیری سفارش‌ها، پرداخت‌ها، موجودی، رزروها و گزارش‌های روزانه.</p>
             </div>
