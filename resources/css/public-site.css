@@ -798,3 +798,24 @@
     .public-site.gsap-ready .gil-experience,
     .public-site.gsap-ready .gil-final-cta{opacity:1!important;transform:none!important;transition:none!important}
 }
+
+
+/* Brand image and QR menu cover. */
+.public-site .site-brand-mark{overflow:hidden}
+.public-site .site-brand-mark img{display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit}
+.public-site .site-brand-footer .site-brand-mark img{width:38px;height:38px;object-fit:contain}
+.customer-menu-cover{
+    position:relative;isolation:isolate;overflow:hidden;min-height:190px;
+    display:flex;flex-direction:column;justify-content:flex-end;gap:7px;
+    margin:0 0 20px;padding:25px clamp(18px,4vw,34px);
+    border:1px solid #ffffff22;border-radius:16px;
+    background:
+      linear-gradient(90deg,rgba(17,16,19,.92),rgba(17,16,19,.42)),
+      radial-gradient(ellipse at 80% 20%,#74505c,#242126 72%);
+    background-size:cover;background-position:center;
+    box-shadow:0 18px 50px #0004;
+}
+.customer-menu-cover>span{position:relative;z-index:1;color:#f2a6ae;font-size:10px;font-weight:800}
+.customer-menu-cover h2{position:relative;z-index:1;margin:0;color:#fff;font-size:clamp(23px,4vw,34px);line-height:1.4;letter-spacing:-.04em}
+.customer-menu-cover p{position:relative;z-index:1;margin:0;color:#e5dce4;font-size:11px;line-height:1.8}
+@media(max-width:560px){.customer-menu-cover{min-height:150px;margin-bottom:14px;padding:18px;border-radius:12px}}
