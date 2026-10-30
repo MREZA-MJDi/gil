@@ -17,7 +17,9 @@ class PublicHomeController extends Controller
             ->take(6)
             ->values();
 
-        return view('public.home', compact('settings', 'categories', 'featuredProducts'));
+        $media = $this->media();
+
+        return view('public.home', compact('settings', 'categories', 'featuredProducts', 'media'));
     }
 
     public function menu(): View
@@ -25,7 +27,20 @@ class PublicHomeController extends Controller
         $settings = RestaurantSetting::current();
         $categories = $this->categories();
 
-        return view('public.menu', compact('settings', 'categories'));
+        $media = $this->media();
+
+        return view('public.menu', compact('settings', 'categories', 'media'));
+    }
+
+
+    private function media(): array
+    {
+        return SiteMediaAsset::query()->get()->mapWithKeys(fn (SiteMediaAsset $asset) => [
+            $asset->slot => [
+                'url' => $asset->url,
+                'alt_text' => $asset->alt_text,
+            ],
+        ])->all();
     }
 
     private function categories(?int $productLimit = null)
