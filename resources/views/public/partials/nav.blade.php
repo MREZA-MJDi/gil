@@ -4,7 +4,7 @@
         @if (request()->routeIs('home'))
             <span class="site-brand-copy"><b><span>KHANE</span> <em>GILASI</em></b><small>CAFÉ &amp; RESTAURANT</small></span>
         @else
-            <span class="site-brand-copy"><b>{{ $settings->name }}</b><small>COFFEE · KITCHEN · MOMENTS</small></span>
+            <span class="site-brand-copy"><b>{{ $settings->name }}</b><small>قهوه · آشپزخانه · لحظه‌های خوب</small></span>
         @endif
     </a>
     <button class="site-menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-label="باز کردن منو"><span></span><span></span></button>
@@ -28,5 +28,5 @@
             <a class="site-nav-auth site-nav-login" href="{{ route('admin.login') }}">ورود کارکنان <span>↗</span></a>
         @endauth
     </nav>
-    <a class="site-header-cta" href="{{ route('public.menu') }}">@if (request()->routeIs('home')) Order Now @else منو را ببین @endif <span>↗</span></a>
+    <a class="site-header-cta" href="{{ route('public.menu') }}">@if (request()->routeIs('home')) سفارش آنلاین @else منو را ببین @endif <span>↗</span></a>
 </header>
