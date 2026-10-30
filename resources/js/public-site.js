@@ -1,4 +1,5 @@
 import { gsap } from 'gsap';
+import { jalaliDateTimeToGregorian } from './date-utils.js';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -37,6 +38,35 @@ gsap.registerPlugin(ScrollTrigger);
     });
 
     nav?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
+
+    // Convert the Jalali reservation entry to the Gregorian timestamp expected by Laravel.
+    site.querySelectorAll('[data-jalali-booking]').forEach(form => {
+        const jalaliInput = form.querySelector('[name="starts_at_jalali"]');
+        const gregorianInput = form.querySelector('[name="starts_at"]');
+        if (!jalaliInput || !gregorianInput) return;
+
+        const validateJalali = () => {
+            const value = jalaliInput.value.trim();
+            if (!value) {
+                jalaliInput.setCustomValidity('تاریخ و ساعت شمسی را وارد کن؛ نمونه: ۱۴۰۵/۰۸/۰۷ ۱۸:۳۰');
+                return false;
+            }
+            const converted = jalaliDateTimeToGregorian(value);
+            jalaliInput.setCustomValidity(converted ? '' : 'تاریخ و ساعت معتبر وارد کن؛ قالب: سال/ماه/روز ساعت:دقیقه');
+            return Boolean(converted);
+        };
+
+        jalaliInput.addEventListener('input', validateJalali);
+        form.addEventListener('submit', event => {
+            if (!validateJalali()) {
+                event.preventDefault();
+                jalaliInput.reportValidity();
+                return;
+            }
+            gregorianInput.value = jalaliDateTimeToGregorian(jalaliInput.value.trim()).replace('T', ' ') + ':00';
+        });
+    });
+
 
     let scrollQueued = false;
     const updateHeader = () => {
