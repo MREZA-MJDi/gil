@@ -9,7 +9,7 @@
     <title>منوی دیجیتال {{ $settings->name }} · میز {{ $table->name }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.jsx'])
 </head>
-<body class="customer-menu-page">
+<body class="public-site customer-menu-page">
     <main class="customer-menu-wrap">
         <header class="customer-menu-header">
             <div><span class="eyebrow">منوی دیجیتال خانه گیلاسی</span><h1>{{ $settings->name }}</h1><p>انتخاب، افزودن به سبد و ثبت سفارش از میز شما</p></div>
@@ -17,5 +17,6 @@
         </header>
         <div id="customer-menu-app" data-token="{{ request()->route('token') }}"></div>
     </main>
+    @include('public.partials.traveling-cup')
 </body>
 </html>
