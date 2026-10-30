@@ -150,6 +150,11 @@ function Customerمنو() {
     if (!data) return <div className="customer-menu-content"><div className="menu-notice" role="alert">{notice}</div><button onClick={() => window.location.reload()}>تلاش دوباره</button></div>;
 
     return <div className="customer-menu-content">
+        <section className="customer-menu-cover" style={data.settings?.menu_cover_url ? { backgroundImage: "linear-gradient(90deg,rgba(15,14,16,.88),rgba(15,14,16,.25)),url(" + data.settings.menu_cover_url + ")" } : undefined}>
+            <span>خانه گیلاسی · منوی دیجیتال</span>
+            <h2>انتخابت را با خیال راحت انجام بده.</h2>
+            <p>منوی همین میز، با قیمت‌های به‌روز و امکان ثبت سفارش مستقیم.</p>
+        </section>
         {notice && <div className="menu-notice" role="status">{notice}</div>}
         <section className="customer-menu-welcome">
             <div className="customer-menu-brand">
@@ -157,7 +162,7 @@ function Customerمنو() {
                 <div><span>منوی دیجیتال</span><h2>{data.settings?.name || 'منوی کافه'}</h2><p>میز {data.table?.name || 'شما'} · سفارش مستقیم از میز</p></div>
             </div>
             <div className="customer-menu-contact">
-                {data.settings?.phیک && <span>تلفن: {data.settings.phیک}</span>}
+                {data.settings?.phone && <span>تلفن: {data.settings.phone}</span>}
                 {data.settings?.address && <span>{data.settings.address}</span>}
             </div>
         </section>
