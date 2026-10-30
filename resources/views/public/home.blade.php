@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#171614">
-    <meta name="description" content="{{ $settings->name }}؛ منوی واقعی کافه، سفارش مستقیم، QR میز و هماهنگی رزرو و مراسم.">
+    <meta name="description" content="{{ $settings->name }}؛ منوی واقعی کافه، سفارش مستقیم، منوی دیجیتال میز و هماهنگی رزرو و مراسم.">
     <title>{{ $settings->name }} | قهوه، غذا، تجربه</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -19,7 +19,7 @@
             <img class="gil-hero-photo" src="{{ $media['hero']['url'] ?? 'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=2400&q=90' }}" alt="چیدمان غذاهای تازه برای یک وعده کامل" fetchpriority="high">
             <div class="gil-hero-shade"></div>
             <div class="gil-hero-center">
-                <span class="gil-eyebrow"><i></i> KHANE GILASI · CAFÉ & RESTAURANT</span>
+                <span class="gil-eyebrow"><i></i> خانه گیلاسی · کافه و رستوران</span>
                 <p class="gil-welcome-script">طعم خوب، لحظهٔ خوب</p>
                 <h1>{{ $settings->name }}</h1>
                 <div class="gil-hero-signature"><span>قهوه</span><i></i><span>آشپزخانه</span><i></i><span>لحظه‌های خوب</span></div>
@@ -109,10 +109,10 @@
             <div class="gil-experience-images">
                 <div class="gil-experience-image gil-experience-image-main"><img src="{{ $media['story_main']['url'] ?? 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=88' }}" alt="غذای تازه در فضای رستوران" loading="lazy"><span>از آشپزخانه تا میز تو</span></div>
                 <div class="gil-experience-image gil-experience-image-small"><img src="{{ $media['story_small']['url'] ?? 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=85' }}" alt="قهوه در حال آماده‌شدن" loading="lazy"><span>قهوه با دقت</span></div>
-                <div class="gil-image-note"><b>THE DETAILS MATTER</b><span>ترکیب خوب، انتخاب روشن، سرو باحوصله.</span></div>
+                <div class="gil-image-note"><b>جزئیات مهم‌اند</b><span>ترکیب خوب، انتخاب روشن، سرو باحوصله.</span></div>
             </div>
             <div class="gil-experience-copy">
-                <span class="gil-eyebrow">NOT JUST A STOP</span>
+                <span class="gil-eyebrow">بیشتر از یک توقف کوتاه</span>
                 <h2>اینجا برای<br>یک تجربهٔ <em>کامل</em><br>آمده‌ای.</h2>
                 <p>برای یک قهوهٔ کوتاه، یک وعدهٔ کامل، قرار دوستانه یا برنامه‌ریزی یک مناسبت. منو و مسیر سفارش ساده است تا تمرکزت روی لحظه‌ای باشد که برایش آمده‌ای.</p>
                 <div class="gil-experience-points">
@@ -131,7 +131,7 @@
             </div>
             <div class="gil-ordering-grid">
                 <a href="{{ route('public.menu') }}" class="gil-order-card gil-order-card-dark"><span class="gil-order-icon">↗</span><span class="gil-order-number">۰۱ / سفارش مستقیم</span><h3>سفارش از سایت</h3><p>منو را ببین، گزینه‌ها را انتخاب کن و سفارش بیرون‌بر را ثبت کن. مبلغ نهایی سمت سرور محاسبه می‌شود.</p><b>رفتن به منو <span>↗</span></b></a>
-                <article class="gil-order-card gil-order-card-light"><span class="gil-order-icon">▦</span><span class="gil-order-number">۰۲ / سفارش با QR میز</span><h3>سفارش از میز</h3><p>QR همان میز را اسکن کن؛ سفارش به همان میز وصل می‌شود تا کارکنان بتوانند آن را پیگیری کنند.</p><span class="gil-order-card-note">درخواست پرداخت از این صفحه به معنی پرداخت موفق نیست.</span></article>
+                <article class="gil-order-card gil-order-card-light"><span class="gil-order-icon">▦</span><span class="gil-order-number">۰۲ / سفارش با QR میز</span><h3>سفارش از میز</h3><p>کد میز را اسکن کن؛ سفارش به همان میز وصل می‌شود تا کارکنان بتوانند آن را پیگیری کنند.</p><span class="gil-order-card-note">درخواست پرداخت از این صفحه به معنی پرداخت موفق نیست.</span></article>
                 <a href="{{ route('public.reservations.create') }}" class="gil-order-card gil-order-card-olive"><span class="gil-order-icon">◷</span><span class="gil-order-number">۰۳ / رزرو و مناسبت‌ها</span><h3>رزرو و جشن‌ها</h3><p>برای میز، جشن تولد، مشاوره، دورهمی خصوصی یا کترینگ درخواست بفرست؛ تیم کافه جزئیات را تأیید می‌کند.</p><b>ثبت درخواست رزرو <span>↗</span></b></a>
             </div>
         </section>
