@@ -15,14 +15,14 @@ function Customerمنو() {
     const [busy, setBusy] = useState(false);
     const [notice, setNotice] = useState('');
     const [customerName, setCustomerName] = useState('');
-    const [customerPhone, setCustomerPhیک] = useState('');
+    const [customerPhone, setCustomerPhone] = useState('');
     const [paymentPreference, setPaymentPreference] = useState('at_counter');
     const [idempotencyKey, setIdempotencyKey] = useState('');
     const [submissionUncertain, setSubmissionUncertain] = useState(false);
 
     useEffect(() => {
         let active = true;
-        fetch('/menu/' + encodeURICompیکnt(token) + '/data', {
+        fetch('/menu/' + encodeURIComponent(token) + '/data', {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin',
         })
@@ -104,7 +104,7 @@ function Customerمنو() {
             : 'qr' + Date.now().toString(36) + Math.random().toString(36).slice(2, 24));
         setIdempotencyKey(requestKey);
         try {
-            response = await fetch('/menu/' + encodeURICompیکnt(token) + '/orders', {
+            response = await fetch('/menu/' + encodeURIComponent(token) + '/orders', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
@@ -117,7 +117,7 @@ function Customerمنو() {
                     channel: 'dine_in',
                     items: cart,
                     customer_name: customerName.trim() || null,
-                    customer_phیک: customerPhone.trim() || null,
+                    customer_phone: customerPhone.trim() || null,
                     payment_preference: paymentPreference,
                     discount: 0,
                 }),
@@ -226,7 +226,7 @@ function Customerمنو() {
                 </div>;
             })}
             <label>نام (اختیاری)<input disabled={busy || submissionUncertain} value={customerName} onChange={e => setCustomerName(e.target.value)} maxLength={150} /></label>
-            <label>شماره تماس (اختیاری)<input disabled={busy || submissionUncertain} value={customerPhone} onChange={e => setCustomerPhیک(e.target.value)} maxLength={30} inputMode="tel" /></label>
+            <label>شماره تماس (اختیاری)<input disabled={busy || submissionUncertain} value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} maxLength={30} inputMode="tel" /></label>
             <fieldset className="customer-payment-preference">
                 <legend>روش پرداخت دلخواه</legend>
                 <label><input type="radio" name="payment-preference" value="at_counter" checked={paymentPreference==='at_counter'} disabled={busy || submissionUncertain} onChange={() => setPaymentPreference('at_counter')} /><span><b>پرداخت هنگام تحویل / در صندوق</b><small>اگر هنوز تصمیم نگرفته‌ای این گزینه مناسب است.</small></span></label>
