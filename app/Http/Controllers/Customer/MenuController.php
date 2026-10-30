@@ -8,6 +8,7 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Models\Category;
 use App\Models\RestaurantSetting;
 use App\Models\RestaurantTable;
+use App\Models\SiteMediaAsset;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\URL;
