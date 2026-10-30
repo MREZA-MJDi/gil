@@ -13,7 +13,11 @@ const slots = [
     { key: 'gallery_3', title: 'گالری — مناسبت‌ها', detail: 'تصویر چیدمان میز، تولد و دورهمی‌ها.', ratio: 'حداقل ۱۲۰۰×۹۰۰', aspect: 'wide' },
 ];
 
-export default function MediaManager() {
+const ActionButton = ({ children, kind = 'secondary', disabled = false, onClick }) => (
+    <button type="button" className={'media-action-button is-' + kind} disabled={disabled} onClick={onClick}>{children}</button>
+);
+
+export default function MediaManager({ onNavigate }) {
     const [assets, setAssets] = useState([]);
     const [files, setFiles] = useState({});
     const [busy, setBusy] = useState('');
@@ -82,14 +86,15 @@ export default function MediaManager() {
     };
 
     return <div className="page-content media-manager">
-        <PageHeader title="رسانه و تصاویر سایت" subtitle="تصاویر صفحه خانه، منو، ورود و گالری را از همین‌جا مدیریت کن. عکس محصول هم از بخش «منو و محصولات» قابل بارگذاری است." />
+        <header className="media-page-header">
+            <span className="media-page-eyebrow">کتابخانه بصری خانه گیلاسی</span>
+            <h1>رسانه و تصاویر سایت</h1>
+            <p>تصاویر صفحه خانه، منو، ورود و گالری را از همین‌جا مدیریت کن. عکس هر محصول هم از بخش «منو و محصولات» قابل بارگذاری است.</p>
+        </header>
         <div className="media-manager-intro">
             <span className="media-manager-intro-icon">✦</span>
-            <div>
-                <b>کتابخانه تصویر خانه گیلاسی</b>
-                <p>فایل‌ها به‌صورت امن در فضای عمومی تصاویر سایت ذخیره می‌شوند. با بارگذاری تصویر جدید، فقط همان جایگاه عوض می‌شود و اطلاعات سفارش‌ها و محصولات دست‌نخورده می‌ماند.</p>
-            </div>
-            <Button onClick={() => setVersion(v => v + 1)} disabled={busy !== ''}>↻ بازخوانی</Button>
+            <div><b>کتابخانه تصویر خانه گیلاسی</b><p>فایل‌ها در فضای عمومی تصاویر سایت ذخیره می‌شوند. با بارگذاری تصویر جدید، فقط همان جایگاه عوض می‌شود و اطلاعات سفارش‌ها و محصولات دست‌نخورده می‌ماند.</p></div>
+            <ActionButton disabled={busy !== ''} onClick={() => setVersion(v => v + 1)}>↻ بازخوانی</ActionButton>
         </div>
         {error && <div className="media-manager-message is-error" role="alert">{error}</div>}
         {notice && <div className="media-manager-message is-success" role="status">{notice}</div>}
@@ -107,14 +112,11 @@ export default function MediaManager() {
                     <div className="media-asset-body">
                         <div className="media-asset-heading"><div><h3>{slot.title}</h3><p>{slot.detail}</p></div><code>{slot.key}</code></div>
                         <div className="media-asset-guidance">پیشنهاد اندازه: {slot.ratio} · JPG / PNG / WebP · حداکثر ۸ مگابایت</div>
-                        <label className="media-file-picker">
-                            <span>انتخاب تصویر از کامپیوتر</span>
-                            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setFiles(previous => ({ ...previous, [slot.key]: e.target.files?.[0] || null }))} />
-                        </label>
+                        <label className="media-file-picker"><span>انتخاب تصویر از کامپیوتر</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setFiles(previous => ({ ...previous, [slot.key]: e.target.files?.[0] || null }))} /></label>
                         {file && <div className="media-selected-file"><span>{file.name}</span><b>{(file.size / 1024 / 1024).toFixed(2)} MB</b></div>}
                         <div className="media-asset-actions">
-                            <Button kind="primary" disabled={!file || busy !== ''} onClick={() => upload(slot.key)}>{busy === slot.key ? 'در حال بارگذاری…' : asset ? 'جایگزینی تصویر' : 'بارگذاری تصویر'}</Button>
-                            {asset && <Button kind="danger" disabled={busy !== ''} onClick={() => remove(asset)}>حذف تصویر</Button>}
+                            <ActionButton kind="primary" disabled={!file || busy !== ''} onClick={() => upload(slot.key)}>{busy === slot.key ? 'در حال بارگذاری…' : asset ? 'جایگزینی تصویر' : 'بارگذاری تصویر'}</ActionButton>
+                            {asset && <ActionButton kind="danger" disabled={busy !== ''} onClick={() => remove(asset)}>حذف تصویر</ActionButton>}
                         </div>
                         {asset?.updated_at && <small className="media-asset-updated">آخرین تغییر: {new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(asset.updated_at))}</small>}
                     </div>
@@ -122,8 +124,8 @@ export default function MediaManager() {
             })}
         </div>
         <section className="media-product-note">
-            <div><b>تصاویر محصولات و دسته‌بندی‌ها</b><p>برای عکس هر غذا یا نوشیدنی، از مسیر «منو و محصولات ← ویرایش محصول» استفاده کن. تصویر دسته‌بندی از اولین محصول فعال همان دسته گرفته می‌شود.</p></div>
-            <Button onClick={() => window.dispatchEvent(new CustomEvent('gilasi:navigate', { detail: 'menu' }))}>رفتن به منو و محصولات</Button>
+            <div><b>تصاویر محصولات و دسته‌بندی‌ها</b><p>برای عکس هر غذا یا نوشیدنی، وارد «منو و محصولات ← ویرایش محصول» شو. تصویر دسته‌بندی از اولین محصول فعال همان دسته گرفته می‌شود.</p></div>
+            <ActionButton onClick={() => onNavigate?.('menu')}>رفتن به منو و محصولات</ActionButton>
         </section>
     </div>;
 }
