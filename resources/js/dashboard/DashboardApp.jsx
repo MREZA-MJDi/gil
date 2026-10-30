@@ -376,7 +376,16 @@ function ReservationsPage({ reservations, tables, onCreate, onTransition, onRefr
             </form>
         </section>
         <section className="panel orders-panel"><div className="panel-heading"><div><h2>رزروها</h2><p>وضعیت هر رزرو با قواعد گردش کار تغییر می‌کند.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
-            {reservations?.length ? <TableWrap><thead><tr><th>شناسه</th><th>نوع درخواست</th><th>مشتری</th><th>میز</th><th>زمان</th><th>نفرات</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>{reservations.map(r => <tr key={r.id}><td className="mono">{r.reference}<small className="op-subtext">{r.source==='website'?'ثبت از سایت':'ثبت توسط کارکنان'}</small></td><td><b>{reservationPurposeLabel[r.purpose] || 'رزرو میز'}</b>{r.occasion_name&&<small className="op-subtext">{r.occasion_name}</small>}</td><td>{r.customer_name}<small className="op-subtext">{r.phone}</small></td><td>{r.table?.name || 'تخصیص‌نیافته'}</td><td>{dateTime(r.starts_at)}</td><td>{numberFa(r.party_size)}</td><td><Pill value={r.status} dictionary={reservationStatusLabel} /></td><td><div className="op-reservation-actions">
+            {reservations?.length ? <TableWrap><thead><tr><th>شناسه</th><th>نوع درخواست</th><th>مشتری</th><th>میز</th><th>زمان</th><th>نفرات</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>{reservations.map(r => <tr key={r.id}><td className="mono">{r.reference}<small className="op-subtext">{r.source === 'website' ? 'ثبت از سایت' : r.source === 'qr' ? 'ثبت با QR' : 'ثبت توسط کارکنان'}</small></td><td><b>{reservationPurposeLabel[r.purpose] || 'رزرو میز'}</b>{r.occasion_name && <small className="op-subtext">{r.occasion_name}</small>}</td><td>{r.customer_name}<small className="op-subtext">{r.phone}</small></td><td>{r.table?.name || 'تخصیص‌نیافته'}</td><td>{dateTime(r.starts_at)}</td><td>{numberFa(r.party_size)}</td><td><Pill value={r.status} dictionary={reservationStatusLabel} /></td><td><div className="op-reservation-actions">
+                <select aria-label={'میز رزرو ' + r.reference}
+                    value={Object.prototype.hasOwnProperty.call(selectedTables, r.id) ? selectedTables[r.id] : (r.restaurant_table_id ? String(r.restaurant_table_id) : '')}
+                    onChange={e => setSelectedTables(v => ({...v, [r.id]: e.target.value}))}>
+                    <option value="">بدون تخصیص</option>
+                    {(tables || []).filter(t => t.is_active).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+                <div className="op-actions">{reservationNext(r.status).map(s => <Button key={s} kind={s === 'cancelled' ? 'danger' : 'secondary'}
+                    onClick={() => { const choice = Object.prototype.hasOwnProperty.call(selectedTables, r.id) ? selectedTables[r.id] : (r.restaurant_table_id ? String(r.restaurant_table_id) : ''); onTransition(r, s, choice ? Number(choice) : null); }}>{reservationStatusLabel[s]}</Button>)}</div>
+            </div></td></tr>)}</tbody></TableWrap> : <Empty>رزروی ثبت نشده است.</Empty>}
         </section>
     </div>;
 }
