@@ -3,6 +3,10 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\PublicHomeController;
 use App\Http\Controllers\PublicReservationController;
+use App\Http\Controllers\PublicOrderController;
+use App\Http\Controllers\Integrations\OrderWebhookController;
+use App\Http\Controllers\Admin\RecipesController;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\CashShiftController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExpenseController;
@@ -30,7 +34,7 @@ Route::post('/online-orders', [PublicOrderController::class, 'store'])->middlewa
 Route::post('/api/integrations/orders/{provider}', [OrderWebhookController::class, 'store'])
     ->whereIn('provider', ['snappfood', 'partner'])
     ->middleware('throttle:60,1')
-    ->withoutMiddleware([\\Illuminate\\Foundation\\Http\\Middleware\\ValidateCsrfToken::class])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
     ->name('integrations.orders.store');
 
 Route::middleware('guest')->group(function () {
