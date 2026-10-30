@@ -202,6 +202,7 @@ gsap.registerPlugin(ScrollTrigger);
         const x = clamp(event.clientX, 18, window.innerWidth - 18) - width / 2;
         const y = clamp(event.clientY, 18, window.innerHeight - 18) - height / 2;
         const rotation = clamp((Number(event.movementX) || 0) * .12, -8, 8);
+        current = { x: x + width / 2, y: y + height / 2, rotation };
         gsap.to(cup, {
             x, y, rotation,
             duration: event.pointerType === 'touch' ? .2 : .48,
