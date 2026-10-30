@@ -819,3 +819,37 @@
 .customer-menu-cover h2{position:relative;z-index:1;margin:0;color:#fff;font-size:clamp(23px,4vw,34px);line-height:1.4;letter-spacing:-.04em}
 .customer-menu-cover p{position:relative;z-index:1;margin:0;color:#e5dce4;font-size:11px;line-height:1.8}
 @media(max-width:560px){.customer-menu-cover{min-height:150px;margin-bottom:14px;padding:18px;border-radius:12px}}
+
+
+/* Persian reservation flow uses the same graphite and rose visual language. */
+.public-booking-v2{background:#171719;color:#f7f2f5}
+.public-booking-v2 .reserve-page{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:clamp(28px,5vw,72px);align-items:start;padding-block:80px 95px}
+.public-booking-v2 .reserve-intro h1{color:#fff;font-size:clamp(36px,5vw,58px);line-height:1.35;letter-spacing:-.05em}
+.public-booking-v2 .reserve-intro h1 em{color:#f2a6ae;font-style:normal}
+.public-booking-v2 .reserve-intro>p{color:#c1b5c0;font-size:12px;line-height:2.2}
+.public-booking-v2 .reserve-assurance{background:#242126;border-color:#403943;color:#fff}
+.public-booking-v2 .reserve-assurance small{color:#b9aeb8}
+.public-booking-v2 .reserve-side-photo{border-radius:15px;overflow:hidden;border:1px solid #ffffff20;box-shadow:0 20px 55px #0007}
+.public-booking-v2 .reserve-side-photo img{width:100%;height:270px;object-fit:cover;filter:brightness(.86)}
+.public-booking-v2 .reserve-side-photo span{background:#242126;color:#f2a6ae}
+.public-booking-v2 .reserve-form-panel{background:#232126;border:1px solid #3c3540;border-radius:17px;box-shadow:0 24px 65px #0004}
+.public-booking-v2 .reserve-form-heading{border-bottom-color:#433b46}
+.public-booking-v2 .reserve-form-heading h2{color:#fff}
+.public-booking-v2 .reserve-form-heading p{color:#b8adb7}
+.public-booking-v2 .reserve-form label{color:#f0eaf0}
+.public-booking-v2 .reserve-form input,.public-booking-v2 .reserve-form select,.public-booking-v2 .reserve-form textarea{
+    background:#302c33;border-color:#514854;color:#fff;border-radius:9px;
+}
+.public-booking-v2 .reserve-form input::placeholder,.public-booking-v2 .reserve-form textarea::placeholder{color:#a59aa5}
+.public-booking-v2 .reserve-form input:focus,.public-booking-v2 .reserve-form select:focus,.public-booking-v2 .reserve-form textarea:focus{border-color:#f2a6ae;box-shadow:0 0 0 3px #f2a6ae20}
+.public-booking-v2 .reserve-form small{color:#a79ca7}
+.public-booking-v2 .reserve-form-footer{border-top-color:#463e48}
+.public-booking-v2 .reserve-form-footer p{color:#b8adb7}
+.public-booking-v2 .reserve-form .gil-button-dark{background:#f2a6ae;color:#24191e;border-color:#f2a6ae}
+.public-booking-v2 .reserve-form .gil-button-dark:hover{background:#ffc0c6}
+.public-booking-v2 .reserve-errors{background:#422b2d;border-color:#82444c;color:#ffd6d7}
+.public-booking-v2 .reserve-success{background:#1c1a1e;color:#fff}
+.public-booking-v2 .reserve-success h1{color:#fff}
+.public-booking-v2 .reserve-success p{color:#c9bec8}
+@media(max-width:900px){.public-booking-v2 .reserve-page{grid-template-columns:1fr;padding-block:55px}.public-booking-v2 .reserve-intro{max-width:720px}}
+@media(max-width:560px){.public-booking-v2 .reserve-page{gap:25px;padding:38px 15px 65px}.public-booking-v2 .reserve-intro h1{font-size:34px}.public-booking-v2 .reserve-side-photo img{height:190px}.public-booking-v2 .reserve-form-panel{border-radius:13px}}
