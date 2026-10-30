@@ -6,7 +6,7 @@ const money = (value, currency = 'تومان') => numberFa(value) + ' ' + curren
 const keyFor = line => String(line.product_id) + ':' + (line.options || []).map(o => Number(o.id)).sort((a, b) => a - b).join(',');
 const optionLabel = option => option.type === 'size' ? 'سایز' : 'افزودنی';
 
-function Customerمنو() {
+function CustomerMenu() {
     const root = document.getElementById('customer-menu-app');
     const token = root?.dataset.token;
     const [data, setData] = useState(null);
@@ -254,4 +254,4 @@ function Customerمنو() {
 }
 
 const mount = document.getElementById('customer-menu-app');
-if (mount) createRoot(mount).render(<Customerمنو />);
+if (mount) createRoot(mount).render(<CustomerMenu />);
