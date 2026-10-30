@@ -12,7 +12,7 @@
     <nav class="site-nav" data-site-nav aria-label="ناوبری اصلی">
         <a href="{{ route('home') }}#home">خانه</a>
         <a href="{{ route('public.menu') }}">منو و خوراکی‌ها</a>
-        <a href="{{ route('home') }}#reservation">رزرو میز</a>
+        <a href="{{ route('public.reservations.create') }}">رزرو میز</a>
         <a href="{{ route('home') }}#story">داستان ما</a>
         <a href="{{ route('home') }}#visit">تماس و مسیر</a>
         @auth
