@@ -33,7 +33,7 @@ class PublicReservationTest extends TestCase
             ->assertJsonPath('data.party_size', 3);
 
         $this->assertDatabaseHas('reservations', [
-            'source' => 'public',
+            'source' => 'website',
             'phone' => '+989121234567',
             'customer_name' => 'مشتری آزمایشی',
         ]);
