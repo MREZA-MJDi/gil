@@ -328,3 +328,68 @@ body{background:var(--canvas);color:var(--ink)}
     .overview-kpi-card,.overview-alert-card,.overview-quick-link,.overview-summary-card,.overview-cash-status,.overview-order-row,.overview-row-arrow,.overview-kpi-arrow{transition:none!important}
     .overview-skeleton-card>i,.overview-skeleton-card>div>span,.overview-skeleton-card>div>b,.overview-skeleton-card>div>small,.overview-skeleton-line{animation:none!important}
 }
+
+
+/* Site media library — upload and preview every public visual asset from the admin. */
+.media-manager{max-width:1500px}
+.media-page-header{margin:0 0 22px}
+.media-page-eyebrow{display:block;color:var(--accent);font-size:10px;font-weight:800;letter-spacing:.08em;margin-bottom:8px}
+.media-page-header h1{font-size:clamp(23px,3vw,31px);margin:0 0 7px;color:var(--ink);letter-spacing:-.04em}
+.media-page-header p{margin:0;color:var(--muted);font-size:12px;line-height:2;max-width:850px}
+.media-manager-intro{display:flex;align-items:center;gap:14px;padding:17px 18px;margin-bottom:20px;background:#fff;border:1px solid var(--line);border-radius:15px;box-shadow:0 8px 24px #28252106}
+.media-manager-intro-icon{flex:0 0 42px;width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#fff0f1;color:#c75d70;font-size:21px}
+.media-manager-intro>div{flex:1;min-width:0}
+.media-manager-intro b{display:block;font-size:13px;color:var(--ink)}
+.media-manager-intro p{margin:4px 0 0;font-size:10px;line-height:1.9;color:var(--muted)}
+.media-manager-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.media-asset-card{min-width:0;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:15px;box-shadow:0 8px 28px #28252107}
+.media-asset-preview{position:relative;display:grid;place-items:center;overflow:hidden;background:linear-gradient(135deg,#262329,#40313b);min-height:180px}
+.media-asset-preview.is-wide{aspect-ratio:16/7;min-height:150px}
+.media-asset-preview.is-square{aspect-ratio:16/7;min-height:150px}
+.media-asset-preview.is-portrait{aspect-ratio:16/7;min-height:150px}
+.media-asset-preview img{width:100%;height:100%;position:absolute;inset:0;object-fit:cover}
+.media-asset-preview.is-square img{object-fit:contain;background:#1c1b1e}
+.media-asset-empty{display:grid;justify-items:center;gap:5px;color:#fff;text-align:center;padding:24px}
+.media-asset-empty>span{width:34px;height:34px;display:grid;place-items:center;border:1px dashed #ffffff75;border-radius:50%;font-size:20px;color:#f3a5ae}
+.media-asset-empty b{font-size:11px}
+.media-asset-empty small{font-size:9px;color:#c9bac5}
+.media-asset-status{position:absolute;right:12px;top:12px;z-index:1;padding:5px 9px;border-radius:99px;font-size:9px;font-weight:800;backdrop-filter:blur(10px)}
+.media-asset-status.is-uploaded{background:#e6f4ea;color:#24623c}
+.media-asset-status.is-default{background:#ffffffdd;color:#655f68}
+.media-asset-body{padding:15px}
+.media-asset-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.media-asset-heading>div{min-width:0}
+.media-asset-heading h3{margin:0 0 4px;font-size:13px;color:var(--ink)}
+.media-asset-heading p{margin:0;color:var(--muted);font-size:10px;line-height:1.8}
+.media-asset-heading code{flex:0 0 auto;background:#f4f1f5;color:#786976;border-radius:6px;padding:4px 6px;font-size:8px;direction:ltr}
+.media-asset-guidance{margin:12px 0;color:#8a8189;font-size:9px;line-height:1.7}
+.media-file-picker{position:relative;display:flex;align-items:center;justify-content:center;min-height:39px;padding:7px 12px;border:1px dashed #cdbfc8;border-radius:9px;background:#fbf8fa;color:#66525d;font-size:10px;font-weight:800;cursor:pointer;transition:background .15s,border-color .15s}
+.media-file-picker:hover{background:#fff0f2;border-color:#dc9ba5}
+.media-file-picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.media-selected-file{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 9px;margin-top:8px;background:#f7f2f4;border-radius:7px;color:#675d66;font-size:9px}
+.media-selected-file span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.media-selected-file b{flex:0 0 auto;color:#bd6474;direction:ltr}
+.media-asset-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.media-action-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:35px;padding:0 13px;border:1px solid #ddd7df;border-radius:8px;background:#fff;color:#57505a;font:inherit;font-size:10px;font-weight:800;cursor:pointer;transition:transform .15s,background .15s,border-color .15s}
+.media-action-button:hover:not(:disabled){transform:translateY(-1px);border-color:#c69aa5;background:#fff8f9}
+.media-action-button:disabled{opacity:.45;cursor:not-allowed}
+.media-action-button.is-primary{background:#252127;border-color:#252127;color:#fff}
+.media-action-button.is-primary:hover:not(:disabled){background:#f2a6ae;border-color:#f2a6ae;color:#251a1e}
+.media-action-button.is-danger{border-color:#f0d4d7;background:#fff6f6;color:#a63f50}
+.media-asset-updated{display:block;margin-top:10px;color:#9c939c;font-size:9px}
+.media-manager-message{margin:12px 0;padding:11px 14px;border:1px solid;border-radius:9px;font-size:11px;line-height:1.8}
+.media-manager-message.is-error{background:#fff1f0;border-color:#ecc8c3;color:#983c32}
+.media-manager-message.is-success{background:#edf7ef;border-color:#c5dfca;color:#2e6840}
+.media-product-note{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.media-product-note b{display:block;color:var(--ink);font-size:12px}
+.media-product-note p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.9}
+@media(max-width:850px){.media-manager-grid{grid-template-columns:1fr}}
+@media(max-width:560px){
+    .media-manager-intro{align-items:flex-start;flex-wrap:wrap;padding:14px}
+    .media-manager-intro>div{flex-basis:calc(100% - 60px)}
+    .media-manager-intro>.media-action-button{margin-inline-start:auto}
+    .media-asset-preview.is-wide,.media-asset-preview.is-square,.media-asset-preview.is-portrait{aspect-ratio:16/8;min-height:130px}
+    .media-asset-heading{flex-direction:column}
+    .media-product-note{align-items:stretch;flex-direction:column}
+    .media-product-note .media-action-button{width:100%}
+}

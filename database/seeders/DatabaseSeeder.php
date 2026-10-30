@@ -17,5 +17,10 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             RestaurantFoundationSeeder::class,
         ]);
+
+        // Demo records are opt-in and only allowed in local development.
+        if (app()->environment('local') && filter_var(env('SEED_RESTAURANT_DEMO', false), FILTER_VALIDATE_BOOL)) {
+            $this->call(RestaurantDemoSeeder::class);
+        }
     }
 }

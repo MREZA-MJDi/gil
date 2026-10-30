@@ -3,6 +3,10 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\PublicHomeController;
 use App\Http\Controllers\PublicReservationController;
+use App\Http\Controllers\PublicOrderController;
+use App\Http\Controllers\Integrations\OrderWebhookController;
+use App\Http\Controllers\Admin\RecipesController;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\CashShiftController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExpenseController;
@@ -23,7 +27,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicHomeController::class, 'home'])->name('home');
 Route::get('/menu', [PublicHomeController::class, 'menu'])->name('public.menu');
-Route::post('/reservations', [PublicReservationController::class, 'store'])->middleware('throttle:5,1')->name('public.reservations.store');
+Route::get('/reserve', [PublicReservationController::class, 'create'])->name('public.reservations.create');
+Route::post('/reserve', [PublicReservationController::class, 'store'])->middleware('throttle:5,1')->name('public.reservations.store');
+Route::get('/reserve/received', [PublicReservationController::class, 'received'])->name('public.reservations.received');
+Route::post('/online-orders', [PublicOrderController::class, 'store'])->middleware('throttle:10,1')->name('public.orders.store');
+Route::post('/api/integrations/orders/{provider}', [OrderWebhookController::class, 'store'])
+    ->whereIn('provider', ['snappfood', 'partner'])
+    ->middleware('throttle:60,1')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+    ->name('integrations.orders.store');
 
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AuthController::class, 'create'])->name('admin.login');
@@ -55,6 +67,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:access-admin'])
         Route::post('/orders/{order}/print-log', [PrintController::class, 'log'])->name('orders.print-log');
 
         Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
+        Route::get('/recipes', [RecipesController::class, 'index'])->name('recipes.index');
+        Route::post('/ingredients', [RecipesController::class, 'storeIngredient'])->name('ingredients.store');
+        Route::patch('/ingredients/{ingredient}', [RecipesController::class, 'updateIngredient'])->name('ingredients.update');
+        Route::post('/ingredients/{ingredient}/movements', [RecipesController::class, 'adjustIngredient'])->name('ingredients.movements.store');
+        Route::put('/products/{product}/recipe', [RecipesController::class, 'saveRecipe'])->name('products.recipe.update');
+        Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+        Route::post('/media', [MediaController::class, 'store'])->name('media.store');
+        Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
         Route::get('/inventory/movements', [InventoryController::class, 'movements'])->name('inventory.movements');
         Route::post('/inventory/adjustments', [InventoryController::class, 'adjust'])->name('inventory.adjustments.store');

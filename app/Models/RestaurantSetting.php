@@ -26,7 +26,7 @@ class RestaurantSetting extends Model
     {
         // Uniqueness is guaranteed by restaurant_settings.singleton_key, not by cache.
         return static::query()->firstOrCreate(['singleton_key' => 'main'], [
-            'name' => 'خانه گیلاسی', 'currency_label' => 'تومان', 'paper_width' => 80,
+            'name' => config('restaurant.name', 'خانه گیلاسی'), 'currency_label' => config('restaurant.currency_label', 'تومان'), 'paper_width' => config('restaurant.paper_width', 80),
         ]);
     }
 }

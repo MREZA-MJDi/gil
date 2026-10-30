@@ -1,4 +1,5 @@
 import React from 'react';
+import './public-site.js';
 import { createRoot } from 'react-dom/client';
 import DashboardApp from './dashboard/DashboardApp.jsx';
 
