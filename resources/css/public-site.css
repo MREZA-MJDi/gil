@@ -800,3 +800,28 @@
 .public-home .site-brand-copy b em{color:#f2a9ad}
 .hero-bowl-image{transform:translateX(-50%) scale(1.14)}
 @media(max-width:560px){.hero-bowl-image{transform:translateX(-50%) scale(1.09)}}
+
+
+/* Local transparent food cutout upload slot: public/images/hero/hero-food.png */
+.public-home .dark-food-hero .hero-bowl-image{
+    width:min(720px,78vw);
+    height:min(720px,78vw);
+    object-fit:contain;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    background:transparent;
+    filter:drop-shadow(0 24px 32px rgba(0,0,0,.48)) saturate(1.06) contrast(1.04);
+}
+@media(max-width:840px){
+    .public-home .dark-food-hero .hero-bowl-image{
+        width:min(650px,84vw);
+        height:min(650px,84vw);
+    }
+}
+@media(max-width:560px){
+    .public-home .dark-food-hero .hero-bowl-image{
+        width:min(490px,99vw);
+        height:min(490px,99vw);
+    }
+}
