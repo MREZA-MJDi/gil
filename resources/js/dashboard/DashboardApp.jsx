@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { api, idempotencyKey, unwrapData, unwrapList } from './api.js';
 import QRCode from 'qrcode';
 import { JalaliDateTimePicker, MoneyInput, formatIranianMoney } from '../shared/iranian-ui.jsx';
+import MediaManager from './MediaManager.jsx';
 
 const navItems = [
     ['overview', 'نمای کلی', '◫'],
@@ -16,6 +17,7 @@ const navItems = [
     ['expenses', 'هزینه‌ها', '↗'],
     ['reports', 'گزارش‌ها', '▥'],
     ['settings', 'تنظیمات', '⚙'],
+    ['media', 'رسانه و تصاویر سایت', '▧'],
 ];
 
 const orderStatusLabel = {
@@ -860,6 +862,7 @@ export default function DashboardApp() {
         if(page==='expenses') return <ExpensesPage expenses={data.expenses} onRefresh={refresh} onCreate={createExpense} />;
         if(page==='reports') return <ReportsPage report={data.report} onRefresh={runReport} />;
         if(page==='settings') return <SettingsPage settings={data.settings} onRefresh={refresh} onSave={saveSettings} />;
+        if(page==='media') return <MediaManager onNavigate={navigate} />;
         return <Empty />;
     };
 
