@@ -757,3 +757,44 @@
 @media(prefers-reduced-motion:reduce){
     .public-site .gil-category-links>a,.public-site .gil-food-card,.public-site .customer-product{transition:none!important}
 }
+
+
+/* Shared GSAP takeaway-cup companion across the public journey. */
+.cup-companion{
+    position:fixed;left:0;top:0;width:clamp(58px,6vw,88px);z-index:70;
+    pointer-events:none;opacity:0;will-change:transform;
+    filter:drop-shadow(0 17px 18px rgba(0,0,0,.38));
+    transform:translate3d(-160px,-240px,0) rotate(0deg);
+}
+.public-site.cup-ready .cup-companion{opacity:1}
+.cup-companion-art{display:block;width:100%;height:auto;overflow:visible}
+.cup-companion-glow{
+    position:absolute;inset:15% -10% 5%;border-radius:50%;
+    background:#f2a6ae;filter:blur(24px);opacity:.18;z-index:-1;
+}
+.cup-companion-label{
+    position:absolute;bottom:-3px;left:50%;transform:translateX(-50%) rotate(-4deg);
+    white-space:nowrap;background:#2a242b;color:#f7d3d7;border:1px solid #f2a6ae55;
+    font:9px 'IRANYekan',Tahoma,sans-serif;padding:3px 8px;border-radius:999px;
+    box-shadow:0 4px 16px #0007;
+}
+.public-site.gsap-ready .gil-category-links>a,
+.public-site.gsap-ready .gil-food-card,
+.public-site.gsap-ready .gil-gallery-item,
+.public-site.gsap-ready .gil-order-card,
+.public-site.gsap-ready .gil-experience,
+.public-site.gsap-ready .gil-final-cta{transition:none}
+.public-site.gsap-ready .is-in-view{opacity:1!important;visibility:visible!important}
+@media(max-width:560px){
+    .cup-companion{width:58px;filter:drop-shadow(0 8px 12px #0007)}
+    .cup-companion-label{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){
+    .cup-companion{display:none!important}
+    .public-site.gsap-ready .gil-category-links>a,
+    .public-site.gsap-ready .gil-food-card,
+    .public-site.gsap-ready .gil-gallery-item,
+    .public-site.gsap-ready .gil-order-card,
+    .public-site.gsap-ready .gil-experience,
+    .public-site.gsap-ready .gil-final-cta{opacity:1!important;transform:none!important;transition:none!important}
+}
