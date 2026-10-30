@@ -1,0 +1,26 @@
+/*
+ * Local Iranian Yekan font.
+ * Upload the licensed font files to public/fonts/iranyekan/ using these exact names:
+ *   IRANYekanWebRegular.woff2
+ *   IRANYekanWebBold.woff2
+ */
+@font-face {
+    font-family: 'IRANYekan';
+    src: url('/fonts/iranyekan/IRANYekanWebRegular.woff2') format('woff2');
+    font-style: normal;
+    font-weight: 400 600;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'IRANYekan';
+    src: url('/fonts/iranyekan/IRANYekanWebBold.woff2') format('woff2');
+    font-style: normal;
+    font-weight: 700 900;
+    font-display: swap;
+}
+
+:root {
+    font-family: 'IRANYekan', Tahoma, sans-serif;
+    font-synthesis: weight;
+}
