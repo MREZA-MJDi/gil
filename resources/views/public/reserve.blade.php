@@ -11,7 +11,8 @@
 <body class="public-site public-booking-v2">
     <div class="site-topline"><span>قرار خوب، با برنامه‌ریزی بهتر شروع می‌شود.</span><span class="site-topline-right"><i></i> رزرو و مناسبت‌ها</span></div>
     @include('public.partials.nav')
-    <main class="reserve-page section-wrap">
+    @php($reservePhoto = \App\Models\SiteMediaAsset::urlFor('gallery_3', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1000&q=85'))
+    <main class="reserve-page section-wrap cup-stop" data-cup-stop>
         <div class="reserve-intro">
             <span class="gil-eyebrow">برای قرار بعدی‌ات</span>
             <h1>برای قرار بعدی‌ات<br><em>یک میز خوب کنار بگذار.</em></h1>
