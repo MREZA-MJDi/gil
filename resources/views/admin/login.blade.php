@@ -7,11 +7,12 @@
     <title>ورود مدیر | خانه گیلاسی</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="admin-auth-body">
+@php($loginBackground = \App\Models\SiteMediaAsset::urlFor('login_background', asset('images/login-background.webp')))
+<body class="admin-auth-body" style="--login-image: url('{{ $loginBackground }}')">
     <main class="auth-layout">
         <section class="auth-form-panel" aria-labelledby="login-title">
             <header class="auth-form-heading">
-                <span class="eyebrow">SECURE STAFF ACCESS</span>
+                <span class="eyebrow">دسترسی امن کارکنان</span>
                 <h1 id="login-title">خوش برگشتی</h1>
                 <p>برای مدیریت سفارش‌ها، صندوق و موجودی با شماره موبایلت وارد شو.</p>
             </header>
@@ -33,7 +34,7 @@
             <footer class="auth-legal">شماره موبایل شناسه ورود شماست. اطلاعات ورود را در اختیار دیگران قرار ندهید.</footer>
         </section>
         <aside class="auth-brand-panel" aria-label="خانه گیلاسی">
-            <div class="auth-brand-top"><span class="auth-mark">خ</span><span><b>خانه گیلاسی</b><small>CAFE / RESTAURANT</small></span></div>
+            <div class="auth-brand-top"><span class="auth-mark">خ</span><span><b>خانه گیلاسی</b><small>کافه و رستوران</small></span></div>
             <div class="auth-brand-copy">
                 <span class="auth-brand-kicker">OPERATIONS, IN ONE PLACE</span>
                 <h2>از سفارش تا صندوق، همه‌چیز مرتب.</h2>
