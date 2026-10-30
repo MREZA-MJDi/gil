@@ -12,3 +12,4 @@
         <div><a href="{{ route('public.menu') }}">منوی کافه</a><a href="{{ route('home') }}#visit">مسیریابی</a><a href="{{ route('admin.login') }}">ورود کارکنان</a></div>
     </div>
 </footer>
+@include('public.partials.traveling-cup')
