@@ -71,7 +71,7 @@ function Button({ children, kind = 'secondary', ...props }) {
 }
 function PageHeader({ title, subtitle, action, onAction }) {
     return <header className="page-header">
-        <div><div className="eyebrow">KHANE GILASI / OPERATIONS</div><h1>{title}</h1><p>{subtitle}</p></div>
+        <div><div className="eyebrow">خانه گیلاسی / عملیات</div><h1>{title}</h1><p>{subtitle}</p></div>
         {action && <div className="header-actions"><Button kind="primary" onClick={onAction}>{action}</Button></div>}
     </header>;
 }
@@ -501,7 +501,7 @@ function OrderModal({ products, tables, onClose, onSubmit }) {
         });
         setOptionIds([]);
     };
-    return <Modal title="ثبت سفارش" eyebrow="NEW ORDER / LIVE API" onClose={onClose} wide>
+    return <Modal title="ثبت سفارش" eyebrow="سفارش جدید / سامانه زنده" onClose={onClose} wide>
         <p className="op-note">قیمت نهایی و مالیات را سرور محاسبه می‌کند. این فرم فقط اقلام و تخفیف را می‌فرستد؛ پرداخت جدا ثبت می‌شود.</p>
         {activeProducts.length === 0 ? <Empty>برای ثبت سفارش، ابتدا یک محصول فعال بساز.</Empty> : <form className="op-form" onSubmit={e => { e.preventDefault(); onSubmit({ channel, restaurant_table_id: channel === 'dine_in' && tableId ? Number(tableId) : null, customer_name: customerName || null, customer_phone: customerPhone || null, customer_note: customerNote || null, discount: Number(discount || 0), idempotency_key: requestKey, items: cart.map(line => ({...line,options:line.options.map(id => ({id}))})) }); }}>
             <div className="op-form-grid">
@@ -539,7 +539,7 @@ function ProductModal({ product, categories, onClose, onSave }) {
     const removeOption=i=>set('options',form.options.filter((_,index)=>index!==i));
     const previewUrl=useMemo(()=>imageFile?URL.createObjectURL(imageFile):null,[imageFile]);
     useEffect(()=>()=>{if(previewUrl)URL.revokeObjectURL(previewUrl);},[previewUrl]);
-    return <Modal title={product ? 'ویرایش محصول' : 'محصول جدید'} eyebrow="PRODUCT CATALOG" onClose={onClose} wide>
+    return <Modal title={product ? 'ویرایش محصول' : 'محصول جدید'} eyebrow="فهرست محصولات" onClose={onClose} wide>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSave({ ...form,category_id:Number(form.category_id),base_price:Number(form.base_price),stock_quantity:form.stock_quantity===''?null:Number(form.stock_quantity),low_stock_threshold:form.low_stock_threshold===''?null:Number(form.low_stock_threshold),calories:form.calories===''?null:Number(form.calories),preparation_time_minutes:form.preparation_time_minutes===''?null:Number(form.preparation_time_minutes),allergens:form.allergens.split(/[،,]/).map(v=>v.trim()).filter(Boolean),dietary_tags:form.dietary_tags.split(/[،,]/).map(v=>v.trim()).filter(Boolean),options:form.options.map(o=>({...o,price:Number(o.price)})),image:imageFile||undefined },product?.id);}}>
             <div className="op-product-image-editor">
                 {(previewUrl||product?.image_url) ? <img src={previewUrl||product.image_url} alt="پیش‌نمایش تصویر محصول" /> : <span>☕</span>}
@@ -580,7 +580,7 @@ function CategoryModal({ category, onClose, onSave }) {
     const [name,setName]=useState(category?.name || '');
     const [sortOrder,setSortOrder]=useState(String(category?.sort_order ?? 0));
     const [isActive,setIsActive]=useState(category?.is_active !== false);
-    return <Modal title={category ? 'ویرایش دسته‌بندی' : 'دسته‌بندی جدید'} eyebrow="MENU CATEGORY" onClose={onClose}>
+    return <Modal title={category ? 'ویرایش دسته‌بندی' : 'دسته‌بندی جدید'} eyebrow="دسته‌بندی منو" onClose={onClose}>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSave({name:name.trim(),sort_order:Number(sortOrder),is_active:isActive},category);}}>
             <Field label="نام دسته"><input value={name} onChange={e=>setName(e.target.value)} maxLength="150" required /></Field>
             <Field label="ترتیب نمایش"><input type="number" min="0" value={sortOrder} onChange={e=>setSortOrder(e.target.value)} /></Field>
@@ -593,7 +593,7 @@ function CategoryModal({ category, onClose, onSave }) {
 function TableEditModal({ table, onClose, onSave }) {
     const [name,setName]=useState(table?.name || '');
     const [description,setDescription]=useState(table?.description || '');
-    return <Modal title="ویرایش میز" eyebrow="TABLE SETTINGS" onClose={onClose}>
+    return <Modal title="ویرایش میز" eyebrow="تنظیمات میز" onClose={onClose}>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSave({name:name.trim(),description:description.trim() || null});}}>
             <Field label="نام میز"><input value={name} onChange={e=>setName(e.target.value)} maxLength="80" required /></Field>
             <Field label="توضیح"><input value={description} onChange={e=>setDescription(e.target.value)} maxLength="255" /></Field>
@@ -610,7 +610,7 @@ function PaymentModal({ order, onClose, onSubmit }) {
     const [note,setNote]=useState('');
     const [requestKey] = useState(() => idempotencyKey());
     const remaining=getRemaining(order);
-    return <Modal title="ثبت پرداخت" eyebrow="PAYMENT / CASHIER" onClose={onClose}>
+    return <Modal title="ثبت پرداخت" eyebrow="پرداخت و صندوق" onClose={onClose}>
         <div className="op-payment-summary"><span>سفارش {order.number}</span><b>{money(order.total)}</b><small>مانده محاسبه‌شده: {money(remaining)}</small></div>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),method,reference:reference||null,note:note||null,idempotency_key:requestKey},order.id);}}>
             <Field label="مبلغ دریافت"><MoneyInput min="1" max={remaining} value={amount} onChange={setAmount} required /></Field>
@@ -625,7 +625,7 @@ function PaymentModal({ order, onClose, onSubmit }) {
 
 function CancelModal({ order, onClose, onSubmit }) {
     const [reason,setReason]=useState('');
-    return <Modal title="لغو سفارش" eyebrow="CANCEL ORDER" onClose={onClose}>
+    return <Modal title="لغو سفارش" eyebrow="لغو سفارش" onClose={onClose}>
         <p className="op-note">لغو فقط وقتی ممکن است که سفارش پرداخت خالص نداشته باشد. اگر پرداختی دارد، ابتدا بازپرداخت را از سوابق پرداخت انجام بده.</p>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit(reason,order.id);}}>
             <Field label="علت لغو (اجباری)"><input value={reason} onChange={e=>setReason(e.target.value)} minLength="3" maxLength="500" required /></Field>
@@ -640,7 +640,7 @@ function RefundModal({ payment, orderId, onClose, onSubmit }) {
     const [amount,setAmount]=useState(String(refundable));
     const [reason,setReason]=useState('');
     const [requestKey] = useState(() => idempotencyKey());
-    return <Modal title="بازپرداخت" eyebrow="REFUND / AUDITABLE" onClose={onClose}>
+    return <Modal title="بازپرداخت" eyebrow="بازپرداخت و ثبت رویداد" onClose={onClose}>
         <div className="op-payment-summary"><span>مبلغ پرداخت اولیه</span><b>{money(payment.amount)}</b><small>مانده قابل بازپرداخت: {money(refundable)}</small></div>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),reason,idempotency_key:requestKey},payment.id,orderId);}}>
             <Field label="مبلغ بازپرداخت"><MoneyInput min="1" max={refundable} value={amount} onChange={setAmount} required /></Field>
@@ -657,7 +657,7 @@ function OrderDetailsModal({ order, onClose, onPrint, onRefund }) {
     const subtotal=(order?.subtotal || 0);
     const paid=payments.filter(p=>p.status==='succeeded').reduce((sum,p)=>sum+Number(p.amount||0),0);
     const refunded=(order?.refunds || []).reduce((sum,r)=>sum+Number(r.amount||0),0);
-    return <Modal title={'سفارش ' + (order?.number || '')} eyebrow="ORDER DETAIL / AUDIT TRAIL" onClose={onClose} wide>
+    return <Modal title={'سفارش ' + (order?.number || '')} eyebrow="جزئیات سفارش / تاریخچه رویداد" onClose={onClose} wide>
         {!order ? <Loading /> : <>
             <div className="op-detail-summary"><div><small>کانال / میز</small><b>{channelLabel(order)}</b></div><div><small>وضعیت آماده‌سازی</small><Pill value={order.status} dictionary={orderStatusLabel} /></div><div><small>وضعیت پرداخت</small><Pill value={order.payment_status} dictionary={paymentStatusLabel} /></div><div><small>مبلغ نهایی</small><b>{money(order.total)}</b></div></div>
             <div className="panel-heading"><div><h3>اقلام</h3><p>مبلغ‌های ذخیره‌شده از زمان سفارش</p></div></div>
@@ -868,7 +868,7 @@ export default function DashboardApp() {
 
     return <div className="dashboard-app" dir="rtl">
         <aside className={'sidebar '+(mobileNav?'sidebar-open':'')}>
-            <button type="button" className="brand-lockup" onClick={()=>navigate('overview')}><span className="brand-symbol">خ</span><span><strong>خانه گیلاسی</strong><small>CAFE / RESTAURANT</small></span><span className="brand-status" title="اتصال به سرور" /></button>
+            <button type="button" className="brand-lockup" onClick={()=>navigate('overview')}><span className="brand-symbol">خ</span><span><strong>خانه گیلاسی</strong><small>کافه و رستوران</small></span><span className="brand-status" title="اتصال به سرور" /></button>
             <div className="sidebar-caption">فضای کاری</div><div className="workspace"><span className="workspace-avatar">KG</span><span><b>شعبه مرکزی</b><small>پنل عملیات و صندوق</small></span></div>
             <div className="sidebar-caption">مدیریت روزانه</div>
             <nav className="side-nav" aria-label="منوی داشبورد">{navItems.map(([key,label,icon])=><button type="button" key={key} className={(page===key?'active ':'')+'nav-item'} onClick={()=>navigate(key)}><Icon>{icon}</Icon><span>{label}</span>{key==='orders'&&data.orders&&<b className="nav-count">{numberFa(data.orders.filter(o=>!['delivered','cancelled'].includes(o.status)).length)}</b>}</button>)}</nav>
