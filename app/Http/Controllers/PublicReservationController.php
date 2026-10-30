@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ReservationStatus;
+use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\RestaurantSetting;
 use App\Services\AuditLogger;
+use App\Support\PhoneNumber;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -27,20 +30,27 @@ class PublicReservationController extends Controller
         return view('public.reservation-received', ['settings' => RestaurantSetting::current()]);
     }
 
-    public function store(Request $request, AuditLogger $audit): RedirectResponse
+    public function store(Request $request, AuditLogger $audit): JsonResponse|RedirectResponse
     {
         if (trim((string) $request->input('website')) !== '') {
-            return redirect()->route('public.reservations.received');
+            return $request->expectsJson()
+                ? response()->json(['data' => ['status' => 'received']], 202)
+                : redirect()->route('public.reservations.received');
         }
 
         $request->merge([
-            'idempotency_key' => trim((string) $request->input('idempotency_key')),
+            'phone' => PhoneNumber::normalize((string) $request->input('phone')),
+            'idempotency_key' => trim((string) $request->header('Idempotency-Key', $request->input('idempotency_key'))),
             'purpose' => $request->input('purpose', 'table'),
         ]);
 
         $data = $request->validate([
             'customer_name' => ['required', 'string', 'max:150'],
-            'phone' => ['required', 'string', 'max:30'],
+            'phone' => ['required', 'string', 'max:30', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! PhoneNumber::isValid(is_string($value) ? $value : null)) {
+                    $fail('شماره موبایل معتبر وارد کن.');
+                }
+            }],
             'email' => ['nullable', 'email', 'max:150'],
             'purpose' => ['required', Rule::in(['table', 'birthday', 'consultation', 'private_event', 'catering'])],
             'occasion_name' => ['nullable', 'string', 'max:150'],
@@ -52,12 +62,12 @@ class PublicReservationController extends Controller
             'idempotency_key' => ['required', 'string', 'min:16', 'max:64', 'regex:/^[A-Za-z0-9._:-]+$/'],
         ]);
 
-        $startsAt = Carbon::parse($data['starts_at']);
+        $startsAt = Carbon::parse($data['starts_at'], config('app.timezone'));
         $duration = (int) $data['duration_minutes'];
         $endsAt = $startsAt->copy()->addMinutes($duration);
         $canonical = [
             'customer_name' => trim($data['customer_name']),
-            'phone' => trim($data['phone']),
+            'phone' => $data['phone'],
             'email' => isset($data['email']) ? trim($data['email']) : null,
             'purpose' => $data['purpose'],
             'occasion_name' => isset($data['occasion_name']) ? trim($data['occasion_name']) : null,
@@ -69,13 +79,20 @@ class PublicReservationController extends Controller
         ];
         $hash = hash('sha256', json_encode($canonical, JSON_THROW_ON_ERROR));
 
-        DB::transaction(function () use ($data, $startsAt, $endsAt, $duration, $hash, $canonical, $request, $audit) {
-            $existing = Reservation::query()->where('idempotency_key', $data['idempotency_key'])->first();
+        $result = DB::transaction(function () use ($data, $startsAt, $endsAt, $duration, $hash, $canonical, $audit) {
+            $existing = Reservation::query()
+                ->where('idempotency_key', $data['idempotency_key'])
+                ->lockForUpdate()
+                ->first();
+
             if ($existing) {
-                if (!hash_equals((string) $existing->idempotency_hash, $hash)) {
-                    throw ValidationException::withMessages(['idempotency_key' => 'این فرم قبلاً با اطلاعات دیگری ثبت شده است؛ صفحه را تازه کن.']);
+                if (! hash_equals((string) $existing->idempotency_hash, $hash)) {
+                    throw ValidationException::withMessages([
+                        'idempotency_key' => 'این درخواست قبلاً با اطلاعات دیگری ثبت شده است؛ صفحه را تازه کن.',
+                    ]);
                 }
-                return;
+
+                return ['reservation' => $existing, 'created' => false];
             }
 
             $reservation = Reservation::query()->create([
@@ -99,10 +116,28 @@ class PublicReservationController extends Controller
             ]);
 
             $audit->record('reservation.website_request_created', $reservation, [], [
-                'reference' => $reservation->reference, 'purpose' => $reservation->purpose,
-                'party_size' => $reservation->party_size, 'starts_at' => $reservation->starts_at,
+                'reference' => $reservation->reference,
+                'purpose' => $reservation->purpose,
+                'party_size' => $reservation->party_size,
+                'starts_at' => $reservation->starts_at,
             ], null, null);
+
+            return ['reservation' => $reservation, 'created' => true];
         }, attempts: 3);
+
+        /** @var Reservation $reservation */
+        $reservation = $result['reservation'];
+
+        if ($request->expectsJson()) {
+            return response()->json(['data' => [
+                'id' => $reservation->id,
+                'reference' => $reservation->reference,
+                'status' => $reservation->status->value,
+                'party_size' => (int) $reservation->party_size,
+                'starts_at' => $reservation->starts_at?->toIso8601String(),
+                'source' => $reservation->source,
+            ]], $result['created'] ? 201 : 200);
+        }
 
         return redirect()->route('public.reservations.received');
     }
