@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap');
+@import './fonts.css';
 @import 'tailwindcss';
 @import './dashboard.css';
 @import './iranian-ui.css';
@@ -13,5 +14,5 @@
 @source '../**/*.jsx';
 
 @theme {
-    --font-sans: 'Vazirmatn', Tahoma, ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'IRANYekan', Tahoma, ui-sans-serif, system-ui, sans-serif;
 }

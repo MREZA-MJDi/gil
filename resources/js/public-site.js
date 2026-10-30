@@ -13,6 +13,15 @@ gsap.registerPlugin(ScrollTrigger);
     const cup = site.querySelector('[data-journey-cup]');
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    site.querySelectorAll('[data-image-fallback]').forEach(image => {
+        image.addEventListener('error', () => {
+            const fallbackUrl = image.dataset.imageFallback;
+            if (!fallbackUrl) return;
+            image.removeAttribute('data-image-fallback');
+            image.src = fallbackUrl;
+        }, { once: true });
+    });
+
     site.classList.add('js-ready');
 
     const closeMenu = () => {

@@ -1,5 +1,5 @@
 /* GILASI public experience — warm editorial cafe system */
-.public-site{--pub-ink:#24271f;--pub-ink-soft:#56584f;--pub-muted:#8a897d;--pub-cream:#f5f0e7;--pub-paper:#fffcf6;--pub-line:#ddd7c9;--pub-red:#c94e32;--pub-green:#1c382e;--pub-green-2:#294c3b;--pub-lime:#dce88b;--pub-orange:#e7a45a;background:var(--pub-cream);color:var(--pub-ink);font-family:'Vazirmatn',Tahoma,sans-serif;min-width:320px;overflow-x:clip;line-height:1.65}
+.public-site{--pub-ink:#24271f;--pub-ink-soft:#56584f;--pub-muted:#8a897d;--pub-cream:#f5f0e7;--pub-paper:#fffcf6;--pub-line:#ddd7c9;--pub-red:#c94e32;--pub-green:#1c382e;--pub-green-2:#294c3b;--pub-lime:#dce88b;--pub-orange:#e7a45a;background:var(--pub-cream);color:var(--pub-ink);font-family:'IRANYekan',Tahoma,sans-serif;min-width:320px;overflow-x:clip;line-height:1.65}
 .public-site *{box-sizing:border-box}
 .public-site a{color:inherit;text-decoration:none}
 .public-site button,.public-site input{font:inherit}
@@ -29,7 +29,7 @@
 .hero-copy{position:relative;z-index:2;padding:0 2% 10px 0}
 .hero-copy .eyebrow{margin-bottom:28px;color:#6c7668}
 .hero-copy h1{font-size:clamp(52px,6.7vw,96px);line-height:1.04;letter-spacing:-.075em;font-weight:800;margin:0 0 24px;max-width:540px}
-.hero-copy h1 span{color:var(--pub-red);font-family:Georgia,'Vazirmatn',serif;font-weight:600;letter-spacing:-.055em;font-style:italic;padding-inline-end:7px}
+.hero-copy h1 span{color:var(--pub-red);font-family:Georgia,'IRANYekan',serif;font-weight:600;letter-spacing:-.055em;font-style:italic;padding-inline-end:7px}
 .hero-description{max-width:430px;font-size:14px;line-height:2.2;color:var(--pub-ink-soft);margin-bottom:26px}
 .hero-actions,.visit-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .button{min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:26px;padding:0 19px;border-radius:7px;font-size:12px;font-weight:700;border:1px solid transparent;transition:all .22s}
@@ -65,7 +65,7 @@
 .section-wrap{padding:125px 8.5%;max-width:1600px;margin-inline:auto}
 .section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;margin-bottom:44px}
 .section-heading h2,.story-copy h2,.values-heading h2,.moments-top h2{font-size:clamp(38px,4.5vw,64px);line-height:1.2;letter-spacing:-.065em;font-weight:800;margin:15px 0 0}
-.section-heading h2 span{font-family:Georgia,'Vazirmatn',serif;font-style:italic;font-weight:500;color:var(--pub-red);letter-spacing:-.04em}
+.section-heading h2 span{font-family:Georgia,'IRANYekan',serif;font-style:italic;font-weight:500;color:var(--pub-red);letter-spacing:-.04em}
 .section-heading-aside{max-width:305px;display:grid;gap:15px}
 .section-heading-aside p,.values-heading>p,.moments-top>p{font-size:12px;line-height:2.1;color:var(--pub-muted);margin:0}
 .text-link{display:inline-flex;align-items:center;gap:25px;width:max-content;padding-bottom:7px;border-bottom:1px solid #a9a494;font-size:11px;font-weight:800;color:var(--pub-green);transition:color .2s,border-color .2s}
@@ -105,7 +105,7 @@
 .story-roundel b{font:16px sans-serif;margin-top:2px}
 .story-copy .section-kicker{color:#77786a}
 .story-copy h2{font-size:clamp(38px,4.4vw,62px);margin-bottom:25px}
-.story-copy h2 em{font-family:Georgia,'Vazirmatn',serif;font-weight:500;color:var(--pub-red);font-style:italic}
+.story-copy h2 em{font-family:Georgia,'IRANYekan',serif;font-weight:500;color:var(--pub-red);font-style:italic}
 .story-copy p{font-size:12px;line-height:2.35;color:#717165;margin-bottom:15px}
 .story-copy .text-link{margin-top:8px}
 .story-signature{margin-top:36px;padding-top:18px;border-top:1px solid #d4ccbc;direction:ltr;width:max-content;font:italic 15px Georgia,serif;color:#8c8979}
@@ -114,7 +114,7 @@
 .values-heading{text-align:center;max-width:580px;margin:0 auto 51px}
 .values-heading .section-kicker{color:#5f6a4b}
 .values-heading h2{font-size:clamp(37px,4vw,56px);margin:13px 0 14px}
-.values-heading h2 span{font-family:Georgia,'Vazirmatn',serif;font-style:italic;font-weight:500;color:var(--pub-red)}
+.values-heading h2 span{font-family:Georgia,'IRANYekan',serif;font-style:italic;font-weight:500;color:var(--pub-red)}
 .values-heading>p{color:#606b54}
 .values-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:1180px;margin:auto}
 .value-card{padding:28px 28px 30px;min-height:245px;position:relative;background:rgba(255,252,246,.45);border:1px solid rgba(36,39,31,.1);border-radius:8px;overflow:hidden;transition:transform .3s,background .3s}
@@ -132,7 +132,7 @@
 .moments-section{padding:125px 8.5%;max-width:1600px;margin:auto}
 .moments-top{display:flex;justify-content:space-between;align-items:flex-end;gap:35px;margin-bottom:39px}
 .moments-top h2{font-size:clamp(38px,4.3vw,62px);margin-top:15px}
-.moments-top h2 em{font-family:Georgia,'Vazirmatn',serif;color:var(--pub-red);font-weight:500}
+.moments-top h2 em{font-family:Georgia,'IRANYekan',serif;color:var(--pub-red);font-weight:500}
 .moments-top>p{max-width:300px}
 .moments-collage{display:grid;grid-template-columns:1.3fr .82fr .84fr;grid-template-rows:300px 180px;gap:13px}
 .moment-photo{margin:0;position:relative;overflow:hidden;background:#d6c6b2;border-radius:6px}
@@ -184,7 +184,7 @@
 .public-site .public-menu-page{background:var(--pub-cream)}
 .menu-page-hero{padding:76px 9% 65px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;background:#ece5d7}
 .menu-page-hero-copy h1{font-size:clamp(56px,7vw,94px);line-height:1.05;letter-spacing:-.08em;margin:20px 0}
-.menu-page-hero-copy h1 em{font-family:Georgia,'Vazirmatn',serif;color:var(--pub-red);font-weight:500;letter-spacing:-.045em}
+.menu-page-hero-copy h1 em{font-family:Georgia,'IRANYekan',serif;color:var(--pub-red);font-weight:500;letter-spacing:-.045em}
 .menu-page-hero-copy p{font-size:13px;line-height:2.1;color:var(--pub-muted);max-width:380px;margin-bottom:24px}
 .menu-page-hero-visual{position:relative;height:400px;border-radius:180px 180px 8px 8px;overflow:visible}
 .menu-page-hero-visual>img{width:100%;height:100%;object-fit:cover;border-radius:180px 180px 8px 8px;filter:saturate(.78)}
@@ -247,7 +247,7 @@
 .reservation-section-heading{position:sticky;top:115px;max-width:390px;padding-top:12px}
 .reservation-section-heading .section-kicker{color:#837f70}
 .reservation-section-heading h2{margin:18px 0;font-size:clamp(38px,4.8vw,65px);line-height:1.35;letter-spacing:-.06em;font-weight:800}
-.reservation-section-heading h2 em{color:var(--pub-red);font-family:Georgia,'Vazirmatn',serif;font-weight:600}
+.reservation-section-heading h2 em{color:var(--pub-red);font-family:Georgia,'IRANYekan',serif;font-weight:600}
 .reservation-section-heading>p{font-size:12px;line-height:2.2;color:#65685d;max-width:330px}
 .reservation-noscript{grid-column:1/-1;padding:20px;border:1px solid #ddd1ba;border-radius:10px}
 .public-reservation-card{min-width:0;padding:clamp(18px,3.2vw,34px);border:1px solid #e4dccd;border-radius:17px;background:var(--pub-paper);box-shadow:0 18px 45px #2d2b2010}
@@ -347,7 +347,7 @@
 .public-home .site-brand{gap:0}
 .public-home .site-brand-mark{display:none}
 .public-home .site-brand-copy b{
-    color:#fff;font-family:Arial,'Vazirmatn',sans-serif;font-size:clamp(19px,2vw,25px);
+    color:#fff;font-family:Arial,'IRANYekan',sans-serif;font-size:clamp(19px,2vw,25px);
     font-weight:900;letter-spacing:.035em;line-height:1.1;
 }
 .public-home .site-brand-copy b em{color:#f0a331;font-style:normal}
@@ -389,7 +389,7 @@
     letter-spacing:-.025em;
 }
 .public-home .hero-fullbleed h1{
-    margin:0;color:#fff;font-family:Arial,'Vazirmatn',sans-serif;
+    margin:0;color:#fff;font-family:Arial,'IRANYekan',sans-serif;
     font-size:clamp(45px,7vw,91px);font-weight:900;line-height:1.09;
     letter-spacing:.035em;text-shadow:0 4px 28px rgba(0,0,0,.32);
 }
@@ -524,7 +524,7 @@
 }
 .delivery-pill i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#dce88b;box-shadow:0 0 0 4px #dce88b18}
 .dark-food-hero h1{
-    max-width:720px;margin:17px auto 13px;font-family:Arial,'Vazirmatn',sans-serif;
+    max-width:720px;margin:17px auto 13px;font-family:Arial,'IRANYekan',sans-serif;
     font-size:clamp(32px,4.25vw,56px);font-weight:850;line-height:1.12;
     letter-spacing:-.045em;color:#f7f5f6;text-wrap:balance;
 }
@@ -593,7 +593,7 @@
 .dark-experience-section{padding:86px 7% 100px;background:#191919;text-align:center}
 .dark-section-kicker{display:block;color:#f2a9ad;font:9px 'DM Mono',Arial,sans-serif;letter-spacing:.19em;direction:ltr}
 .dark-experience-section>h2,.dark-journey-heading h2{
-    margin:14px 0 9px;font-family:Arial,'Vazirmatn',sans-serif;font-weight:850;
+    margin:14px 0 9px;font-family:Arial,'IRANYekan',sans-serif;font-weight:850;
     font-size:clamp(32px,4vw,47px);line-height:1.08;letter-spacing:-.04em;color:#f4f2f4;
 }
 .dark-experience-section>h2 span,.dark-journey-heading h2 span{color:#f2a9ad}
@@ -800,3 +800,28 @@
 .public-home .site-brand-copy b em{color:#f2a9ad}
 .hero-bowl-image{transform:translateX(-50%) scale(1.14)}
 @media(max-width:560px){.hero-bowl-image{transform:translateX(-50%) scale(1.09)}}
+
+
+/* Local transparent food cutout upload slot: public/images/hero/hero-food.png */
+.public-home .dark-food-hero .hero-bowl-image{
+    width:min(720px,78vw);
+    height:min(720px,78vw);
+    object-fit:contain;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    background:transparent;
+    filter:drop-shadow(0 24px 32px rgba(0,0,0,.48)) saturate(1.06) contrast(1.04);
+}
+@media(max-width:840px){
+    .public-home .dark-food-hero .hero-bowl-image{
+        width:min(650px,84vw);
+        height:min(650px,84vw);
+    }
+}
+@media(max-width:560px){
+    .public-home .dark-food-hero .hero-bowl-image{
+        width:min(490px,99vw);
+        height:min(490px,99vw);
+    }
+}
