@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ProductStatus;
 use App\Models\Category;
 use App\Models\RestaurantSetting;
+use App\Models\SiteMediaAsset;
 use Illuminate\Contracts\View\View;
 
 class PublicHomeController extends Controller
