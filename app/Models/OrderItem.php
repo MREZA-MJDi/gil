@@ -9,14 +9,14 @@ class OrderItem extends Model
 {
     protected $fillable = [
         'order_id', 'product_id', 'name', 'unit_price', 'quantity',
-        'options', 'options_total', 'line_total', 'note',
+        'options', 'recipe_snapshot', 'options_total', 'line_total', 'note',
     ];
 
     protected function casts(): array
     {
         return [
             'unit_price' => 'integer', 'quantity' => 'integer',
-            'options' => 'array', 'options_total' => 'integer', 'line_total' => 'integer',
+            'options' => 'array', 'recipe_snapshot' => 'array', 'options_total' => 'integer', 'line_total' => 'integer',
         ];
     }
 

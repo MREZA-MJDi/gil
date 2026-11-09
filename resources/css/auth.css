@@ -1,6 +1,6 @@
 
 /* Arabic/Persian staff auth shell. Mobile-first layout; no fixed-width form controls. */
-.admin-auth-body{min-width:320px;min-height:100vh;min-height:100dvh;margin:0;padding:clamp(12px,3vw,30px);background:#f4f1eb;color:#2b2722;font-family:'Vazirmatn',Tahoma,sans-serif}
+.admin-auth-body{min-width:320px;min-height:100vh;min-height:100dvh;margin:0;padding:clamp(12px,3vw,30px);background:#f4f1eb;color:#2b2722;font-family:'IRANYekan',Tahoma,sans-serif}
 .admin-auth-body *{box-sizing:border-box}
 .auth-layout{width:min(1080px,100%);min-height:min(760px,calc(100dvh - 60px));margin:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"brand form";overflow:hidden;border:1px solid #e6ded3;border-radius:24px;background:#fff;box-shadow:0 28px 90px #33291d12}
 .auth-form-panel{grid-area:form;min-width:0;display:flex;flex-direction:column;justify-content:center;padding:clamp(26px,5vw,62px)}
@@ -68,7 +68,7 @@
     position:relative;
     isolation:isolate;
     background-color:#30261f;
-    background-image:linear-gradient(115deg,rgba(24,18,14,.43),rgba(28,21,16,.18) 52%,rgba(24,18,14,.42)),url('/images/login-background.webp');
+    background-image:linear-gradient(115deg,rgba(24,18,14,.43),rgba(28,21,16,.18) 52%,rgba(24,18,14,.42)),var(--login-image, url('/images/login-background.webp'));
     background-position:center;
     background-size:cover;
     background-repeat:no-repeat;
@@ -91,7 +91,7 @@
 @media(max-width:720px){
     .admin-auth-body{
         background-color:#30261f;
-        background-image:linear-gradient(180deg,rgba(24,18,14,.36),rgba(24,18,14,.15) 38%,rgba(24,18,14,.3)),url('/images/login-background.webp');
+        background-image:linear-gradient(180deg,rgba(24,18,14,.36),rgba(24,18,14,.15) 38%,rgba(24,18,14,.3)),var(--login-image, url('/images/login-background.webp'));
         background-position:center;
         background-size:cover;
         background-repeat:no-repeat;

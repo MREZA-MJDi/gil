@@ -6,6 +6,7 @@ use App\Enums\ProductStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
@@ -42,6 +43,12 @@ class Product extends Model
         return $this->hasMany(ProductOption::class)->orderBy('sort_order')->orderBy('id');
     }
 
+    public function recipeIngredients(): BelongsToMany
+    {
+        return $this->belongsToMany(Ingredient::class, 'product_recipe_ingredients')
+            ->withPivot('quantity')->withTimestamps();
+    }
+
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
@@ -67,6 +74,15 @@ class Product extends Model
 
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image_path ? asset('storage/'.$this->image_path) : null;
+        $path = $this->image_path;
+        if (! $path) return null;
+
+        // Demo catalog photos may be served by a trusted image CDN; local uploads remain storage paths.
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            $host = parse_url($path, PHP_URL_HOST);
+            return in_array($host, ['images.unsplash.com', 'images.pexels.com'], true) ? $path : null;
+        }
+
+        return asset('storage/'.$path);
     }
 }

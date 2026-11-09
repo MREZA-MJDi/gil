@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 const numberFa = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0));
@@ -16,6 +16,7 @@ function CustomerMenu() {
     const [notice, setNotice] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
+    const [paymentPreference, setPaymentPreference] = useState('at_counter');
     const [idempotencyKey, setIdempotencyKey] = useState('');
     const [submissionUncertain, setSubmissionUncertain] = useState(false);
 
@@ -27,8 +28,8 @@ function CustomerMenu() {
         })
             .then(async response => {
                 if (!response.ok) throw new Error(response.status === 404
-                    ? 'این منو غیرفعال است یا QR دیگر اعتبار ندارد.'
-                    : 'بارگذاری منو انجام نشد. اتصال اینترنت را بررسی کن.');
+                    ? 'این منو غیرفعال شده یا کد میز دیگر معتبر نیست.'
+                    : 'بارگذاری منو انجام نشد. اتصال اینترنت را بررسی و دوباره تلاش کن.');
                 return response.json();
             })
             .then(payload => { if (active) setData(payload.data); })
@@ -117,6 +118,7 @@ function CustomerMenu() {
                     items: cart,
                     customer_name: customerName.trim() || null,
                     customer_phone: customerPhone.trim() || null,
+                    payment_preference: paymentPreference,
                     discount: 0,
                 }),
             });
@@ -148,6 +150,11 @@ function CustomerMenu() {
     if (!data) return <div className="customer-menu-content"><div className="menu-notice" role="alert">{notice}</div><button onClick={() => window.location.reload()}>تلاش دوباره</button></div>;
 
     return <div className="customer-menu-content">
+        <section className="customer-menu-cover" style={data.settings?.menu_cover_url ? { backgroundImage: "linear-gradient(90deg,rgba(15,14,16,.88),rgba(15,14,16,.25)),url(" + data.settings.menu_cover_url + ")" } : undefined}>
+            <span>خانه گیلاسی · منوی دیجیتال</span>
+            <h2>انتخابت را با خیال راحت انجام بده.</h2>
+            <p>منوی همین میز، با قیمت‌های به‌روز و امکان ثبت سفارش مستقیم.</p>
+        </section>
         {notice && <div className="menu-notice" role="status">{notice}</div>}
         <section className="customer-menu-welcome">
             <div className="customer-menu-brand">
@@ -225,6 +232,13 @@ function CustomerMenu() {
             })}
             <label>نام (اختیاری)<input disabled={busy || submissionUncertain} value={customerName} onChange={e => setCustomerName(e.target.value)} maxLength={150} /></label>
             <label>شماره تماس (اختیاری)<input disabled={busy || submissionUncertain} value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} maxLength={30} inputMode="tel" /></label>
+            <fieldset className="customer-payment-preference">
+                <legend>روش پرداخت دلخواه</legend>
+                <label><input type="radio" name="payment-preference" value="at_counter" checked={paymentPreference==='at_counter'} disabled={busy || submissionUncertain} onChange={() => setPaymentPreference('at_counter')} /><span><b>پرداخت هنگام تحویل / در صندوق</b><small>اگر هنوز تصمیم نگرفته‌ای این گزینه مناسب است.</small></span></label>
+                <label><input type="radio" name="payment-preference" value="card_terminal" checked={paymentPreference==='card_terminal'} disabled={busy || submissionUncertain} onChange={() => setPaymentPreference('card_terminal')} /><span><b>کارت‌خوان</b><small>پرداخت توسط کارکنان ثبت می‌شود.</small></span></label>
+                <label><input type="radio" name="payment-preference" value="cash" checked={paymentPreference==='cash'} disabled={busy || submissionUncertain} onChange={() => setPaymentPreference('cash')} /><span><b>نقدی</b><small>انتخاب روش، رسید پرداخت ایجاد نمی‌کند.</small></span></label>
+                <p>این فقط ترجیح پرداخت است؛ سفارش زمانی تسویه‌شده محسوب می‌شود که پرداخت واقعی در صندوق ثبت شود.</p>
+            </fieldset>
             <div className="customer-price-breakdown">
                 <p><span>جمع اقلام</span><b>{money(subtotal, currency)}</b></p>
                 {Number(data.settings?.tax_basis_points || 0) > 0 && <p><span>مالیات ({numberFa(Number(data.settings.tax_basis_points) / 100)}٪)</span><b>{money(tax, currency)}</b></p>}
