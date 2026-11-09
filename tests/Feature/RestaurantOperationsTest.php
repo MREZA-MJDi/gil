@@ -82,38 +82,40 @@ class RestaurantOperationsTest extends TestCase
         $this->get('/menu')->assertOk()->assertSee('منو برای')->assertSee('لاته تست');
     }
 
-    public function test_local_seeder_accepts_development_password_only_in_local_environment(): void
+    public function test_local_admin_seeder_uses_mobile_and_strong_password_credentials(): void
     {
         config([
             'app.env' => 'local',
-            'admin.name' => 'Local Demo Admin',
-            'admin.email' => 'local-demo@example.test',
-            'admin.password' => 'password',
+            'admin.name' => 'Local Test Admin',
+            'admin.phone' => '09121230001',
+            'admin.email' => null,
+            'admin.password' => 'local-test-password-123456',
         ]);
 
         Artisan::call('db:seed', ['--class' => \Database\Seeders\AdminUserSeeder::class]);
 
         $this->post('/admin/login', [
-            'email' => 'local-demo@example.test',
-            'password' => 'password',
+            'phone' => '09121230001',
+            'password' => 'local-test-password-123456',
         ])->assertRedirect(route('admin.dashboard'));
 
-        $this->assertAuthenticatedAs(User::query()->where('email', 'local-demo@example.test')->first());
+        $this->assertAuthenticatedAs(User::query()->where('phone', '+989121230001')->first());
     }
 
-    public function test_admin_login_works_with_seeded_env_configuration(): void
+    public function test_admin_login_works_with_seeded_mobile_configuration(): void
     {
         config([
             'admin.name' => 'Seeded Test Admin',
-            'admin.email' => 'seeded-admin@example.test',
-            'admin.password' => 'seeded-test-password-12345',
+            'admin.phone' => '+989121230002',
+            'admin.email' => null,
+            'admin.password' => 'seeded-test-password-123456',
         ]);
 
         Artisan::call('db:seed', ['--class' => \Database\Seeders\AdminUserSeeder::class]);
 
         $this->post('/admin/login', [
-            'email' => 'seeded-admin@example.test',
-            'password' => 'seeded-test-password-12345',
+            'phone' => '09121230002',
+            'password' => 'seeded-test-password-123456',
         ])->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticated();
@@ -576,4 +578,201 @@ class RestaurantOperationsTest extends TestCase
             'discount' => 0,
         ];
     }
+
+    public function test_public_reservation_requires_a_table_before_confirmation(): void
+    {
+        $startsAt = \Illuminate\Support\Carbon::now(config('app.timezone'))->addDays(5)->setTime(17, 0);
+        $reservation = \App\Models\Reservation::query()->create([
+            'reference' => 'RSV-PUBLIC-001',
+            'customer_name' => 'مشتری رزرو',
+            'phone' => '+989121234567',
+            'party_size' => 2,
+            'starts_at' => $startsAt,
+            'duration_minutes' => 90,
+            'ends_at' => $startsAt->copy()->addMinutes(90),
+            'status' => 'pending',
+            'source' => 'public',
+            'idempotency_key' => 'public-transition-test-01',
+            'idempotency_hash' => hash('sha256', 'reservation-1'),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->patchJson('/admin/api/reservations/'.$reservation->id.'/status', ['status' => 'confirmed'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('restaurant_table_id');
+
+        $this->assertSame('pending', $reservation->fresh()->status->value);
+    }
+
+    public function test_public_reservation_can_be_confirmed_after_assigning_an_active_table(): void
+    {
+        $table = RestaurantTable::query()->create([
+            'name' => 'میز رزرو تست',
+            'token' => \Illuminate\Support\Str::random(48),
+            'is_active' => true,
+        ]);
+        $startsAt = \Illuminate\Support\Carbon::now(config('app.timezone'))->addDays(6)->setTime(18, 0);
+        $reservation = \App\Models\Reservation::query()->create([
+            'reference' => 'RSV-PUBLIC-002',
+            'customer_name' => 'مشتری رزرو دوم',
+            'phone' => '+989121234568',
+            'party_size' => 3,
+            'starts_at' => $startsAt,
+            'duration_minutes' => 90,
+            'ends_at' => $startsAt->copy()->addMinutes(90),
+            'status' => 'pending',
+            'source' => 'public',
+            'idempotency_key' => 'public-transition-test-02',
+            'idempotency_hash' => hash('sha256', 'reservation-2'),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->patchJson('/admin/api/reservations/'.$reservation->id.'/status', [
+                'status' => 'confirmed',
+                'restaurant_table_id' => $table->id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'confirmed')
+            ->assertJsonPath('data.table.id', $table->id);
+
+        $this->assertSame($table->id, $reservation->fresh()->restaurant_table_id);
+    }
+
+    public function test_reservation_confirmation_rejects_overlapping_table_windows(): void
+    {
+        $table = RestaurantTable::query()->create([
+            'name' => 'میز هم‌پوشانی تست',
+            'token' => \Illuminate\Support\Str::random(48),
+            'is_active' => true,
+        ]);
+        $startsAt = \Illuminate\Support\Carbon::now(config('app.timezone'))->addDays(7)->setTime(18, 0);
+        \App\Models\Reservation::query()->create([
+            'reference' => 'RSV-PUBLIC-003',
+            'restaurant_table_id' => $table->id,
+            'customer_name' => 'رزرو موجود',
+            'phone' => '+989121234569',
+            'party_size' => 2,
+            'starts_at' => $startsAt,
+            'duration_minutes' => 90,
+            'ends_at' => $startsAt->copy()->addMinutes(90),
+            'status' => 'confirmed',
+            'source' => 'public',
+            'idempotency_key' => 'public-transition-test-03',
+            'idempotency_hash' => hash('sha256', 'reservation-3'),
+        ]);
+        $pending = \App\Models\Reservation::query()->create([
+            'reference' => 'RSV-PUBLIC-004',
+            'customer_name' => 'رزرو تداخل',
+            'phone' => '+989121234570',
+            'party_size' => 2,
+            'starts_at' => $startsAt->copy()->addMinutes(30),
+            'duration_minutes' => 90,
+            'ends_at' => $startsAt->copy()->addMinutes(120),
+            'status' => 'pending',
+            'source' => 'public',
+            'idempotency_key' => 'public-transition-test-04',
+            'idempotency_hash' => hash('sha256', 'reservation-4'),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->patchJson('/admin/api/reservations/'.$pending->id.'/status', [
+                'status' => 'confirmed',
+                'restaurant_table_id' => $table->id,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('restaurant_table_id');
+
+        $this->assertSame('pending', $pending->fresh()->status->value);
+    }
+
+
+    public function test_foundation_seeder_does_not_create_demo_catalogue_or_fake_transactions(): void
+    {
+        config([
+            'restaurant.name' => 'کافه واقعی تست',
+            'restaurant.phone' => '02112345678',
+            'restaurant.address' => 'نشانی ثبت‌شده',
+            'restaurant.currency_label' => 'تومان',
+            'restaurant.initial_table_names' => [],
+        ]);
+        $categoriesBefore = Category::query()->count();
+        $productsBefore = Product::query()->count();
+
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\RestaurantFoundationSeeder::class]);
+
+        $this->assertDatabaseHas('restaurant_settings', [
+            'singleton_key' => 'main',
+            'name' => 'کافه واقعی تست',
+            'phone' => '02112345678',
+        ]);
+        $this->assertSame($categoriesBefore, Category::query()->count());
+        $this->assertSame($productsBefore, Product::query()->count());
+        $this->assertDatabaseCount('restaurant_tables', 0);
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('payments', 0);
+        $this->assertDatabaseCount('refunds', 0);
+        $this->assertDatabaseCount('reservations', 0);
+        $this->assertDatabaseCount('expenses', 0);
+    }
+
+    public function test_foundation_seeder_creates_only_explicit_table_names_and_is_idempotent(): void
+    {
+        config([
+            'restaurant.name' => 'کافه میزهای تست',
+            'restaurant.initial_table_names' => ['میز سالن', 'میز تراس', 'میز سالن'],
+        ]);
+
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\RestaurantFoundationSeeder::class]);
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\RestaurantFoundationSeeder::class]);
+
+        $this->assertDatabaseCount('restaurant_tables', 2);
+        $this->assertDatabaseHas('restaurant_tables', ['name' => 'میز سالن', 'is_active' => true]);
+        $this->assertDatabaseHas('restaurant_tables', ['name' => 'میز تراس', 'is_active' => true]);
+        $this->assertDatabaseCount('products', 1);
+        $this->assertDatabaseCount('categories', 1);
+    }
+
+    public function test_admin_can_edit_and_delete_catalog_records_when_they_have_no_history(): void
+    {
+        $this->actingAs($this->admin);
+
+        $this->patchJson('/admin/api/categories/'.$this->category->id, [
+            'name' => 'دسته ویرایش‌شده',
+            'sort_order' => 4,
+            'is_active' => true,
+        ])->assertOk()->assertJsonPath('data.name', 'دسته ویرایش‌شده');
+
+        $this->deleteJson('/admin/api/products/'.$this->product->id)->assertOk();
+        $this->deleteJson('/admin/api/categories/'.$this->category->id)->assertOk();
+
+        $this->assertDatabaseMissing('products', ['id' => $this->product->id]);
+        $this->assertDatabaseMissing('categories', ['id' => $this->category->id]);
+    }
+
+    public function test_environment_seeded_table_edits_survive_repeated_seed_runs(): void
+    {
+        config(['restaurant.initial_table_names' => ['میز اولیه']]);
+
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\RestaurantFoundationSeeder::class]);
+
+        $table = RestaurantTable::query()->where('name', 'میز اولیه')->firstOrFail();
+        $table->forceFill([
+            'name' => 'میز ویرایش‌شده',
+            'description' => 'بخش تراس',
+            'is_active' => false,
+        ])->save();
+
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\RestaurantFoundationSeeder::class]);
+
+        $this->assertSame(1, RestaurantTable::query()->count());
+        $this->assertDatabaseHas('restaurant_tables', [
+            'id' => $table->id,
+            'name' => 'میز ویرایش‌شده',
+            'description' => 'بخش تراس',
+            'is_active' => 0,
+            'seed_key' => 'env-table:'.hash('sha256', 'میز اولیه'),
+        ]);
+        $this->assertDatabaseMissing('restaurant_tables', ['name' => 'میز اولیه']);
+    }
+
 }

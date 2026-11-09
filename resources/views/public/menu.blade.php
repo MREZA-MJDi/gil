@@ -15,8 +15,8 @@
     @include('public.partials.nav')
     <main data-public-ordering>
         <section class="menu-page-hero cup-stop" id="home" data-cup-stop>
-            <div class="menu-page-hero-copy"><span class="section-kicker">THE MENU / MADE WITH CARE</span><h1>منو برای<br><em>حال خوب تو.</em></h1><p>طعم‌ها، ترکیب‌ها و قیمت‌ها؛ شفاف و ساده، تا با خیال راحت انتخاب کنی.</p><a class="button button-dark" href="#catalog">رفتن به خوراکی‌ها <span>↓</span></a></div>
-            <div class="menu-page-hero-visual"><img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1100&q=85" alt="فنجان قهوه تازه" fetchpriority="high"><span class="menu-hero-stamp">MADE<br>FOR YOUR<br>MOOD ✳</span></div>
+            <div class="menu-page-hero-copy"><span class="section-kicker">منوی خانه گیلاسی</span><h1>منو برای<br><em>حال خوب تو.</em></h1><p>طعم‌ها، ترکیب‌ها و قیمت‌ها؛ شفاف و ساده، تا با خیال راحت انتخاب کنی.</p><a class="button button-dark" href="#catalog">رفتن به خوراکی‌ها <span>↓</span></a></div>
+            <div class="menu-page-hero-visual"><img src="{{ $media['menu_cover']['url'] ?? 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1100&q=85' }}" alt="فنجان قهوه تازه" fetchpriority="high"><span class="menu-hero-stamp">با عشق<br>برای حال خوب<br>✳</span></div>
         </section>
         <div class="menu-jumpbar" aria-label="رفتن به دسته‌بندی">
             @forelse($categories as $category)
@@ -28,7 +28,7 @@
         <section class="public-catalog section-wrap cup-stop" id="catalog" data-cup-stop>
             @forelse($categories as $category)
                 <section class="public-category" id="category-{{ $category->id }}" data-cup-stop>
-                    <header class="public-category-heading"><div><span class="section-kicker">CATEGORY / {{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span><h2>{{ $category->name }}</h2></div><span class="public-category-count">{{ $category->products->count() }} انتخاب</span></header>
+                    <header class="public-category-heading"><div><span class="section-kicker">دسته‌بندی / {{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span><h2>{{ $category->name }}</h2></div><span class="public-category-count">{{ $category->products->count() }} انتخاب</span></header>
                     <div class="public-food-grid">
                         @foreach($category->products as $product)
                             <article class="public-food-card reveal-card">

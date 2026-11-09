@@ -1,4 +1,10 @@
 <?php
+/**
+ * Project developer and primary maintainer: Mohammadreza Majidi (RM).
+ * GitHub: https://github.com/MREZA-MJDi
+ * See /AUTHORSHIP.md for attribution and /AGENTS.md for contributor guardrails.
+ */
+
 
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;

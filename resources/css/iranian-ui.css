@@ -1,0 +1,36 @@
+
+/* Shared high-accuracy, locale-aware date and currency fields. */
+.jalali-picker{position:relative;width:100%;min-width:0}
+.jalali-picker-input-row{display:flex;align-items:stretch;gap:6px;width:100%;min-width:0}
+.jalali-date-display,.jalali-time-input,.money-input{height:42px;min-width:0;border:1px solid #e3dfd8;border-radius:9px;background:#fff;color:#282521;font:inherit;font-size:12px;outline:none;transition:border-color .15s,box-shadow .15s}
+.jalali-date-display{flex:1;width:100%;padding:0 11px;text-align:center;cursor:pointer}
+.jalali-date-display::placeholder{color:#b0a89d}
+.jalali-date-display:focus,.jalali-time-input:focus,.money-input:focus{border-color:#b35c45;box-shadow:0 0 0 3px #b35c4517}
+.jalali-open-button{flex:0 0 42px;width:42px;border:1px solid #e3dfd8;border-radius:9px;background:#faf8f5;color:#a44b36;font-size:17px}
+.jalali-time-input{flex:0 0 118px;width:118px;padding:0 8px;direction:ltr;text-align:center}
+.jalali-calendar{position:absolute;z-index:140;top:calc(100% + 8px);right:0;width:min(320px,calc(100vw - 42px));padding:13px;border:1px solid #e6ded3;border-radius:14px;background:#fff;box-shadow:0 18px 50px #21181222}
+.jalali-calendar-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.jalali-calendar-header strong{color:#3b342d;font-size:13px}
+.jalali-calendar-header button{display:grid;place-items:center;width:32px;height:32px;border:1px solid #ebe5dc;border-radius:8px;background:#faf8f4;color:#8f4937;font-size:19px}
+.jalali-weekdays,.jalali-calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.jalali-weekdays{margin-bottom:6px;color:#9a9084;font-size:10px}
+.jalali-weekdays span{padding:4px 0}
+.jalali-calendar-days button,.jalali-calendar-days span{display:grid;place-items:center;min-width:0;min-height:35px;border-radius:8px}
+.jalali-calendar-days button{border:1px solid transparent;background:#fff;color:#3e3831;font:inherit;font-size:12px}
+.jalali-calendar-days button:hover{border-color:#e6c8ba;background:#fbf1ed}
+.jalali-calendar-days button.selected{border-color:#a94b36;background:#a94b36;color:#fff;font-weight:800}
+.jalali-calendar-hint{margin:10px 2px 0;color:#9a9084;font-size:10px;line-height:1.8}
+.money-input-wrap{position:relative;display:flex;align-items:center;width:100%;min-width:0}
+.money-input{display:block;width:100%;padding:0 12px;padding-left:70px;text-align:left;font-variant-numeric:tabular-nums;direction:ltr}
+.money-input-currency{position:absolute;left:10px;max-width:60px;overflow:hidden;white-space:nowrap;color:#998f83;font-size:10px;pointer-events:none}
+.op-field .money-input-wrap input.money-input{width:100%;min-width:0;max-width:100%}
+.op-field .jalali-picker{width:100%;min-width:0}
+.op-field .jalali-picker input{max-width:100%}
+.op-form .money-input-wrap,.op-form .jalali-picker,.op-inline-form .money-input-wrap{width:100%;min-width:0}
+@media(max-width:560px){
+ .jalali-time-input{flex-basis:102px;width:102px}
+ .jalali-calendar{width:min(310px,calc(100vw - 30px));right:0}
+ .money-input{padding-left:60px}
+ .money-input-currency{left:8px;font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.jalali-date-display,.jalali-time-input,.money-input{transition:none}}
