@@ -1,4 +1,5 @@
 import { gsap } from 'gsap';
+import { jalaliDateTimeToGregorian } from './date-utils.js';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -38,33 +39,71 @@ gsap.registerPlugin(ScrollTrigger);
 
     nav?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
 
+    // Convert the Jalali reservation entry to the Gregorian timestamp expected by Laravel.
+    site.querySelectorAll('[data-jalali-booking]').forEach(form => {
+        const jalaliInput = form.querySelector('[name="starts_at_jalali"]');
+        const gregorianInput = form.querySelector('[name="starts_at"]');
+        if (!jalaliInput || !gregorianInput) return;
+
+        const validateJalali = () => {
+            const value = jalaliInput.value.trim();
+            if (!value) {
+                jalaliInput.setCustomValidity('تاریخ و ساعت شمسی را وارد کن؛ نمونه: ۱۴۰۵/۰۸/۰۷ ۱۸:۳۰');
+                return false;
+            }
+            const converted = jalaliDateTimeToGregorian(value);
+            jalaliInput.setCustomValidity(converted ? '' : 'تاریخ و ساعت معتبر وارد کن؛ قالب: سال/ماه/روز ساعت:دقیقه');
+            return Boolean(converted);
+        };
+
+        jalaliInput.addEventListener('input', validateJalali);
+        form.addEventListener('submit', event => {
+            if (!validateJalali()) {
+                event.preventDefault();
+                jalaliInput.reportValidity();
+                return;
+            }
+            gregorianInput.value = jalaliDateTimeToGregorian(jalaliInput.value.trim()).replace('T', ' ') + ':00';
+        });
+    });
+
+
     let scrollQueued = false;
     const updateHeader = () => {
         header?.classList.toggle('is-scrolled', window.scrollY > 14);
     };
 
     const revealItems = site.querySelectorAll(
-        '.reveal-card, .value-card, .moment-photo, .story-copy, .values-heading, .moments-top, .visit-copy, .visit-details'
+        '.reveal-card, .value-card, .moment-photo, .story-copy, .values-heading, .moments-top, .visit-copy, .visit-details, .gil-category-links > a, .gil-food-card, .gil-experience, .gil-order-card, .gil-gallery-item, .gil-final-cta'
     );
 
     if (!reduceMotion) {
         site.classList.add('gsap-ready');
-        gsap.fromTo('.hero-copy .eyebrow',
-            { autoAlpha: 0, y: 18 },
-            { autoAlpha: 1, y: 0, duration: 0.65, ease: 'power2.out', delay: 0.08, overwrite: 'auto' }
-        );
-        gsap.fromTo('.hero-copy h1',
-            { autoAlpha: 0, y: 26 },
-            { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: 0.16, overwrite: 'auto' }
-        );
-        gsap.fromTo('.hero-description, .hero-actions, .hero-social-proof',
-            { autoAlpha: 0, y: 20 },
-            { autoAlpha: 1, y: 0, duration: 0.65, stagger: 0.12, ease: 'power2.out', delay: 0.3, overwrite: 'auto' }
-        );
-        gsap.fromTo('.hero-visual',
-            { autoAlpha: 0, y: 22, scale: 0.985 },
-            { autoAlpha: 1, y: 0, scale: 1, duration: 0.95, ease: 'power3.out', delay: 0.18, overwrite: 'auto' }
-        );
+        const hero = site.querySelector('.gil-hero-center') || site.querySelector('.hero-copy');
+        if (hero) {
+            const eyebrow = hero.querySelector('.gil-eyebrow, .eyebrow');
+            const title = hero.querySelector('h1');
+            const copy = hero.querySelector('.gil-hero-lead, .hero-description');
+            const actions = hero.querySelector('.gil-hero-actions, .hero-actions');
+            const special = hero.querySelector('.gil-hero-special, .hero-social-proof');
+            const timeline = gsap.timeline({ defaults: { ease: 'power3.out' } });
+            if (eyebrow) timeline.fromTo(eyebrow, { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: .55 });
+            if (title) timeline.fromTo(title, { autoAlpha: 0, y: 32, clipPath: 'inset(0 0 100% 0)' }, { autoAlpha: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: .85 }, '-=.18');
+            if (copy) timeline.fromTo(copy, { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: .62 }, '-=.28');
+            if (actions) timeline.fromTo(actions, { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: .55 }, '-=.25');
+            if (special) timeline.fromTo(special, { autoAlpha: 0, y: 15 }, { autoAlpha: 1, y: 0, duration: .52 }, '-=.2');
+        }
+        const heroPhoto = site.querySelector('.gil-hero-photo');
+        if (heroPhoto) gsap.fromTo(heroPhoto, { scale: 1.08 }, {
+            scale: 1, duration: 1.5, ease: 'power2.out',
+            scrollTrigger: { trigger: heroPhoto, start: 'top top', once: true }
+        });
+        if (site.querySelector('.gil-hero-cinematic')) {
+            gsap.to('.gil-hero-photo', {
+                yPercent: 7, ease: 'none',
+                scrollTrigger: { trigger: '.gil-hero-cinematic', start: 'top top', end: 'bottom top', scrub: .8 }
+            });
+        }
         revealItems.forEach(item => {
             gsap.fromTo(item,
                 { autoAlpha: 0, y: 24 },
@@ -103,6 +142,8 @@ gsap.registerPlugin(ScrollTrigger);
     let current = null;
     let destination = null;
     let animationFrame = 0;
+    let pointerIsControlling = false;
+    let pointerResumeTimer = null;
 
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
     const lerp = (start, end, progress) => start + (end - start) * progress;
@@ -158,6 +199,7 @@ gsap.registerPlugin(ScrollTrigger);
 
     const scheduleCup = () => {
         if (!anchors.length) return;
+        if (pointerIsControlling) return;
         destination = calculateDestination();
         if (!animationFrame) animationFrame = window.requestAnimationFrame(animateCup);
     };
@@ -173,7 +215,7 @@ gsap.registerPlugin(ScrollTrigger);
 
         const width = cup.getBoundingClientRect().width || 100;
         const height = width * 1.27;
-        cup.style.transform = 'translate3d(' + (current.x - width / 2) + 'px, ' + (current.y - height / 2) + 'px, 0) rotate(' + current.rotation + 'deg)';
+        gsap.set(cup, { x: current.x - width / 2, y: current.y - height / 2, rotation: current.rotation, force3D: true });
 
         const distance = Math.abs(current.x - destination.x) + Math.abs(current.y - destination.y);
         if (distance > 0.6) {
@@ -181,13 +223,53 @@ gsap.registerPlugin(ScrollTrigger);
         }
     };
 
+    const followPointer = event => {
+        if (!cup || !event || (event.pointerType === 'touch' && event.pressure <= 0 && !event.buttons)) return;
+        pointerIsControlling = true;
+        if (pointerResumeTimer) window.clearTimeout(pointerResumeTimer);
+        const width = cup.getBoundingClientRect().width || 88;
+        const height = width * 1.27;
+        const x = clamp(event.clientX, 18, window.innerWidth - 18) - width / 2;
+        const y = clamp(event.clientY, 18, window.innerHeight - 18) - height / 2;
+        const rotation = clamp((Number(event.movementX) || 0) * .12, -8, 8);
+        current = { x: x + width / 2, y: y + height / 2, rotation };
+        gsap.to(cup, {
+            x, y, rotation,
+            duration: event.pointerType === 'touch' ? .2 : .48,
+            ease: 'power3.out',
+            overwrite: 'auto',
+        });
+        pointerResumeTimer = window.setTimeout(() => {
+            pointerIsControlling = false;
+            measureAnchors();
+        }, event.pointerType === 'touch' ? 650 : 1100);
+    };
+
+    window.addEventListener('pointermove', event => {
+        if (event.pointerType === 'mouse' || event.pointerType === 'touch') followPointer(event);
+    }, { passive: true });
+    window.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'touch') followPointer(event);
+    }, { passive: true });
+    window.addEventListener('pointerup', () => {
+        if (pointerResumeTimer) window.clearTimeout(pointerResumeTimer);
+        pointerResumeTimer = window.setTimeout(() => {
+            pointerIsControlling = false;
+            measureAnchors();
+        }, 420);
+    }, { passive: true });
+    window.addEventListener('pointercancel', () => {
+        pointerIsControlling = false;
+        measureAnchors();
+    }, { passive: true });
+
     const onScroll = () => {
         if (scrollQueued) return;
         scrollQueued = true;
         window.requestAnimationFrame(() => {
             scrollQueued = false;
             updateHeader();
-            scheduleCup();
+            if (!pointerIsControlling) scheduleCup();
         });
     };
 

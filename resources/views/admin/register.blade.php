@@ -7,11 +7,12 @@
     <title>ثبت‌نام کارکنان | خانه گیلاسی</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="admin-auth-body">
+@php($loginBackground = \App\Models\SiteMediaAsset::urlFor('login_background', asset('images/login-background.webp')))
+<body class="admin-auth-body" style="--login-image: url('{{ $loginBackground }}')">
     <main class="auth-layout">
         <section class="auth-form-panel" aria-labelledby="register-title">
             <header class="auth-form-heading">
-                <span class="eyebrow">INVITED STAFF REGISTRATION</span>
+                <span class="eyebrow">ثبت‌نام کارکنان با دعوت مدیر</span>
                 <h1 id="register-title">ساخت حساب کارکنان</h1>
                 <p>ثبت‌نام فقط با کلید دعوت مدیر مجموعه امکان‌پذیر است.</p>
             </header>
@@ -38,9 +39,9 @@
             <footer class="auth-legal">تا زمانی که سرویس پیامک OTP متصل نشده، مالکیت شماره موبایل با پیامک تأیید نمی‌شود.</footer>
         </section>
         <aside class="auth-brand-panel" aria-label="خانه گیلاسی">
-            <div class="auth-brand-top"><span class="auth-mark">خ</span><span><b>خانه گیلاسی</b><small>CAFE / RESTAURANT</small></span></div>
+            <div class="auth-brand-top"><span class="auth-mark">خ</span><span><b>خانه گیلاسی</b><small>کافه و رستوران</small></span></div>
             <div class="auth-brand-copy">
-                <span class="auth-brand-kicker">A SAFE WORKSPACE</span>
+                <span class="auth-brand-kicker">محیط کاری امن</span>
                 <h2>حساب‌های کاری، با دسترسی کنترل‌شده.</h2>
                 <p>ثبت‌نام کارکنان با کلید دعوت انجام می‌شود؛ حساب‌های جدید بدون کلید امن ساخته نمی‌شوند.</p>
             </div>

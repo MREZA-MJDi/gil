@@ -34,7 +34,7 @@ class DashboardController extends Controller
             ->select('status', DB::raw('COUNT(*) as aggregate'))->groupBy('status')->pluck('aggregate', 'status');
 
         $recent = Order::query()->with('table:id,name')->withCount('items')->latest('id')->limit(8)
-            ->get(['id', 'number', 'restaurant_table_id', 'channel', 'status', 'payment_status', 'total', 'created_at']);
+            ->get(['id', 'number', 'restaurant_table_id', 'channel', 'source', 'external_provider', 'external_order_id', 'status', 'payment_status', 'total', 'created_at']);
 
         return response()->json(['data' => [
             'period' => ['from' => $start->toIso8601String(), 'to' => $end->toIso8601String()],

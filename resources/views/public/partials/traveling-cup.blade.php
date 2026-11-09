@@ -26,5 +26,5 @@
         <path d="M110 73 Q127 69 128 81 Q129 92 111 94" stroke="#f0dfc6" stroke-width="3" fill="none" stroke-linecap="round"/>
         <path d="M31 127 l-9 -5 M28 138 l-11 1 M121 122 l9 -7" stroke="#c8d96c" stroke-width="3" stroke-linecap="round"/>
     </svg>
-    <span class="cup-companion-label">one good sip</span>
+    <span class="cup-companion-label">یک جرعه حال خوب</span>
 </div>

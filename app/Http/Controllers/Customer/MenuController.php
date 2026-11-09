@@ -8,6 +8,7 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Models\Category;
 use App\Models\RestaurantSetting;
 use App\Models\RestaurantTable;
+use App\Models\SiteMediaAsset;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\URL;
@@ -48,7 +49,8 @@ class MenuController extends Controller
                 'name' => $settings->name,
                 'phone' => $settings->phone,
                 'address' => $settings->address,
-                'logo_url' => $settings->logo_path ? asset('storage/'.$settings->logo_path) : null,
+                'logo_url' => SiteMediaAsset::urlFor('brand_logo', $settings->logo_path ? asset('storage/'.$settings->logo_path) : null),
+                'menu_cover_url' => SiteMediaAsset::urlFor('menu_cover'),
                 'currency_label' => $settings->currency_label,
                 'tax_basis_points' => $settings->tax_basis_points,
                 'service_basis_points' => $settings->service_basis_points,
@@ -72,6 +74,7 @@ class MenuController extends Controller
 
         $data['restaurant_table_id'] = $table->id;
         $data['channel'] = 'dine_in';
+        $data['source'] = 'qr';
 
         return response()->json([
             'data' => tap($orders->create($data, null), fn ($order) => $order->load('items'))

@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
-    public function __construct(private readonly AuditLogger $audit) {}
+    public function __construct(private readonly AuditLogger $audit, private readonly RecipeInventoryService $recipeInventory) {}
 
     public function create(array $input, ?int $userId = null): Order
     {
@@ -130,6 +130,10 @@ class OrderService
                 'number' => 'KG-'.now()->format('ymd').'-'.Str::upper(Str::random(6)),
                 'restaurant_table_id' => $table?->id,
                 'channel' => $input['channel'],
+                'payment_preference' => $input['payment_preference'] ?? 'at_counter',
+                'source' => $input['source'] ?? 'staff',
+                'external_provider' => $input['external_provider'] ?? null,
+                'external_order_id' => $input['external_order_id'] ?? null,
                 'status' => OrderStatus::New,
                 'payment_status' => PaymentStatus::Unpaid,
                 'subtotal' => $subtotal,
@@ -147,6 +151,7 @@ class OrderService
             ]);
 
             $order->items()->createMany($lines);
+            $this->recipeInventory->consumeForOrder($order, $requestedQuantities->all(), $userId);
             foreach ($requestedQuantities as $productId => $quantity) {
                 $product = $products->get((int) $productId);
                 // A null stock quantity means stock tracking is intentionally disabled for this product.
@@ -232,11 +237,13 @@ class OrderService
                 throw ValidationException::withMessages(['order' => 'سفارش دارای پرداخت باید از مسیر بازپرداخت اصلاح شود.']);
             }
 
-            $items = $order->items()->get(['id', 'product_id', 'quantity']);
+            $items = $order->items()->get(['id', 'product_id', 'quantity', 'recipe_snapshot']);
             $trackedProductIds = $items->pluck('product_id')->filter()->unique()->values();
             $trackedProducts = $trackedProductIds->isEmpty()
                 ? collect()
                 : Product::query()->whereIn('id', $trackedProductIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+
+            $this->recipeInventory->restoreForCancelledOrder($order->setRelation('items', $items), $userId);
 
             foreach ($items->groupBy('product_id') as $productId => $productItems) {
                 if (! $productId || ! $trackedProducts->has((int) $productId)) continue;
