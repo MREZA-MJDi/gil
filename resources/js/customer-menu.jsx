@@ -251,7 +251,7 @@ function CustomerMenu() {
     return (
         <div className="gil-menu-app">
             <header className="gil-menu-header">
-                <a className="gil-menu-brand" href={"/menu/" + encodeURIComponent(token)} aria-label="منوی میز " + (data.table?.name || "شما")>
+                <a className="gil-menu-brand" href={"/menu/" + encodeURIComponent(token)} aria-label={"منوی میز " + (data.table?.name || "شما")}>
                     {data.settings?.logo_url
                         ? <img src={data.settings.logo_url} alt="" />
                         : <span className="gil-menu-brand-mark" aria-hidden="true">گ</span>}
