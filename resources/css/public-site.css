@@ -52,6 +52,13 @@
 .public-site .kg-nav a { color: #5e4d42; font-size: 12px; font-weight: 700; transition: color .2s; white-space: nowrap; }
 .public-site .kg-nav a:hover, .public-site .kg-nav a[aria-current="page"] { color: var(--kg-red); }
 .public-site .kg-nav .kg-nav-admin { color: var(--kg-red); }
+.public-site .kg-nav .kg-nav-logout { display: inline-flex; align-items: center; margin: 0; }
+.public-site .kg-nav .kg-nav-logout button {
+    padding: 0; border: 0; color: #5e4d42; background: transparent;
+    font: inherit; font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+.public-site .kg-nav .kg-nav-logout button:hover,
+.public-site .kg-nav .kg-nav-logout button:focus-visible { color: var(--kg-red); }
 .public-site .kg-header-cta {
     display: inline-flex; align-items: center; gap: 12px; padding: 11px 18px; border-radius: 999px;
     color: white; background: var(--kg-red); font-size: 12px; font-weight: 800; white-space: nowrap;
@@ -379,6 +386,8 @@
     }
     .public-site .kg-nav.is-open { display: flex; }
     .public-site .kg-nav a { padding: 8px 0; font-size: 12px; border-bottom: 1px solid var(--kg-line); }
+    .public-site .kg-nav .kg-nav-logout { display: block; padding: 8px 0; border-bottom: 1px solid var(--kg-line); }
+    .public-site .kg-nav .kg-nav-logout button { width: 100%; text-align: start; font-size: 12px; }
     .public-site .kg-hero { width: calc(100% - 32px); padding: 38px 0 22px; grid-template-columns: 1fr; gap: 25px; }
     .public-site .kg-hero-copy { padding: 0; }
     .public-site .kg-hero h1 { font-size: clamp(43px, 13vw, 62px); }
