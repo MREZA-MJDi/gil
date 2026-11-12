@@ -37,6 +37,7 @@ class MenuController extends Controller
         $categories = Category::query()->active()->ordered()->with([
             'products' => fn ($query) => $query
                 ->where('status', ProductStatus::Active->value)
+                ->where(fn ($stock) => $stock->whereNull('stock_quantity')->orWhere('stock_quantity', '>', 0))
                 ->with(['options' => fn ($options) => $options->where('is_active', true)->orderBy('sort_order')])
                 ->orderBy('sort_order')->orderBy('name'),
         ])->get();
