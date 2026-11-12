@@ -78,9 +78,37 @@ class PublicSiteRenderingTest extends TestCase
     {
         $this->get(route('public.menu'))
             ->assertOk()
-            ->assertSee('منو برای')
+            ->assertSee('طعم دلخواهت')
             ->assertSee('هنوز محصولی به سبد اضافه نکرده‌ای')
             ->assertSee(route('public.orders.store'));
+    }
+
+
+    public function test_public_menu_uses_category_selection_and_real_product_image_templates(): void
+    {
+        $category = Category::query()->create([
+            'name' => 'غذاهای منتخب',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $product = Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'غذای ویژه تست',
+            'description' => 'توضیح غذای ویژه',
+            'base_price' => 125000,
+            'status' => 'active',
+            'sort_order' => 1,
+        ]);
+
+        $this->get(route('public.menu'))
+            ->assertOk()
+            ->assertSee('data-menu-showcase', false)
+            ->assertSee('data-menu-category-select="'.$category->id.'"', false)
+            ->assertSee('data-menu-product-select', false)
+            ->assertSee('data-menu-product-template="'.$product->id.'"', false)
+            ->assertSee('data-add-online-product', false)
+            ->assertSee('غذای ویژه تست');
     }
 
     public function test_reservation_pages_render_and_describe_pending_confirmation(): void
