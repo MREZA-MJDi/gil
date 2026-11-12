@@ -331,8 +331,27 @@ class RestaurantOperationsTest extends TestCase
         $this->actingAs($this->admin);
 
         $this->getJson('/admin/api/settings')->assertOk()->assertJsonPath('data.currency_label', 'تومان');
-        $this->patchJson('/admin/api/settings', ['tax_basis_points' => 900])->assertOk()
-            ->assertJsonPath('data.tax_basis_points', 900);
+        $homepageContent = [
+            'hero_eyebrow' => 'کافه آزمایشی',
+            'hero_title_line1' => 'طعم تازه،',
+            'hero_title_line2' => 'هر روز.',
+            'hero_description' => 'متن هیرو که مدیر ویرایش کرده است.',
+            'hero_primary_cta' => 'منوی تست',
+            'hero_secondary_cta' => 'رزرو تست',
+            'hero_badge_title' => 'با عشق',
+            'hero_badge_description' => 'روزانه و تازه',
+            'showcase_eyebrow' => 'گزیده',
+            'showcase_title' => 'محصولات منتخب',
+            'showcase_description' => 'توضیح اسلایدر از تنظیمات ذخیره می‌شود.',
+        ];
+
+        $this->patchJson('/admin/api/settings', [
+            'tax_basis_points' => 900,
+            'homepage_content' => $homepageContent,
+        ])->assertOk()
+            ->assertJsonPath('data.tax_basis_points', 900)
+            ->assertJsonPath('data.homepage_content.hero_title_line1', 'طعم تازه،')
+            ->assertJsonPath('data.homepage_content.showcase_title', 'محصولات منتخب');
 
         $this->getJson('/admin/api/reports/sales')
             ->assertOk()
