@@ -80,7 +80,7 @@ class RestaurantOperationsTest extends TestCase
             ->assertSee('خروج')
             ->assertSee(route('admin.logout'), false);
 
-        $this->get('/menu')->assertOk()->assertSee('منو برای')->assertSee('لاته تست');
+        $this->get('/menu')->assertOk()->assertSee('طعم دلخواهت')->assertSee('لاته تست');
     }
 
     public function test_public_home_and_reservation_use_dashboard_managed_media_assets(): void
