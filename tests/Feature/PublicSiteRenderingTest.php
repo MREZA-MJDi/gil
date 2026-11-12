@@ -37,6 +37,15 @@ class PublicSiteRenderingTest extends TestCase
             ]);
         }
 
+        Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'محصول ناموجود برای شمارش',
+            'base_price' => 1000,
+            'status' => 'active',
+            'stock_quantity' => 0,
+            'sort_order' => 6,
+        ]);
+
         $this->get(route('home'))
             ->assertOk()
             ->assertSee('5 محصول در منو')
