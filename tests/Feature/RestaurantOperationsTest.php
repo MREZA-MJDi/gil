@@ -553,7 +553,7 @@ class RestaurantOperationsTest extends TestCase
             'website' => '',
         ])->assertRedirect(route('public.reservations.received'));
 
-        $reservation = \App\Models\Reservation::query()->where('phone', '09121111111')->firstOrFail();
+        $reservation = \App\Models\Reservation::query()->where('phone', '+989121111111')->firstOrFail();
         $this->assertSame('website', $reservation->source);
         $this->assertSame('birthday', $reservation->purpose);
         $this->assertSame('pending', $reservation->status->value);
