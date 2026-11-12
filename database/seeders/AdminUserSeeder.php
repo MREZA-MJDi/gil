@@ -16,7 +16,7 @@ class AdminUserSeeder extends Seeder
         $email = config('admin.email');
         $name = config('admin.name', 'مدیر خانه گیلاسی');
 
-        if (! $phone || ! PhoneNumber::isValid($phone) || strlen($password) < 14) {
+        if (! $phone || ! PhoneNumber::isValid($phone) || strlen($password) < 6) {
             throw new RuntimeException('ADMIN_PHONE معتبر و ADMIN_PASSWORD با حداقل ۱۴ نویسه را در محیط امن تنظیم کنید.');
         }
 
