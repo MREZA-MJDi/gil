@@ -22,7 +22,7 @@ class PublicSiteRenderingTest extends TestCase
         $this->get(route('public.menu'))
             ->assertOk()
             ->assertSee('منو برای')
-            ->assertSee('هنوز محصولی انتخاب نشده')
+            ->assertSee('هنوز محصولی به سبد اضافه نکرده‌ای')
             ->assertSee(route('public.orders.store'));
     }
 
