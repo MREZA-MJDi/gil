@@ -76,7 +76,7 @@
                             <b>↗</b>
                         </span>
                         <span class="kg-category-name">{{ $category->name }}</span>
-                        <small>{{ $category->products->count() }} محصول فعال</small>
+                        <small>{{ number_format($category->active_products_count) }} محصول فعال</small>
                     </a>
                 @empty
                     <div class="kg-empty-state">
