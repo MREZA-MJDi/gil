@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Ingredient extends Model
 {
     protected $fillable = [
-        'name', 'unit', 'stock_quantity', 'low_stock_threshold', 'cost_per_unit', 'is_active',
+        'name', 'unit', 'stock_quantity', 'low_stock_threshold', 'cost_per_unit', 'is_active', 'seed_key',
     ];
 
     protected function casts(): array
