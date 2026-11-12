@@ -4,8 +4,6 @@
 @import './dashboard.css';
 @import './iranian-ui.css';
 @import './auth.css';
-@import './customer-menu.css';
-@import './public-site.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
