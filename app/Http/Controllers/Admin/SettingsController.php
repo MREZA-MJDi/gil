@@ -30,6 +30,18 @@ class SettingsController extends Controller
             'receipt_footer' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'paper_width' => ['sometimes', 'required', 'integer', 'in:58,80'],
             'customer_menu_enabled' => ['sometimes', 'required', 'boolean'],
+            'homepage_content' => ['sometimes', 'array'],
+            'homepage_content.hero_eyebrow' => ['sometimes', 'required', 'string', 'max:100'],
+            'homepage_content.hero_title_line1' => ['sometimes', 'required', 'string', 'max:80'],
+            'homepage_content.hero_title_line2' => ['sometimes', 'required', 'string', 'max:80'],
+            'homepage_content.hero_description' => ['sometimes', 'required', 'string', 'max:600'],
+            'homepage_content.hero_primary_cta' => ['sometimes', 'required', 'string', 'max:60'],
+            'homepage_content.hero_secondary_cta' => ['sometimes', 'required', 'string', 'max:60'],
+            'homepage_content.hero_badge_title' => ['sometimes', 'required', 'string', 'max:80'],
+            'homepage_content.hero_badge_description' => ['sometimes', 'required', 'string', 'max:120'],
+            'homepage_content.showcase_eyebrow' => ['sometimes', 'required', 'string', 'max:100'],
+            'homepage_content.showcase_title' => ['sometimes', 'required', 'string', 'max:100'],
+            'homepage_content.showcase_description' => ['sometimes', 'required', 'string', 'max:500'],
         ]);
         if ($data === []) throw ValidationException::withMessages(['settings' => 'هیچ تغییری ارسال نشده است.']);
 
