@@ -64,7 +64,7 @@ class MenuController extends Controller
                 'options' => $product->options->map(fn ($option) => [
                     'id' => (int) $option->id,
                     'name' => $option->name,
-                    'type' => $option->type $option->type->value,
+                    'type' => $option->type->value,
                     'price' => (int) $option->price,
                 ])->values(),
             ])->values(),
