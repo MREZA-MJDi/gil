@@ -8,6 +8,7 @@ use App\Models\RestaurantSetting;
 use App\Models\SiteMediaAsset;
 use App\Services\AuditLogger;
 use App\Support\PhoneNumber;
+use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
