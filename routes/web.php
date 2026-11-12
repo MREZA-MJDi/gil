@@ -36,15 +36,7 @@ Route::post('/api/integrations/orders/{provider}', [OrderWebhookController::clas
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
     ->name('integrations.orders.store');
 
-Route::get('/reserve', [PublicReservationController::class, 'create'])->name('public.reservations.create');
-Route::post('/reserve', [PublicReservationController::class, 'store'])->middleware('throttle:5,1')->name('public.reservations.store');
-Route::get('/reserve/received', [PublicReservationController::class, 'received'])->name('public.reservations.received');
-Route::post('/online-orders', [PublicOrderController::class, 'store'])->middleware('throttle:10,1')->name('public.orders.store');
-Route::post('/api/integrations/orders/{provider}', [OrderWebhookController::class, 'store'])
-    ->whereIn('provider', ['snappfood', 'partner'])
-    ->middleware('throttle:60,1')
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
-    ->name('integrations.orders.store');
+
 
 
 Route::middleware('guest')->group(function () {
