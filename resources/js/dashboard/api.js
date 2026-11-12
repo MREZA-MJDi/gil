@@ -67,3 +67,15 @@ export function unwrapList(payload) {
 export function unwrapData(payload) {
     return payload?.data ?? null;
 }
+
+export function unwrapPagination(payload) {
+    const paginator = Array.isArray(payload?.data?.data) ? payload.data : payload;
+    return {
+        currentPage: Number(paginator?.current_page || 1),
+        lastPage: Number(paginator?.last_page || 1),
+        perPage: Number(paginator?.per_page || 25),
+        total: Number(paginator?.total || 0),
+        from: Number(paginator?.from || 0),
+        to: Number(paginator?.to || 0),
+    };
+}

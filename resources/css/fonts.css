@@ -1,26 +1,16 @@
-/*
- * Local Iranian Yekan font.
- * Upload the licensed font files to public/fonts/iranyekan/ using these exact names:
- *   IRANYekanWebRegular.woff2
- *   IRANYekanWebBold.woff2
- */
-@font-face {
-    font-family: 'IRANYekan';
-    src: url('/fonts/iranyekan/IRANYekanWebRegular.woff2') format('woff2');
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'IRANYekan';
-    src: url('/fonts/iranyekan/IRANYekanWebBold.woff2') format('woff2');
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-}
+/* Local Estedad font files bundled by Vite from resources/estead. */
+@font-face { font-family: 'Estedad'; src: url('../estead/woff2/Estedad-Thin.woff2') format('woff2'); font-style: normal; font-weight: 100; font-display: swap; }
+@font-face { font-family: 'Estedad'; src: url('../estead/woff2/Estedad-ExtraLight.woff2') format('woff2'); font-style: normal; font-weight: 200; font-display: swap; }
+@font-face { font-family: 'Estedad'; src: url('../estead/woff2/Estedad-Light.woff2') format('woff2'); font-style: normal; font-weight: 300; font-display: swap; }
+@font-face { font-family: 'Estedad'; src: url('../estead/woff2/Estedad-Regular.woff2') format('woff2'); font-style: normal; font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Estedad'; src: url('../estead/woff2/Estedad-Medium.woff2') format('woff2'); font-style: normal; font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Estedad'; src: url('../estead/woff2/Estedad-SemiBold.woff2') format('woff2'); font-style: normal; font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Estedad'; src: url('../estead/woff2/Estedad-Bold.woff2') format('woff2'); font-style: normal; font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Estedad'; src: url('../estead/woff2/Estedad-ExtraBold.woff2') format('woff2'); font-style: normal; font-weight: 800; font-display: swap; }
+@font-face { font-family: 'Estedad'; src: url('../estead/woff2/Estedad-Black.woff2') format('woff2'); font-style: normal; font-weight: 900; font-display: swap; }
 
 :root {
-    font-family: 'IRANYekan', Tahoma, sans-serif;
-    font-synthesis: weight;
+    font-family: 'Estedad', Tahoma, sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
 }

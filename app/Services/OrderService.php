@@ -81,15 +81,22 @@ class OrderService
                 $quantity = (int) $item['quantity'];
                 $selected = [];
                 $optionsUnitTotal = 0;
+                $selectedSizeCount = 0;
                 foreach ($item['options'] ?? [] as $optionInput) {
                     $option = $options->get((int) $optionInput['id']);
                     if (! $option || (int) $option->product_id !== (int) $product->id || ! $option->is_active) {
                         throw ValidationException::withMessages(['items' => 'افزودنی انتخاب‌شده معتبر نیست.']);
                     }
+
+                    $optionType = $option->type instanceof \BackedEnum ? $option->type->value : (string) $option->type;
+                    if ($optionType === 'size' && ++$selectedSizeCount > 1) {
+                        throw ValidationException::withMessages(['items' => 'برای هر ردیف سفارش فقط یک سایز می‌توان انتخاب کرد.']);
+                    }
+
                     $selected[] = [
                         'id' => $option->id,
                         'name' => $option->name,
-                        'type' => $option->type instanceof \BackedEnum ? $option->type->value : $option->type,
+                        'type' => $optionType,
                         'price' => (int) $option->price,
                     ];
                     $optionsUnitTotal += (int) $option->price;

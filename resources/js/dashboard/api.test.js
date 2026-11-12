@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { api, idempotencyKey, unwrapData, unwrapList } from './api.js';
+import { api, idempotencyKey, unwrapData, unwrapList, unwrapPagination } from './api.js';
 
 function mockBrowser(t, fetchImpl) {
     const originalFetch = globalThis.fetch;
@@ -33,6 +33,15 @@ test('unwrap helpers accept Laravel paginator and wrapped data', () => {
     assert.deepEqual(unwrapList({ data: { data: [{ id: 2 }], current_page: 1 } }), [{ id: 2 }]);
     assert.deepEqual(unwrapList({}), []);
     assert.deepEqual(unwrapData({ data: { id: 7 } }), { id: 7 });
+});
+
+test('unwrapPagination reads Laravel root and wrapped paginator response shapes', () => {
+    assert.deepEqual(unwrapPagination({current_page:2,last_page:5,per_page:25,total:117,from:26,to:50}), {
+        currentPage:2,lastPage:5,perPage:25,total:117,from:26,to:50,
+    });
+    assert.deepEqual(unwrapPagination({data:{data:[{id:1}],current_page:1,last_page:1,per_page:25,total:1,from:1,to:1}}), {
+        currentPage:1,lastPage:1,perPage:25,total:1,from:1,to:1,
+    });
 });
 
 test('api posts JSON with CSRF, same-origin credentials and idempotency key', async t => {

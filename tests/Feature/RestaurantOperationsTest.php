@@ -185,6 +185,41 @@ class RestaurantOperationsTest extends TestCase
         $this->assertSame(1, Order::query()->count());
     }
 
+    public function test_order_rejects_more_than_one_size_option_for_a_product_line(): void
+    {
+        $this->actingAs($this->admin);
+        $firstSize = ProductOption::query()->create([
+            'product_id' => $this->product->id,
+            'name' => 'سایز کوچک',
+            'type' => 'size',
+            'price' => 0,
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+        $secondSize = ProductOption::query()->create([
+            'product_id' => $this->product->id,
+            'name' => 'سایز بزرگ',
+            'type' => 'size',
+            'price' => 25000,
+            'is_active' => true,
+            'sort_order' => 2,
+        ]);
+
+        $this->postJson('/admin/api/orders', [
+            ...$this->orderPayload(1),
+            'items' => [[
+                'product_id' => $this->product->id,
+                'quantity' => 1,
+                'options' => [['id' => $firstSize->id], ['id' => $secondSize->id]],
+            ]],
+        ], ['Idempotency-Key' => 'order-multiple-size-test-01'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('items');
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertSame(5, $this->product->fresh()->stock_quantity);
+    }
+
     public function test_order_cancellation_restores_tracked_stock_and_records_a_movement(): void
     {
         $this->actingAs($this->admin);
@@ -419,6 +454,25 @@ class RestaurantOperationsTest extends TestCase
         $this->assertSame($firstPrint->json('data.document_number'), $secondPrint->json('data.document_number'));
     }
 
+    public function test_admin_table_list_respects_server_pagination(): void
+    {
+        foreach (['میز صفحه اول', 'میز صفحه دوم', 'میز صفحه سوم'] as $index => $name) {
+            RestaurantTable::query()->create([
+                'name' => $name,
+                'token' => str_repeat((string) ($index + 1), 48),
+                'is_active' => true,
+            ]);
+        }
+
+        $response = $this->actingAs($this->admin)
+            ->getJson('/admin/api/tables?per_page=10&page=1')
+            ->assertOk();
+
+        $response->assertJsonPath('current_page', 1)
+            ->assertJsonPath('per_page', 10)
+            ->assertJsonPath('total', 3);
+    }
+
     public function test_reservation_creation_is_idempotent_and_prevents_table_overlap(): void
     {
         $this->actingAs($this->admin);
@@ -469,6 +523,13 @@ class RestaurantOperationsTest extends TestCase
         $this->postJson('/admin/api/cash-shift/'.$shiftId.'/movements', [
             'direction' => 'out', 'amount' => 100, 'reason' => 'تنخواه تست',
         ], ['Idempotency-Key' => 'cash-movement-test-0002'])->assertCreated();
+
+        $this->getJson('/admin/api/cash-shift')
+            ->assertOk()
+            ->assertJsonPath('data.cash_in_total', 500)
+            ->assertJsonPath('data.cash_out_total', 100)
+            ->assertJsonPath('data.expected_cash', 1400)
+            ->assertJsonCount(2, 'data.movements');
 
         $this->postJson('/admin/api/cash-shift/'.$shiftId.'/close', [
             'counted_cash' => 1400, 'note' => 'تست تطبیق صندوق',

@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import MediaManager from './MediaManager.jsx';
+import { MoneyInput } from '../shared/iranian-ui.jsx';
 import { api, idempotencyKey, unwrapData, unwrapList } from './api.js';
 import QRCode from 'qrcode';
 import { gregorianDateToJalali, jalaliDateToGregorian, gregorianDateTimeToJalali, jalaliDateTimeToGregorian, toPersianDigits } from '../date-utils.js';
@@ -65,8 +67,8 @@ function Pill({ value, dictionary = {}, tone }) {
     );
     return <span className={'status-pill ' + resolvedTone}><i />{label}</span>;
 }
-function Button({ children, kind = 'secondary', ...props }) {
-    return <button className={kind === 'primary' ? 'primary-button' : kind === 'danger' ? 'op-danger-button' : 'secondary-button'} {...props}>{children}</button>;
+function Button({ children, kind = 'secondary', type = 'button', ...props }) {
+    return <button type={type} className={kind === 'primary' ? 'primary-button' : kind === 'danger' ? 'op-danger-button' : 'secondary-button'} {...props}>{children}</button>;
 }
 function PageHeader({ title, subtitle, action, onAction }) {
     return <header className="page-header">
@@ -82,6 +84,18 @@ function Empty({ children = 'هنوز داده‌ای برای نمایش وجو
 }
 function Loading() { return <div className="op-loading"><span className="op-spinner" />در حال دریافت اطلاعات از سرور…</div>; }
 function TableWrap({ children }) { return <div className="table-scroll"><table className="data-table">{children}</table></div>; }
+function Pagination({ meta, onPageChange }) {
+    if (!meta || Number(meta.lastPage || 1) <= 1) {
+        return meta?.total > 0 ? <div className="op-pagination"><small>نمایش {numberFa(meta.from || 0)} تا {numberFa(meta.to || 0)} از {numberFa(meta.total)} رکورد</small></div> : null;
+    }
+    const current = Number(meta.currentPage || 1);
+    const last = Number(meta.lastPage || 1);
+    return <nav className="op-pagination" aria-label="صفحه‌بندی">
+        <small>نمایش {numberFa(meta.from || 0)} تا {numberFa(meta.to || 0)} از {numberFa(meta.total)} رکورد</small>
+        <div><Button disabled={current <= 1} onClick={() => onPageChange(current - 1)}>قبلی</Button><b>صفحه {numberFa(current)} از {numberFa(last)}</b><Button disabled={current >= last} onClick={() => onPageChange(current + 1)}>بعدی</Button></div>
+    </nav>;
+}
+
 function Modal({ title, eyebrow, onClose, children, wide = false }) {
     return <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
         <section className={'modal-card op-modal ' + (wide ? 'op-modal-wide' : '')} role="dialog" aria-modal="true" aria-label={title}>
@@ -219,18 +233,22 @@ function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
     </div>;
 }
 
-function OrdersPage({ orders, tables, onRefresh, onDetails, onPrint, onNewOrder, onTransition, onCancel }) {
-    const [query, setQuery] = useState('');
-    const [status, setStatus] = useState('all');
-    const filtered = (orders || []).filter(order => (status === 'all' || (status === 'open' && !['delivered', 'cancelled'].includes(order.status)) || (status === 'unsettled' && !['paid', 'refunded'].includes(order.payment_status)) || order.status === status)
-        && (String(order.number || '').toLowerCase().includes(query.toLowerCase()) || String(order.customer_phone || '').includes(query) || String(order.table?.name || '').toLowerCase().includes(query.toLowerCase())));
+function OrdersPage({ orders, filters, onFiltersChange, pagination, onPageChange, onRefresh, onDetails, onPrint, onNewOrder, onTransition, onCancel }) {
+    const [queryDraft, setQueryDraft] = useState(filters?.query || '');
+    const status = filters?.status || 'all';
+    useEffect(() => {
+        if (queryDraft === (filters?.query || '')) return undefined;
+        const timer = window.setTimeout(() => onFiltersChange({ query: queryDraft }), 300);
+        return () => window.clearTimeout(timer);
+    }, [queryDraft, filters?.query, onFiltersChange]);
+    const items = orders || [];
     return <div className="page-content">
-        <PageHeader title="سفارش‌ها و تحویل" subtitle="از ثبت تا آماده‌سازی، تحویل، تسویه و لغو؛ تمام تغییرها روی سرور ثبت می‌شوند." action="＋ سفارش جدید" onAction={onNewOrder} />
-        <div className="toolbar"><div className="filter-tabs">{[['all','همه'],['open','در جریان'],['unsettled','تسویه‌نشده'],['ready','آماده تحویل']].map(([key,label]) => <button key={key} className={status === key ? 'active' : ''} onClick={() => setStatus(key)}>{label}</button>)}</div><input value={query} onChange={e => setQuery(e.target.value)} placeholder="جست‌وجوی شماره، تلفن یا میز…" aria-label="جست‌وجوی سفارش" /><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
+        <PageHeader title="سفارش‌ها و تحویل" subtitle="سفارش‌ها را جست‌وجو کن، وضعیت آماده‌سازی را تغییر بده و از همین‌جا به صندوق یا چاپ فیش برو." action="＋ سفارش جدید" onAction={onNewOrder} />
+        <div className="toolbar"><div className="filter-tabs">{[['all','همه'],['open','در جریان'],['unsettled','تسویه‌نشده'],['ready','آماده تحویل']].map(([key,label]) => <button type="button" key={key} className={status === key ? 'active' : ''} onClick={() => onFiltersChange({ status: key })}>{label}</button>)}</div><input value={queryDraft} onChange={e => setQueryDraft(e.target.value)} placeholder="جست‌وجوی شماره، تلفن یا میز…" aria-label="جست‌وجوی سفارش" /><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
         <section className="panel">
-            {filtered.length ? <TableWrap><thead><tr><th>شماره سفارش</th><th>کانال / میز</th><th>مبلغ</th><th>آماده‌سازی</th><th>تسویه</th><th>ثبت‌شده</th><th>عملیات</th></tr></thead><tbody>
-                {filtered.map(order => <tr key={order.id}>
-                    <td><button className="op-text-button mono" onClick={() => onDetails(order.id)}>{order.number || ('#' + order.id)}</button></td>
+            {items.length ? <TableWrap><thead><tr><th>شماره سفارش</th><th>کانال / میز</th><th>مبلغ</th><th>آماده‌سازی</th><th>تسویه</th><th>ثبت‌شده</th><th>عملیات</th></tr></thead><tbody>
+                {items.map(order => <tr key={order.id}>
+                    <td><button type="button" className="op-text-button mono" onClick={() => onDetails(order.id)}>{order.number || ('#' + order.id)}</button></td>
                     <td>{channelLabel(order)}<small className="op-subtext">{order.customer_name || order.customer_phone || 'بدون مشخصات مشتری'}</small><small className="op-subtext">{orderSourceLabel[order.source] || 'ثبت پرسنل'} · پرداخت ترجیحی: {paymentPreferenceLabel[order.payment_preference] || 'در صندوق / هنگام تحویل'}</small></td>
                     <td className="amount-cell">{money(order.total)}</td><td><Pill value={order.status} dictionary={orderStatusLabel} /></td><td><Pill value={order.payment_status} dictionary={paymentStatusLabel} /></td><td>{dateTime(order.created_at)}</td>
                     <td><div className="op-actions">
@@ -240,7 +258,8 @@ function OrdersPage({ orders, tables, onRefresh, onDetails, onPrint, onNewOrder,
                         <Button onClick={() => onPrint(order.id, 'kitchen')}>فیش آشپزخانه</Button>
                     </div></td>
                 </tr>)}
-            </tbody></TableWrap> : <Empty>سفارشی با این فیلتر پیدا نشد.</Empty>}
+            </tbody></TableWrap> : <Empty>{queryDraft || status !== 'all' ? 'سفارشی با این جست‌وجو یا فیلتر پیدا نشد.' : 'هنوز سفارشی ثبت نشده است.'}</Empty>}
+            <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
     </div>;
 }
@@ -251,67 +270,78 @@ function nextStatusLabel(status) {
     return ({ new: 'تأیید', confirmed: 'شروع آماده‌سازی', preparing: 'آماده تحویل', ready: 'ثبت تحویل' })[status] || 'تغییر وضعیت';
 }
 
-function CashierPage({ cashShift, orders, onRefresh, onOpenShift, onCloseShift, onMovement, onPayment, onDetails }) {
+function CashierPage({ cashShift, orders, pagination, onPageChange, onRefresh, onOpenShift, onCloseShift, onMovement, onPayment, onDetails }) {
     const [openingCash, setOpeningCash] = useState('0');
     const [countedCash, setCountedCash] = useState('');
     const [shiftNote, setShiftNote] = useState('');
     const [movement, setMovement] = useState({ direction: 'out', amount: '', reason: '' });
     const [movementKey, setMovementKey] = useState(() => idempotencyKey());
-    const payable = (orders || []).filter(order => order.payment_status !== 'paid' && order.payment_status !== 'refunded' && order.status !== 'cancelled');
+    const movementPayload = cashShift?.movements;
+    const movements = Array.isArray(movementPayload) ? movementPayload : (movementPayload?.data || []);
+    const cashIn = Number(cashShift?.cash_in_total ?? movements.filter(item => item.direction === 'in').reduce((sum, item) => sum + Number(item.amount || 0), 0));
+    const cashOut = Number(cashShift?.cash_out_total ?? movements.filter(item => item.direction === 'out').reduce((sum, item) => sum + Number(item.amount || 0), 0));
+    const expectedCash = Number(cashShift?.expected_cash ?? (Number(cashShift?.opening_cash || 0) + cashIn - cashOut));
+    const closingDifference = countedCash === '' ? null : Number(countedCash) - expectedCash;
+    const payable = orders || [];
     return <div className="page-content">
-        <PageHeader title="صندوق و پرداخت" subtitle="شروع و پایان شیفت، ثبت دریافت و بازپرداخت؛ پرداخت کارت‌خوان به معنی ثبت تأییدشده توسط کارمند است." />
+        <PageHeader title="صندوق و پرداخت" subtitle="ابتدا شیفت را باز کن؛ دریافت نقدی، پرداخت کارت‌خوان و بازپرداخت را جداگانه ثبت کن و در پایان وجه واقعی را با مانده مورد انتظار تطبیق بده." />
         <section className="op-grid op-grid-2">
             <article className="panel op-card">
                 <div className="panel-heading"><div><h2>وضعیت شیفت صندوق</h2><p>هم‌زمان فقط یک شیفت باز قابل ثبت است.</p></div><Pill value={cashShift?.status || 'closed'} dictionary={{open:'باز',closed:'بسته'}} /></div>
-                {cashShift ? <div className="op-kpi-grid"><div><small>وجه آغازین</small><b>{money(cashShift.opening_cash)}</b></div><div><small>زمان شروع</small><b>{dateTime(cashShift.opened_at)}</b></div><div><small>ورودی/خروجی ثبت‌شده</small><b>{numberFa((cashShift.movements || []).length)} حرکت</b></div></div> :
+                {cashShift ? <><div className="op-kpi-grid"><div><small>وجه آغازین</small><b>{money(cashShift.opening_cash)}</b></div><div><small>موجودی مورد انتظار</small><b>{money(expectedCash)}</b></div><div><small>ورودی نقدی</small><b>{money(cashIn)}</b></div><div><small>خروجی نقدی</small><b>{money(cashOut)}</b></div></div><div className="op-cash-reconciliation"><b>مبنای بستن صندوق</b><span>وجه آغازین + ورودی نقدی − خروجی نقدی</span><strong>{money(expectedCash)}</strong><small>پرداخت کارت‌خوان و انتقال بانکی در موجودی نقدی صندوق شمرده نمی‌شود. هنگام بستن، فقط وجه نقد واقعی را وارد کن.</small></div>{movements.length > 0 && <div className="op-cash-movements"><b>آخرین گردش‌های ثبت‌شده</b>{movements.slice(0,6).map(item => <div key={item.id}><span className={item.direction === 'in' ? 'op-positive' : 'op-negative'}>{item.direction === 'in' ? 'ورودی' : 'خروجی'}</span><span>{item.reason || 'بدون شرح'}</span><strong>{money(item.amount)}</strong><small>{dateTime(item.occurred_at || item.created_at)}</small></div>)}</div>}</> :
                     <form className="op-form" onSubmit={e => { e.preventDefault(); onOpenShift({ opening_cash: Number(openingCash), note: shiftNote }); }}>
-                        <Field label={"وجه نقد اولیه (" + currencyLabel() + ')'}><input type="number" min="0" step="1" value={openingCash} onChange={e => setOpeningCash(e.target.value)} required /></Field>
+                        <Field label={"وجه نقد اولیه (" + currencyLabel() + ')'} hint="مبلغ پول نقد موجود در کشو در ابتدای شیفت را وارد کن."><input type="number" min="0" step="1" value={openingCash} onChange={e => setOpeningCash(e.target.value)} required /></Field>
                         <Field label="یادداشت شروع"><input value={shiftNote} onChange={e => setShiftNote(e.target.value)} maxLength="500" placeholder="مثلاً صندوق شیفت صبح" /></Field><Button kind="primary" type="submit">باز کردن شیفت</Button>
                     </form>}
                 {cashShift && <form className="op-form op-form-separated" onSubmit={e => { e.preventDefault(); onCloseShift(cashShift.id, { counted_cash: Number(countedCash), note: shiftNote }); }}>
-                    <Field label={"وجه نقد شمارش‌شده (" + currencyLabel() + ')'}><input type="number" min="0" value={countedCash} onChange={e => setCountedCash(e.target.value)} required /></Field>
+                    <Field label={"وجه نقد شمارش‌شده (" + currencyLabel() + ')'} hint={closingDifference === null ? 'پول داخل کشو را بشمار و مبلغ واقعی را وارد کن.' : (closingDifference === 0 ? 'صندوق دقیقاً با مبلغ مورد انتظار برابر است.' : (closingDifference > 0 ? 'مازاد صندوق: ' : 'کسری صندوق: ') + money(Math.abs(closingDifference)))}><input type="number" min="0" step="1" value={countedCash} onChange={e => setCountedCash(e.target.value)} required /></Field>
                     <Field label="یادداشت بستن"><input value={shiftNote} onChange={e => setShiftNote(e.target.value)} maxLength="500" placeholder="توضیح اختلاف صندوق، در صورت وجود" /></Field>
-                    <Button kind="danger" type="submit">بستن و ثبت مغایرت</Button>
+                    <Button kind="danger" type="submit">بستن شیفت و ثبت مغایرت</Button>
                 </form>}
             </article>
             <article className="panel op-card">
                 <div className="panel-heading"><div><h2>ورودی / خروجی دستی صندوق</h2><p>برای تنخواه، شارژ صندوق یا خروج وجه، علت را شفاف ثبت کن.</p></div></div>
-                {cashShift ? <form className="op-form" onSubmit={e => { e.preventDefault(); onMovement(cashShift.id, { ...movement, idempotency_key: movementKey }).then(ok => { if (ok) { setMovement({ direction: 'out', amount: '', reason: '' }); setMovementKey(idempotencyKey()); } }); }}>
+                {cashShift ? <form className="op-form" onSubmit={e => { e.preventDefault(); onMovement(cashShift.id, { ...movement, amount: Number(movement.amount), reason: movement.reason.trim(), idempotency_key: movementKey }).then(ok => { if (ok) { setMovement({ direction: 'out', amount: '', reason: '' }); setMovementKey(idempotencyKey()); } }); }}>
                     <Field label="نوع حرکت"><select value={movement.direction} onChange={e => setMovement(v => ({...v, direction:e.target.value}))}><option value="in">ورودی وجه</option><option value="out">خروجی وجه</option></select></Field>
-                    <Field label={"مبلغ (" + currencyLabel() + ')'}><input type="number" min="1" value={movement.amount} onChange={e => setMovement(v => ({...v, amount:e.target.value}))} required /></Field>
-                    <Field label="علت / شرح"><input minLength="3" maxLength="500" value={movement.reason} onChange={e => setMovement(v => ({...v, reason:e.target.value}))} required placeholder="شرح قابل حسابرسی" /></Field>
+                    <Field label={"مبلغ (" + currencyLabel() + ')'}><input type="number" min="1" step="1" value={movement.amount} onChange={e => setMovement(v => ({...v, amount:e.target.value}))} required /></Field>
+                    <Field label="علت / شرح"><input minLength="3" maxLength="500" value={movement.reason} onChange={e => setMovement(v => ({...v, reason:e.target.value}))} required placeholder="مثلاً تنخواه خرید یا پرداخت پیک" /></Field>
                     <Button kind="primary" type="submit">ثبت حرکت صندوق</Button>
                 </form> : <Empty>برای ثبت حرکت دستی، ابتدا شیفت را باز کن.</Empty>}
             </article>
         </section>
-        <section className="panel orders-panel"><div className="panel-heading"><div><h2>مانده‌های قابل تسویه</h2><p>پرداخت نقدی فقط با شیفت باز امکان‌پذیر است.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
+        <section className="panel orders-panel"><div className="panel-heading"><div><h2>مانده‌های قابل تسویه</h2><p>فقط سفارش‌های تسویه‌نشده نمایش داده می‌شوند؛ مبلغ باقی‌مانده در جزئیات سفارش محاسبه می‌شود.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
             {payable.length ? <TableWrap><thead><tr><th>شماره</th><th>کانال</th><th>مبلغ کل</th><th>وضعیت پرداخت</th><th>اقدام</th></tr></thead><tbody>
                 {payable.map(order => <tr key={order.id}><td className="mono">{order.number}</td><td>{channelLabel(order)}</td><td>{money(order.total)}</td><td><Pill value={order.payment_status} dictionary={paymentStatusLabel} /></td><td><div className="op-actions"><Button kind="primary" onClick={() => onPayment(order)}>ثبت پرداخت</Button><Button onClick={() => onDetails(order.id)}>سوابق / بازپرداخت</Button></div></td></tr>)}
             </tbody></TableWrap> : <Empty>هیچ مانده‌ی قابل تسویه‌ای وجود ندارد.</Empty>}
+            <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
     </div>;
 }
-
-function MenuPage({ products, categories, onRefresh, onProduct, onProductStatus, onProductDelete, onCategory, onCategoryDelete }) {
-    const [query, setQuery] = useState('');
-    const [category, setCategory] = useState('all');
-    const filtered = (products || []).filter(p => (category === 'all' || String(p.category_id) === category) && (String(p.name || '').toLowerCase().includes(query.toLowerCase()) || String(p.category?.name || '').toLowerCase().includes(query.toLowerCase())));
+function MenuPage({ products, categories, filters, onFiltersChange, pagination, onPageChange, onRefresh, onProduct, onProductStatus, onProductDelete, onCategory, onCategoryDelete }) {
+    const [queryDraft, setQueryDraft] = useState(filters?.query || '');
+    const category = filters?.category || 'all';
+    useEffect(() => {
+        if (queryDraft === (filters?.query || '')) return undefined;
+        const timer = window.setTimeout(() => onFiltersChange({ query: queryDraft }), 300);
+        return () => window.clearTimeout(timer);
+    }, [queryDraft, filters?.query, onFiltersChange]);
+    const items = products || [];
     return <div className="page-content">
-        <PageHeader title="منو و محصولات" subtitle="قیمت، دسته، گزینه‌های محصول و وضعیت قابل سفارش بودن؛ تغییرها در دیتابیس ثبت می‌شوند." action="＋ محصول جدید" onAction={() => onProduct(null)} />
-        <div className="op-toolbar"><input value={query} onChange={e => setQuery(e.target.value)} placeholder="جست‌وجوی نام محصول…" /><select value={category} onChange={e => setCategory(e.target.value)}><option value="all">همه دسته‌ها</option>{(categories || []).map(c => <option key={c.id} value={String(c.id)}>{c.name}</option>)}</select><Button onClick={() => onCategory(null)}>＋ دسته‌بندی</Button><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
-        {(categories || []).length > 0 && <section className="panel op-card"><div className="panel-heading"><div><h2>مدیریت دسته‌بندی‌ها</h2><p>نام و ترتیب دسته‌ها را تغییر بده؛ حذف دسته دارای محصول مجاز نیست.</p></div></div><div className="op-actions">{categories.map(c => <span className="op-category-manager-item" key={c.id}><b>{c.name}</b><Button onClick={() => onCategory(c)}>ویرایش</Button><Button kind="danger" onClick={() => onCategoryDelete(c)}>حذف</Button></span>)}</div></section>}
-        {filtered.length ? <div className="op-product-grid">{filtered.map(product => <article className="op-product-card" key={product.id}>
-            {product.image_url ? <img src={product.image_url} alt="" /> : <div className="op-product-placeholder">☕</div>}
+        <PageHeader title="منو و محصولات" subtitle="از این بخش نام، قیمت، تصویر، دسته‌بندی، افزودنی‌ها و وضعیت فروش را مدیریت کن. محصولات غیرفعال یا ناموجود در سفارش جدید قابل انتخاب نیستند." action="＋ محصول جدید" onAction={() => onProduct(null)} />
+        <div className="op-toolbar"><input value={queryDraft} onChange={e => setQueryDraft(e.target.value)} placeholder="جست‌وجوی نام محصول…" aria-label="جست‌وجوی محصول" /><select value={category} onChange={e => onFiltersChange({ category: e.target.value })}><option value="all">همه دسته‌ها</option>{(categories || []).map(c => <option key={c.id} value={String(c.id)}>{c.name}</option>)}</select><Button onClick={() => onCategory(null)}>＋ دسته‌بندی</Button><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
+        {(categories || []).length > 0 && <section className="panel op-card"><div className="panel-heading"><div><h2>مدیریت دسته‌بندی‌ها</h2><p>نام و ترتیب دسته‌ها را تغییر بده؛ دسته‌ای که محصول دارد تا زمان انتقال محصولات حذف نمی‌شود.</p></div></div><div className="op-actions">{categories.map(c => <span className="op-category-manager-item" key={c.id}><b>{c.name}</b><Button onClick={() => onCategory(c)}>ویرایش</Button><Button kind="danger" onClick={() => onCategoryDelete(c)}>حذف</Button></span>)}</div></section>}
+        {items.length ? <div className="op-product-grid">{items.map(product => <article className="op-product-card" key={product.id}>
+            {product.image_url ? <img src={product.image_url} alt={product.name || ''} loading="lazy" /> : <div className="op-product-placeholder">☕</div>}
             <div className="op-product-body"><div className="op-product-top"><span>{product.category?.name || 'بدون دسته'}</span><Pill value={product.status} dictionary={productStatusLabel} /></div>
                 <h3>{product.name}</h3><b className="op-product-price">{money(product.base_price)}</b>
                 <div className="op-product-meta"><span>شناسه: {numberFa(product.id)}</span><span>{product.stock_quantity === null ? 'بدون رهگیری موجودی' : ('موجودی: ' + numberFa(product.stock_quantity))}</span></div>
                 <div className="op-actions"><Button onClick={() => onProduct(product)}>ویرایش</Button><Button onClick={() => onProductStatus(product, product.status === 'active' ? 'unavailable' : 'active')}>{product.status === 'active' ? 'ناموجود کردن' : 'فعال‌سازی'}</Button><Button kind="danger" onClick={() => onProductDelete(product)}>حذف</Button></div>
             </div>
-        </article>)}</div> : <Empty>محصولی پیدا نشد. یک محصول جدید بساز یا فیلتر را عوض کن.</Empty>}
+        </article>)}</div> : <Empty>محصولی با این جست‌وجو پیدا نشد. فیلتر را تغییر بده یا محصول جدید بساز.</Empty>}
+        <Pagination meta={pagination} onPageChange={onPageChange} />
     </div>;
 }
-
-function InventoryPage({ products, movements, onRefresh, onAdjust }) {
+function InventoryPage({ products, movements, pagination, onPageChange, onRefresh, onAdjust }) {
     const low = (products || []).filter(p => p.stock_quantity !== null && p.low_stock_threshold !== null && Number(p.stock_quantity) <= Number(p.low_stock_threshold));
     return <div className="page-content">
         <PageHeader title="موجودی و انبار" subtitle="موجودی قابل رهگیری با هر فروش کم و در لغو سفارش برگردانده می‌شود. هر اصلاح تاریخچه دارد." action="＋ اصلاح موجودی" onAction={() => onAdjust(null)} />
@@ -323,11 +353,12 @@ function InventoryPage({ products, movements, onRefresh, onAdjust }) {
             {movements?.length ? <TableWrap><thead><tr><th>زمان</th><th>محصول</th><th>نوع حرکت</th><th>تغییر</th><th>قبل ← بعد</th><th>شماره سفارش</th><th>شرح</th><th>کاربر</th></tr></thead><tbody>
                 {movements.map(m => <tr key={m.id}><td>{dateTime(m.created_at)}</td><td>{m.product?.name || 'محصول حذف‌شده'}</td><td>{({order:'مصرف سفارش',order_cancelled:'برگشت از لغو',manual:'اصلاح دستی',opening:'موجودی اولیه',stocktake:'شمارش موجودی'})[m.movement_type] || m.movement_type}</td><td className={Number(m.quantity_delta) < 0 ? 'op-negative' : 'op-positive'}>{Number(m.quantity_delta) > 0 ? '+' : ''}{numberFa(m.quantity_delta)}</td><td>{numberFa(m.stock_before)} ← {numberFa(m.stock_after)}</td><td>{m.order?.number || '—'}</td><td>{m.reason || '—'}</td><td>{m.user?.name || 'سیستم / QR'}</td></tr>)}
             </tbody></TableWrap> : <Empty>هنوز گردش موجودی ثبت نشده است.</Empty>}
+            <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
     </div>;
 }
 
-function TablesPage({ tables, onCreate, onUpdate, onEdit, onDelete, onRotate, onShowQr, onRefresh }) {
+function TablesPage({ tables, pagination, onPageChange, onCreate, onUpdate, onEdit, onDelete, onRotate, onShowQr, onRefresh }) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     return <div className="page-content">
@@ -350,14 +381,14 @@ function TablesPage({ tables, onCreate, onUpdate, onEdit, onDelete, onRotate, on
                 <Button kind={table.is_active ? 'danger' : 'primary'} onClick={() => onUpdate(table, { is_active: !table.is_active })}>{table.is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی'}</Button>{table.is_active && <Button kind="danger" onClick={() => onDelete(table)}>حذف / بایگانی</Button>}
             </div>
         </article>)}</div> : <Empty>هنوز میزی ایجاد نشده است.</Empty>}
+        <Pagination meta={pagination} onPageChange={onPageChange} />
         <p className="op-note">برای هر میز، تصویر QR از لینک اختصاصی آن ساخته می‌شود. تلفن مشتری باید به نشانی‌ای دسترسی داشته باشد که در APP_URL تنظیم کرده‌ای؛ آدرس localhost فقط روی خود سرور/کامپیوتر صندوق باز می‌شود.</p>
     </div>;
 }
 
-function ReservationsPage({ reservations, tables, onCreate, onTransition, onRefresh }) {
+function ReservationsPage({ reservations, tables, pagination, onPageChange, onCreate, onTransition, onRefresh }) {
     const emptyForm = { restaurant_table_id: '', customer_name: '', phone: '', party_size: '2', starts_at: '', duration_minutes: '90', notes: '' };
     const [form, setForm] = useState(emptyForm);
-    const [selectedTables, setSelectedTables] = useState({});
     const [requestKey, setRequestKey] = useState(() => idempotencyKey());
     const set = (key, value) => setForm(v => ({...v, [key]: value}));
     return <div className="page-content">
@@ -376,6 +407,7 @@ function ReservationsPage({ reservations, tables, onCreate, onTransition, onRefr
         </section>
         <section className="panel orders-panel"><div className="panel-heading"><div><h2>رزروها</h2><p>وضعیت هر رزرو با قواعد گردش کار تغییر می‌کند.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
             {reservations?.length ? <TableWrap><thead><tr><th>شناسه</th><th>نوع درخواست</th><th>مشتری</th><th>میز</th><th>زمان</th><th>نفرات</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>{reservations.map(r => <tr key={r.id}><td className="mono">{r.reference}<small className="op-subtext">{r.source==='website'?'ثبت از سایت':'ثبت توسط کارکنان'}</small></td><td><b>{reservationPurposeLabel[r.purpose] || 'رزرو میز'}</b>{r.occasion_name&&<small className="op-subtext">{r.occasion_name}</small>}</td><td>{r.customer_name}<small className="op-subtext">{r.phone}</small></td><td>{r.table?.name || 'تخصیص‌نیافته'}</td><td>{dateTime(r.starts_at)}</td><td>{numberFa(r.party_size)}</td><td><Pill value={r.status} dictionary={reservationStatusLabel} /></td><td><div className="op-actions">{reservationNext(r.status).map(s => <Button key={s} kind={s === 'cancelled' ? 'danger' : 'secondary'} onClick={() => onTransition(r, s)}>{reservationStatusLabel[s]}</Button>)}</div></td></tr>)}</tbody></TableWrap> : <Empty>رزروی ثبت نشده است.</Empty>}
+            <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
     </div>;
 }
@@ -383,7 +415,7 @@ function reservationNext(status) {
     return ({ pending: ['confirmed','cancelled'], confirmed: ['arrived','no_show','cancelled'], arrived: ['cancelled'], cancelled: [], no_show: [] })[status] || [];
 }
 
-function CustomersPage({ feedback, onRespond, onRefresh }) {
+function CustomersPage({ feedback, pagination, onPageChange, onRespond, onRefresh }) {
     const [drafts, setDrafts] = useState({});
     return <div className="page-content">
         <PageHeader title="بازخورد مشتریان" subtitle="پیگیری پیشنهادها و شکایت‌ها و ثبت پاسخ مسئول؛ هر پاسخ روی سرور می‌ماند." />
@@ -398,11 +430,12 @@ function CustomersPage({ feedback, onRespond, onRefresh }) {
                     <div className="op-form-actions"><Button kind="primary" type="submit">ثبت پاسخ</Button></div>
                 </form>
             </article>)}</div> : <Empty>بازخوردی ثبت نشده است.</Empty>}
+            <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
     </div>;
 }
 
-function ExpensesPage({ expenses, onCreate, onRefresh }) {
+function ExpensesPage({ expenses, pagination, onPageChange, onCreate, onRefresh }) {
     const [form, setForm] = useState({ title: '', category: 'ingredients', amount: '', payment_method: 'cash', is_paid: true, note: '' });
     const set = (key, value) => setForm(v => ({...v,[key]:value}));
     return <div className="page-content">
@@ -420,6 +453,7 @@ function ExpensesPage({ expenses, onCreate, onRefresh }) {
         </section>
         <section className="panel orders-panel"><div className="panel-heading"><div><h2>آخرین هزینه‌ها</h2><p>هزینه‌ی پرداخت‌نشده با خروج وجه صندوق یکی نیست.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
             {expenses?.length ? <TableWrap><thead><tr><th>زمان</th><th>عنوان</th><th>دسته</th><th>مبلغ</th><th>پرداخت</th><th>روش</th><th>ثبت‌کننده</th></tr></thead><tbody>{expenses.map(ex => <tr key={ex.id}><td>{dateTime(ex.created_at)}</td><td>{ex.title}</td><td>{expenseCategoryLabel[ex.category] || ex.category}</td><td>{money(ex.amount)}</td><td><Pill value={ex.is_paid ? 'paid' : 'unpaid'} dictionary={{paid:'پرداخت شده',unpaid:'پرداخت نشده'}} /></td><td>{paymentMethodLabel[ex.payment_method] || ex.payment_method}</td><td>{ex.user?.name || '—'}</td></tr>)}</tbody></TableWrap> : <Empty>هزینه‌ای ثبت نشده است.</Empty>}
+            <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
     </div>;
 }
@@ -484,13 +518,16 @@ function OrderModal({ products, tables, onClose, onSubmit }) {
     const [optionIds, setOptionIds] = useState([]);
     const [cart, setCart] = useState([]);
     const selectedProduct = activeProducts.find(p => String(p.id) === productId);
+    const selectedProductQuantity = cart.filter(line => Number(line.product_id) === Number(selectedProduct?.id)).reduce((sum, line) => sum + Number(line.quantity || 0), 0);
+    const stockRemaining = selectedProduct?.stock_quantity === null || selectedProduct?.stock_quantity === undefined ? null : Math.max(0, Number(selectedProduct.stock_quantity) - selectedProductQuantity);
+    const canAddSelectedProduct = Boolean(selectedProduct) && (stockRemaining === null || stockRemaining > 0);
     const subtotal = cart.reduce((sum,line) => {
         const product = activeProducts.find(p => Number(p.id) === Number(line.product_id));
         const optionTotal = (line.options || []).reduce((s,id) => s + Number(product?.options?.find(o => Number(o.id) === Number(id))?.price || 0), 0);
         return sum + (Number(product?.base_price || 0) + optionTotal) * Number(line.quantity || 0);
     },0);
     const add = () => {
-        if (!selectedProduct) return;
+        if (!canAddSelectedProduct) return;
         const options = [...optionIds].sort((a,b) => a-b);
         const signature = options.join(',');
         setCart(lines => {
@@ -513,15 +550,15 @@ function OrderModal({ products, tables, onClose, onSubmit }) {
             </div>
             <div className="op-picker">
                 <Field label="محصول"><select value={productId} onChange={e=>{setProductId(e.target.value);setOptionIds([]);}}>{activeProducts.map(p=><option key={p.id} value={p.id}>{p.name} — {money(p.base_price)}{p.stock_quantity !== null ? (' · موجودی '+numberFa(p.stock_quantity)) : ''}</option>)}</select></Field>
-                {selectedProduct?.options?.filter(o=>o.is_active).length > 0 && <div className="op-option-list"><b>سایز / افزودنی</b>{selectedProduct.options.filter(o=>o.is_active).map(opt=><label key={opt.id}><input type="checkbox" checked={optionIds.includes(Number(opt.id))} onChange={e=>setOptionIds(ids=>e.target.checked?[...ids,Number(opt.id)]:ids.filter(id=>id!==Number(opt.id)))} /><span>{opt.name}</span><small>{Number(opt.price) ? '+'+money(opt.price) : 'رایگان'}</small></label>)}</div>}
-                <Button kind="primary" type="button" onClick={add}>افزودن به سفارش ＋</Button>
+                {selectedProduct?.options?.filter(o=>o.is_active).length > 0 && <div className="op-option-list"><b>سایز / افزودنی</b><small className="op-option-help">برای سایز فقط یک گزینه انتخاب کن؛ افزودنی‌ها را می‌توانی ترکیب کنی.</small>{selectedProduct.options.filter(o=>o.is_active).map(opt=><label key={opt.id}><input type="checkbox" checked={optionIds.includes(Number(opt.id))} onChange={e=>setOptionIds(ids=>{const id=Number(opt.id);if(!e.target.checked)return ids.filter(value=>value!==id);if(opt.type==='size'){const sizeIds=selectedProduct.options.filter(item=>item.type==='size').map(item=>Number(item.id));return [...ids.filter(value=>!sizeIds.includes(value)),id];}return ids.includes(id)?ids:[...ids,id];})} /><span>{opt.type==='size'?'سایز · ': 'افزودنی · '}{opt.name}</span><small>{Number(opt.price) ? '+'+money(opt.price) : 'رایگان'}</small></label>)}</div>}
+                <Button kind="primary" type="button" disabled={!canAddSelectedProduct} onClick={add}>{canAddSelectedProduct ? 'افزودن به سفارش ＋' : 'موجودی کافی نیست'}</Button>
             </div>
             <div className="op-cart">
                 <div className="panel-heading"><div><h3>اقلام سفارش</h3><p>{numberFa(cart.length)} ردیف</p></div><b>{money(subtotal)}</b></div>
                 {cart.length ? cart.map((line,index)=>{
                     const product=activeProducts.find(p=>Number(p.id)===Number(line.product_id));
                     const optionNames=(line.options||[]).map(id=>product?.options?.find(o=>Number(o.id)===Number(id))?.name).filter(Boolean);
-                    return <div className="op-cart-line" key={line.product_id+'-'+line.options.join('-')+'-'+index}><div><b>{product?.name}</b><small>{optionNames.join('، ') || 'بدون افزودنی'}</small></div><input aria-label="تعداد" type="number" min="1" max="100" value={line.quantity} onChange={e=>setCart(lines=>lines.map((entry,i)=>i===index?{...entry,quantity:Math.max(1,Math.min(100,Number(e.target.value)||1))}:entry))}/><Button type="button" kind="danger" onClick={()=>setCart(lines=>lines.filter((_,i)=>i!==index))}>حذف</Button></div>;
+                    return <div className="op-cart-line" key={line.product_id+'-'+line.options.join('-')+'-'+index}><div><b>{product?.name}</b><small>{optionNames.join('، ') || 'بدون افزودنی'}</small></div><input aria-label="تعداد" type="number" min="1" max={product?.stock_quantity == null ? 100 : Math.max(1, Math.min(100, Number(product.stock_quantity)))} value={line.quantity} onChange={e=>setCart(lines=>lines.map((entry,i)=>{if(i!==index)return entry;const max=product?.stock_quantity==null?100:Math.max(1,Math.min(100,Number(product.stock_quantity)));return {...entry,quantity:Math.max(1,Math.min(max,Number(e.target.value)||1))};}))}/><Button type="button" kind="danger" onClick={()=>setCart(lines=>lines.filter((_,i)=>i!==index))}>حذف</Button></div>;
                 }) : <Empty>برای شروع، یک محصول به سفارش اضافه کن.</Empty>}
             </div>
             <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="primary" type="submit" disabled={!cart.length || Number(discount) > subtotal}>ثبت در سرور و کم‌کردن موجودی رهگیری‌شده</Button></div>
@@ -602,9 +639,9 @@ function TableEditModal({ table, onClose, onSave }) {
     </Modal>;
 }
 
-function PaymentModal({ order, onClose, onSubmit }) {
+function PaymentModal({ order, cashShiftOpen, onClose, onSubmit }) {
     const [amount,setAmount]=useState(String(getRemaining(order)));
-    const [method,setMethod]=useState('cash');
+    const [method,setMethod]=useState(cashShiftOpen ? 'cash' : 'card_terminal');
     const [reference,setReference]=useState('');
     const [note,setNote]=useState('');
     const [requestKey] = useState(() => idempotencyKey());
@@ -613,7 +650,7 @@ function PaymentModal({ order, onClose, onSubmit }) {
         <div className="op-payment-summary"><span>سفارش {order.number}</span><b>{money(order.total)}</b><small>مانده محاسبه‌شده: {money(remaining)}</small></div>
         <form className="op-form" onSubmit={e=>{e.preventDefault();onSubmit({amount:Number(amount),method,reference:reference||null,note:note||null,idempotency_key:requestKey},order.id);}}>
             <Field label={"مبلغ دریافت (" + currencyLabel() + ')'}><input type="number" min="1" max={remaining} value={amount} onChange={e=>setAmount(e.target.value)} required /></Field>
-            <Field label="روش پرداخت"><select value={method} onChange={e=>setMethod(e.target.value)}><option value="cash">نقدی (نیازمند شیفت باز)</option><option value="card_terminal">کارت‌خوان — ثبت تأیید توسط کارمند</option><option value="other">سایر / انتقال تأییدشده خارج از سامانه</option></select></Field>
+            <Field label="روش پرداخت"><select value={method} onChange={e=>setMethod(e.target.value)}><option value="cash" disabled={!cashShiftOpen}>نقدی{cashShiftOpen ? '' : ' — ابتدا شیفت صندوق را باز کن'}</option><option value="card_terminal">کارت‌خوان — ثبت تأیید توسط کارمند</option><option value="other">سایر / انتقال تأییدشده خارج از سامانه</option></select></Field>
             <Field label="شماره پیگیری (اختیاری)"><input value={reference} onChange={e=>setReference(e.target.value)} maxLength="120" /></Field>
             <Field label="یادداشت"><input value={note} onChange={e=>setNote(e.target.value)} maxLength="500" /></Field>
             <p className="op-note">روش «کارت‌خوان» به معنی تأیید خودکار دستگاه نیست؛ کاربر فقط دریافت وجه را ثبت می‌کند. اتصال درگاه/ترمینال برای تأیید فنی جداست.</p>
@@ -694,48 +731,70 @@ export default function DashboardApp() {
     const [detailOrder,setDetailOrder]=useState(null);
     const [busy,setBusy]=useState(false);
     const [settings,setSettings]=useState(null);
-
-    useEffect(() => {
-        let active = true;
-        api('/settings').then(payload => {
-            const currencySettings = unwrapData(payload);
-            if (!active) return;
-            window.__restaurantCurrencyLabel = currencySettings?.currency_label || 'تومان';
-            setSettings(currencySettings);
-        }).catch(() => {
-            window.__restaurantCurrencyLabel = window.__restaurantCurrencyLabel || 'تومان';
-        });
-        return () => { active = false; };
-    }, []);
-
-    useEffect(()=>{
+     useEffect(()=>{
         let alive=true;
         const load=async()=>{
             setLoading(true);setError('');
             try{
                 let next={};
+                const listParams={per_page:25,page:listPage};
                 if(page==='overview') {
                     const [dashboardPayload, settingsPayload] = await Promise.all([api('/dashboard'), api('/settings')]);
                     next.dashboard=unwrapData(dashboardPayload);next.settings=unwrapData(settingsPayload);
                 }
-                if(page==='orders') next.orders=unwrapList(await api('/orders?per_page=100'));
+                if(page==='orders'){
+                    const params={...listParams};
+                    const filters=listFilters.orders;
+                    if(filters.query?.trim()) params.q=filters.query.trim();
+                    if(filters.status==='open') params.active=1;
+                    else if(filters.status==='unsettled') params.unsettled=1;
+                    else if(filters.status!=='all') params.status=filters.status;
+                    const payload=await api('/orders'+queryString(params));
+                    next.orders=unwrapList(payload);next.ordersPagination=unwrapPagination(payload);
+                }
                 if(page==='cashier'){
-                    const [shift,orders]=await Promise.all([api('/cash-shift'),api('/orders?per_page=100&unsettled=1')]);
-                    next.cashShift=unwrapData(shift);next.orders=unwrapList(orders);
+                    const [shift,orders]=await Promise.all([api('/cash-shift'),api('/orders'+queryString({...listParams,unsettled:1,active:1}))]);
+                    next.cashShift=unwrapData(shift);next.orders=unwrapList(orders);next.cashierOrdersPagination=unwrapPagination(orders);
                 }
                 if(page==='menu'){
-                    const [products,categories]=await Promise.all([api('/products?per_page=100'),api('/categories')]);
-                    next.products=unwrapList(products);next.categories=unwrapList(categories);
+                    const params={...listParams};
+                    const filters=listFilters.products;
+                    if(filters.query?.trim()) params.q=filters.query.trim();
+                    if(filters.category!=='all') params.category_id=filters.category;
+                    const [products,categories]=await Promise.all([api('/products'+queryString(params)),api('/categories')]);
+                    next.products=unwrapList(products);next.productsPagination=unwrapPagination(products);next.categories=unwrapList(categories);
                 }
                 if(page==='inventory'){
-                    const [products,movements]=await Promise.all([api('/products?per_page=100'),api('/inventory/movements?per_page=100')]);
-                    next.products=unwrapList(products);next.movements=unwrapList(movements);
+                    const [products,movements]=await Promise.all([api('/products?per_page=100'),api('/inventory/movements'+queryString(listParams))]);
+                    next.products=unwrapList(products);next.movements=unwrapList(movements);next.movementsPagination=unwrapPagination(movements);
                 }
                 if(page==='recipes') next.recipes=unwrapData(await api('/recipes'));
-                if(page==='tables') next.tables=unwrapList(await api('/tables?per_page=100'));
+                if(page==='tables'){
+                    const payload=await api('/tables'+queryString(listParams));
+                    next.tables=unwrapList(payload);next.tablesPagination=unwrapPagination(payload);
+                }
                 if(page==='reservations'){
-                    const [reservations,tables]=await Promise.all([api('/reservations?per_page=100'),api('/tables?per_page=100')]);
-                    next.reservations=unwrapList(reservations);next.tables=unwrapList(tables);
+                    const [reservations,tables]=await Promise.all([api('/reservations'+queryString(listParams)),api('/tables?per_page=100')]);
+                    next.reservations=unwrapList(reservations);next.reservationsPagination=unwrapPagination(reservations);next.tables=unwrapList(tables);
+                }
+                if(page==='customers'){
+                    const payload=await api('/feedback'+queryString(listParams));
+                    next.feedback=unwrapList(payload);next.feedbackPagination=unwrapPagination(payload);
+                }
+                if(page==='expenses'){
+                    const payload=await api('/expenses'+queryString(listParams));
+                    next.expenses=unwrapList(payload);next.expensesPagination=unwrapPagination(payload);
+                }
+                if(page==='reports') next.report=unwrapData(await api('/reports/sales'));
+                if(page==='settings') { next.settings=unwrapData(await api('/settings')); }
+                if(alive){setData(prev=>({...prev,...next}));if(next.settings){setSettings(next.settings);window.__restaurantCurrencyLabel=next.settings.currency_label||'تومان';}}
+            }catch(e){if(alive)setError(e?.message||'دریافت اطلاعات از سرور ناموفق بود.');}
+            finally{if(alive)setLoading(false);}
+        };
+        load();
+        return ()=>{alive=false;};
+    },[page,reloadVersion,listPage,listFilters]);
+ext.tables=unwrapList(tables);
                 }
                 if(page==='customers') next.feedback=unwrapList(await api('/feedback?per_page=100'));
                 if(page==='expenses') next.expenses=unwrapList(await api('/expenses?per_page=100'));
@@ -755,7 +814,7 @@ export default function DashboardApp() {
         return () => window.clearInterval(timer);
     }, [page]);
 
-    const navigate=next=>{setPage(next);setMobileNav(false);setError('');};
+    const navigate=next=>{setPage(next);setListPage(1);setMobileNav(false);setError('');};
     const notify=message=>{setNotice(message);window.setTimeout(()=>setNotice(''),5000);};
     const refresh=()=>setReloadVersion(v=>v+1);
     const action=async(work, success, options={})=>{
@@ -766,9 +825,9 @@ export default function DashboardApp() {
         finally{setBusy(false);}
     };
     const ensureProductsAndTables=async()=>{
-        let products=data.products||[], tables=data.tables||[];
-        if(!products.length){products=unwrapList(await api('/products?per_page=100'));setData(p=>({...p,products}));}
-        if(!tables.length){tables=unwrapList(await api('/tables?per_page=100'));setData(p=>({...p,tables}));}
+        const [productPayload,tablePayload]=await Promise.all([api('/products?per_page=100'),api('/tables?per_page=100')]);
+        const products=unwrapList(productPayload),tables=unwrapList(tablePayload);
+        setData(previous=>({...previous,products,tables}));
         return {products,tables};
     };
     const newOrder=async()=>{
@@ -782,7 +841,7 @@ export default function DashboardApp() {
     const showRefund=(payment,orderId)=>setModal({type:'refund',payment,orderId});
     const createOrder=payload=>action(async()=>{
         await api('/orders',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key});
-        setPage('orders');
+        setPage('orders');setListPage(1);setListFilters(current=>({...current,orders:{query:'',status:'all'}}));
     },'سفارش در سرور ثبت شد؛ موجودی رهگیری‌شده هم کم شد.');
     const transition=(order,status)=>action(()=>api('/orders/'+order.id+'/status',{method:'PATCH',body:{status,reason:'تغییر وضعیت از داشبورد'}}),'وضعیت سفارش به‌روزرسانی شد.',{close:false});
     const cancelOrder=(order)=>setModal({type:'cancel',order});
@@ -859,15 +918,15 @@ export default function DashboardApp() {
 
     const renderPage=()=>{
         if(page==='overview') return data.dashboard ? <OverviewPage dashboard={data.dashboard} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} /> : (loading ? <OverviewSkeleton /> : <OverviewPage dashboard={{}} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} />);
-        if(page==='orders') return <OrdersPage orders={data.orders} onRefresh={refresh} onDetails={orderDetails} onPrint={printDocument} onNewOrder={newOrder} onTransition={transition} onCancel={cancelOrder} />;
-        if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} />;
-        if(page==='menu') return <MenuPage products={data.products} categories={data.categories} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onProductDelete={deleteProduct} onCategory={category=>setModal({type:'category',category})} onCategoryDelete={deleteCategory} />;
-        if(page==='inventory') return <InventoryPage products={data.products} movements={data.movements} onRefresh={refresh} onAdjust={product=>setModal({type:'inventory',product})} />;
+        if(page==='orders') return <OrdersPage orders={data.orders} filters={listFilters.orders} onFiltersChange={patch=>updateListFilters('orders',patch)} pagination={data.ordersPagination} onPageChange={setListPage} onRefresh={refresh} onDetails={orderDetails} onPrint={printDocument} onNewOrder={newOrder} onTransition={transition} onCancel={cancelOrder} />;
+        if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} pagination={data.cashierOrdersPagination} onPageChange={setListPage} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} />;
+        if(page==='menu') return <MenuPage products={data.products} categories={data.categories} filters={listFilters.products} onFiltersChange={patch=>updateListFilters('products',patch)} pagination={data.productsPagination} onPageChange={setListPage} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onProductDelete={deleteProduct} onCategory={category=>setModal({type:'category',category})} onCategoryDelete={deleteCategory} />;
+        if(page==='inventory') return <InventoryPage products={data.products} movements={data.movements} pagination={data.movementsPagination} onPageChange={setListPage} onRefresh={refresh} onAdjust={product=>setModal({type:'inventory',product})} />;
         if(page==='recipes') return <RecipesPage recipeData={data.recipes} onRefresh={refresh} onCreateIngredient={createIngredient} onUpdateIngredient={updateIngredient} onAdjustIngredient={ingredient=>setModal({type:'ingredient-stock',ingredient})} onSaveRecipe={saveRecipe} />;
-        if(page==='tables') return <TablesPage tables={data.tables} onRefresh={refresh} onCreate={createTable} onUpdate={updateTable} onRotate={rotateTable} onShowQr={table=>setModal({type:'qr',table})} />;
-        if(page==='reservations') return <ReservationsPage reservations={data.reservations} tables={data.tables} onRefresh={refresh} onCreate={createReservation} onTransition={transitionReservation} />;
-        if(page==='customers') return <CustomersPage feedback={data.feedback} onRefresh={refresh} onRespond={respondFeedback} />;
-        if(page==='expenses') return <ExpensesPage expenses={data.expenses} onRefresh={refresh} onCreate={createExpense} />;
+        if(page==='tables') return <TablesPage tables={data.tables} pagination={data.tablesPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createTable} onUpdate={updateTable} onEdit={table=>setModal({type:'table-edit',table})} onDelete={archiveTable} onRotate={rotateTable} onShowQr={table=>setModal({type:'qr',table})} />;
+        if(page==='reservations') return <ReservationsPage reservations={data.reservations} tables={data.tables} pagination={data.reservationsPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createReservation} onTransition={transitionReservation} />;
+        if(page==='customers') return <CustomersPage feedback={data.feedback} pagination={data.feedbackPagination} onPageChange={setListPage} onRefresh={refresh} onRespond={respondFeedback} />;
+        if(page==='expenses') return <ExpensesPage expenses={data.expenses} pagination={data.expensesPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createExpense} />;
         if(page==='reports') return <ReportsPage report={data.report} onRefresh={runReport} />;
         if(page==='settings') return <SettingsPage settings={data.settings} onRefresh={refresh} onSave={saveSettings} />;
         if(page==='media') return <MediaManager onNavigate={navigate} />;
@@ -894,7 +953,7 @@ export default function DashboardApp() {
         {modal?.type==='product'&&<ProductModal key={modal.product?.id||'new'} product={modal.product} categories={data.categories||[]} onClose={()=>setModal(null)} onSave={createProduct}/>}
         {modal?.type==='category'&&<CategoryModal key={modal.category?.id || 'new'} category={modal.category} onClose={()=>setModal(null)} onSave={(payload,category)=>category?updateCategory(category,payload):createCategory(payload)}/>}
         {modal?.type==='table-edit'&&<TableEditModal key={modal.table?.id} table={modal.table} onClose={()=>setModal(null)} onSave={(payload)=>editTable(modal.table,payload)}/>}
-        {modal?.type==='payment'&&<PaymentModal order={modal.order} onClose={()=>setModal(null)} onSubmit={submitPayment}/>}
+        {modal?.type==='payment'&&<PaymentModal order={modal.order} cashShiftOpen={Boolean(data.cashShift?.status==='open')} onClose={()=>setModal(null)} onSubmit={submitPayment}/>}
         {modal?.type==='cancel'&&<CancelModal order={modal.order} onClose={()=>setModal(null)} onSubmit={submitCancel}/>}
         {modal?.type==='refund'&&<RefundModal payment={modal.payment} orderId={modal.orderId} onClose={()=>setModal(null)} onSubmit={submitRefund}/>}
         {modal?.type==='details'&&<OrderDetailsModal order={detailOrder} onClose={()=>setModal(null)} onPrint={printDocument} onRefund={showRefund}/>}

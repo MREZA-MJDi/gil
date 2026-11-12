@@ -26,6 +26,7 @@ class OrderController extends Controller
                 $q->where('status', $status);
             })
             ->when($request->filled('channel'), fn ($q) => $q->where('channel', $request->string('channel')->toString()))
+            ->when($request->boolean('active'), fn ($q) => $q->whereNotIn('status', [OrderStatus::Delivered->value, OrderStatus::Cancelled->value]))
             ->when($request->boolean('unsettled'), fn ($q) => $q->unsettled())
             ->when($request->filled('q'), function ($q) use ($request) {
                 $needle = trim($request->string('q')->toString());

@@ -2,6 +2,7 @@
 @import './fonts.css';
 @import 'tailwindcss';
 @import './dashboard.css';
+@import './dashboard-media.css';
 @import './iranian-ui.css';
 @import './auth.css';
 
@@ -12,5 +13,5 @@
 @source '../**/*.jsx';
 
 @theme {
-    --font-sans: 'IRANYekan', Tahoma, ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Estedad', Tahoma, ui-sans-serif, system-ui, sans-serif;
 }

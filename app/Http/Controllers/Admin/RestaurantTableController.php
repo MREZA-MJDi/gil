@@ -11,12 +11,12 @@ use Illuminate\Validation\Rule;
 
 class RestaurantTableController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $tables = RestaurantTable::query()
             ->withCount(['orders as open_orders_count' => fn ($q) => $q->whereNotIn('status', ['delivered', 'cancelled'])])
             ->with(['orders' => fn ($q) => $q->whereNotIn('status', ['delivered', 'cancelled'])->select(['id', 'restaurant_table_id', 'number', 'total', 'payment_status', 'status'])])
-            ->orderBy('name')->paginate(100);
+            ->orderBy('name')->paginate(min(100, max(10, (int) $request->input('per_page', 25))));
 
         $tables->getCollection()->transform(function (RestaurantTable $table) {
             return [

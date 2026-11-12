@@ -14,7 +14,15 @@ class CashShiftController extends Controller
 {
     public function current(): JsonResponse
     {
-        $shift = CashShift::query()->where('status', 'open')->where('open_lock', true)->with('movements')->first();
+        $shift = CashShift::query()->where('status', 'open')->where('open_lock', true)->first();
+
+        if ($shift) {
+            $shift->setAttribute('cash_in_total', (int) $shift->movements()->where('direction', 'in')->sum('amount'));
+            $shift->setAttribute('cash_out_total', (int) $shift->movements()->where('direction', 'out')->sum('amount'));
+            $shift->setAttribute('expected_cash', (int) $shift->opening_cash + $shift->cash_in_total - $shift->cash_out_total);
+            $shift->setRelation('movements', $shift->movements()->latest('id')->limit(6)->get());
+        }
+
         return response()->json(['data' => $shift]);
     }
 
