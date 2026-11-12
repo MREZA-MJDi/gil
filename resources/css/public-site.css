@@ -329,14 +329,17 @@
     aspect-ratio: 1;
     display: grid;
     place-items: center;
-    overflow: visible;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #e9e2d8;
+    box-shadow: 0 24px 32px rgba(0,0,0,.16);
 }
 .public-site .kg-shop-feature-photo img {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 24px 28px rgba(0,0,0,.22));
+    object-fit: cover;
+    border-radius: 50%;
 }
 .public-site .kg-shop-feature-photo [data-menu-image-fallback] {
     width: min(100%, 360px);
