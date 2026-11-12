@@ -39,9 +39,30 @@ class PublicSiteRenderingTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('5 محصول فعال')
+            ->assertSee('5 محصول در منو')
             ->assertSee('نوشیدنی تست 4')
             ->assertDontSee('نوشیدنی تست 5');
+    }
+
+    public function test_public_menu_hides_products_with_zero_tracked_stock(): void
+    {
+        $category = Category::query()->create([
+            'name' => 'خوراکی‌های ناموجود',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'محصول با موجودی صفر',
+            'base_price' => 1000,
+            'status' => 'active',
+            'stock_quantity' => 0,
+        ]);
+
+        $this->get(route('public.menu'))
+            ->assertOk()
+            ->assertDontSee('محصول با موجودی صفر');
     }
 
     public function test_public_menu_page_renders_without_seeded_demo_products(): void
