@@ -31,6 +31,10 @@
             @auth
                 @if (auth()->user()->is_admin)
                     <a class="kg-nav-admin" href="{{ route('admin.dashboard') }}">پنل مدیریت <span>↗</span></a>
+                    <form class="kg-nav-logout" method="POST" action="{{ route('admin.logout') }}">
+                        @csrf
+                        <button type="submit">خروج</button>
+                    </form>
                 @else
                     <a class="kg-nav-admin" href="{{ route('admin.login') }}">ورود کارکنان</a>
                 @endif
