@@ -8,7 +8,10 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(AdminUserSeeder::class);
+        $this->call([
+            AdminUserSeeder::class,
+            RestaurantFoundationSeeder::class,
+        ]);
 
         // Demo records are opt-in and strictly local; never seed orders into a deployed business database by accident.
         if (app()->environment('local') && (bool) env('SEED_RESTAURANT_DEMO', false)) {
