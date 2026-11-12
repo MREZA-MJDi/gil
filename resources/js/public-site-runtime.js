@@ -300,6 +300,8 @@ if (qrRoot) {
     const cart = new Map();
     let currency = 'تومان';
     let qrFormKey = makeKey();
+    let qrPendingPayload = null;
+    let qrUncertainRequest = false;
     const money = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0)) + ' ' + currency;
 
     function qrCard(product) {
@@ -372,6 +374,7 @@ if (qrRoot) {
     qrRoot.addEventListener('click', event => {
         const add = event.target.closest('[data-qr-add]');
         if (add) {
+            if (qrUncertainRequest) return;
             const card = add.closest('[data-qr-product]');
             const options = [...card.querySelectorAll('[data-qr-option]:checked')].map(input => ({
                 id: Number(input.dataset.qrOption),
@@ -396,6 +399,7 @@ if (qrRoot) {
         }
         const qty = event.target.closest('[data-qr-qty]');
         if (qty) {
+            if (qrUncertainRequest) return;
             const item = cart.get(qty.dataset.qrKey);
             if (!item) return;
             item.quantity += Number(qty.dataset.qrQty);
@@ -412,15 +416,19 @@ if (qrRoot) {
         const form = event.target;
         const submit = document.getElementById('kg-qr-submit');
         const status = document.getElementById('kg-qr-status');
-        const payload = {
-            channel: 'dine_in',
-            payment_preference: 'at_counter',
-            discount: 0,
-            customer_name: String(new FormData(form).get('customer_name') || '').trim() || null,
-            customer_phone: String(new FormData(form).get('customer_phone') || '').trim() || null,
-            items: [...cart.values()].map(item => ({ product_id: item.product_id, quantity: item.quantity, options: item.options.map(option => ({ id: option.id })) })),
-            idempotency_key: qrFormKey
-        };
+        if (!qrPendingPayload) {
+            const fields = new FormData(form);
+            qrPendingPayload = {
+                channel: 'dine_in',
+                payment_preference: 'at_counter',
+                discount: 0,
+                customer_name: String(fields.get('customer_name') || '').trim() || null,
+                customer_phone: String(fields.get('customer_phone') || '').trim() || null,
+                items: [...cart.values()].map(item => ({ product_id: item.product_id, quantity: item.quantity, options: item.options.map(option => ({ id: option.id })) })),
+                idempotency_key: qrFormKey
+            };
+        }
+        const payload = qrPendingPayload;
         submit.disabled = true;
         if (status) status.textContent = 'در حال ثبت سفارش…';
         let response = null;
@@ -443,11 +451,25 @@ if (qrRoot) {
             }
             cart.clear();
             qrFormKey = makeKey();
+            qrPendingPayload = null;
+            qrUncertainRequest = false;
+            form.reset();
+            qrRoot.querySelectorAll('[data-qr-add], [data-qr-option], #kg-qr-order-form input').forEach(control => { control.disabled = false; });
             renderQrCart();
             if (status) status.textContent = 'سفارش ' + (result?.data?.number || '') + ' برای میز ثبت شد. پرداخت هنوز ثبت نشده است.';
         } catch (error) {
             const definiteClientError = response && response.status >= 400 && response.status < 500 && response.status !== 429;
-            if (definiteClientError) qrFormKey = makeKey();
+            if (definiteClientError) {
+                qrFormKey = makeKey();
+                qrPendingPayload = null;
+                qrUncertainRequest = false;
+                qrRoot.querySelectorAll('[data-qr-add], [data-qr-option], #kg-qr-order-form input').forEach(control => { control.disabled = false; });
+            } else {
+                /* Preserve the exact body and key: a timeout may happen after the order is saved. */
+                qrUncertainRequest = true;
+                qrRoot.querySelectorAll('[data-qr-add], [data-qr-option], #kg-qr-order-form input').forEach(control => { control.disabled = true; });
+                if (submit) submit.textContent = 'ارسال دوباره با همان اطلاعات';
+            }
             if (status) status.textContent = error?.message || 'ارتباط با سرور برقرار نشد.';
             if (submit) submit.disabled = cart.size === 0;
         }
