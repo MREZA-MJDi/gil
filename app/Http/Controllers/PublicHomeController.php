@@ -49,6 +49,7 @@ class PublicHomeController extends Controller
         return Category::query()
             ->active()
             ->ordered()
+            ->withCount(['products as active_products_count' => fn ($query) => $query->where('status', ProductStatus::Active->value)])
             ->with(['products' => function ($query) use ($productLimit) {
                 $query->where('status', ProductStatus::Active->value)
                     ->orderBy('sort_order')
