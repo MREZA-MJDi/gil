@@ -86,11 +86,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:access-admin'])
         Route::post('/media', [MediaController::class, 'store'])->name('media.store');
         Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-        Route::get('/recipes', [RecipesController::class, 'index'])->name('recipes.index');
-        Route::post('/ingredients', [RecipesController::class, 'storeIngredient'])->name('ingredients.store');
-        Route::patch('/ingredients/{ingredient}', [RecipesController::class, 'updateIngredient'])->name('ingredients.update');
-        Route::post('/ingredients/{ingredient}/movements', [RecipesController::class, 'adjustIngredient'])->name('ingredients.movements.store');
-        Route::put('/products/{product}/recipe', [RecipesController::class, 'saveRecipe'])->name('products.recipe.update');
+
+
+
+
+
         Route::get('/inventory/movements', [InventoryController::class, 'movements'])->name('inventory.movements');
         Route::post('/inventory/adjustments', [InventoryController::class, 'adjust'])->name('inventory.adjustments.store');
         Route::post('/products', [ProductController::class, 'store'])->name('products.store');
