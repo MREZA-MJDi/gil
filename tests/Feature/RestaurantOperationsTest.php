@@ -344,7 +344,11 @@ class RestaurantOperationsTest extends TestCase
             'customer_menu_enabled' => true,
         ])->save();
 
-        $this->get('/menu/'.$table->token)->assertOk()->assertSee('میز منوی تست');
+        $this->get('/menu/'.$table->token)
+            ->assertOk()
+            ->assertSee('gil-menu-page-shell', false)
+            ->assertSee('customer-menu-app', false)
+            ->assertSee('میز منوی تست');
         $this->getJson('/menu/'.$table->token.'/data')
             ->assertOk()
             ->assertJsonPath('data.table.name', 'میز منوی تست')
