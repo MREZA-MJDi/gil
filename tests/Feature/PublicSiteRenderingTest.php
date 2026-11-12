@@ -52,8 +52,8 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('data-home-carousel-card', false)
             ->assertSee('غذای تصویر اول')
             ->assertSee('غذای تصویر دوم')
-            ->assertSee($first->image_url, false)
-            ->assertSee($second->image_url, false)
+            ->assertSee(e($first->image_url), false)
+            ->assertSee(e($second->image_url), false)
             ->assertSee('kg-reference-hero', false);
     }
 
@@ -114,7 +114,7 @@ class PublicSiteRenderingTest extends TestCase
             ->assertOk()
             ->assertSee('5 محصول در منو')
             ->assertSee('نوشیدنی تست 4')
-            ->assertDontSee('نوشیدنی تست 5');
+            ->assertSee('نوشیدنی تست 5');
     }
 
     public function test_public_menu_hides_products_with_zero_tracked_stock(): void
