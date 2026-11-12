@@ -80,7 +80,7 @@ class RestaurantOperationsTest extends TestCase
             ->assertSee('خروج')
             ->assertSee(route('admin.logout'), false);
 
-        $this->get('/menu')->assertOk()->assertSee('منو برای')->assertSee('لاته تست');
+        $this->get('/menu')->assertOk()->assertSee('طعم دلخواهت')->assertSee('لاته تست');
     }
 
     public function test_public_home_and_reservation_use_dashboard_managed_media_assets(): void
@@ -354,6 +354,14 @@ class RestaurantOperationsTest extends TestCase
             'calories' => 180,
             'preparation_time_minutes' => 7,
         ]);
+        Product::query()->create([
+            'category_id' => $this->category->id,
+            'name' => 'محصول ناموجود تست',
+            'base_price' => 90000,
+            'status' => 'active',
+            'sort_order' => 2,
+            'stock_quantity' => 0,
+        ]);
         ProductOption::query()->create([
             'product_id' => $this->product->id,
             'name' => 'سایز بزرگ',
@@ -397,7 +405,12 @@ class RestaurantOperationsTest extends TestCase
             ->assertJsonPath('data.categories.0.products.0.options.0.name', 'سایز بزرگ')
             ->assertJsonPath('data.categories.0.products.0.options.0.price', 25000)
             ->assertJsonPath('data.categories.0.products.0.options.1.name', 'سیروپ')
-            ->assertJsonPath('data.categories.0.products.0.options.1.price', 10000);
+            ->assertJsonPath('data.categories.0.products.0.options.1.price', 10000)
+            ->assertJsonCount(1, 'data.categories.0.products')
+            ->assertJsonMissingPath('data.categories.0.products.0.stock_quantity')
+            ->assertJsonMissingPath('data.categories.0.products.0.low_stock_threshold')
+            ->assertJsonMissingPath('data.categories.0.products.0.image_path')
+            ->assertJsonMissingPath('data.categories.0.products.0.options.0.product_id');
     }
 
     public function test_customer_qr_cannot_submit_an_order_for_another_table(): void

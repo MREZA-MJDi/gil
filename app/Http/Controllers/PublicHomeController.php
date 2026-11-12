@@ -49,8 +49,12 @@ class PublicHomeController extends Controller
         return Category::query()
             ->active()
             ->ordered()
+            ->withCount(['products as available_products_count' => fn ($query) => $query
+                ->where('status', ProductStatus::Active->value)
+                ->where(fn ($stock) => $stock->whereNull('stock_quantity')->orWhere('stock_quantity', '>', 0))])
             ->with(['products' => function ($query) use ($productLimit) {
                 $query->where('status', ProductStatus::Active->value)
+                    ->where(fn ($stock) => $stock->whereNull('stock_quantity')->orWhere('stock_quantity', '>', 0))
                     ->orderBy('sort_order')
                     ->orderBy('name')
                     ->with(['options' => fn ($options) => $options->where('is_active', true)->orderBy('sort_order')]);
