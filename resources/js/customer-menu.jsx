@@ -146,9 +146,9 @@ function CustomerMenu() {
         setIdempotencyKey('');
         setCart(items => items
             .map(item => lineKey(item) === key
-                ? { ...item, quantity: item.quantity + delta }
+                ? { ...item, quantity: item.quantity + delta > 100 ? 100 : item.quantity + delta }
                 : item)
-            .filter(item => item.quantity > 0 && item.quantity <= 100));
+            .filter(item => item.quantity > 0));
     }
 
     async function submitOrder() {
@@ -251,7 +251,7 @@ function CustomerMenu() {
     return (
         <div className="gil-menu-app">
             <header className="gil-menu-header">
-                <a className="gil-menu-brand" href="/" aria-label="صفحه اصلی خانه گیلاسی">
+                <a className="gil-menu-brand" href={"/menu/" + encodeURIComponent(token)} aria-label="منوی میز " + (data.table?.name || "شما")>
                     {data.settings?.logo_url
                         ? <img src={data.settings.logo_url} alt="" />
                         : <span className="gil-menu-brand-mark" aria-hidden="true">گ</span>}
