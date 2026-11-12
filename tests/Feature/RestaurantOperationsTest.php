@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductOption;
 use App\Models\RestaurantSetting;
+use App\Models\SiteMediaAsset;
 use App\Models\RestaurantTable;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -80,6 +81,31 @@ class RestaurantOperationsTest extends TestCase
             ->assertSee(route('admin.logout'), false);
 
         $this->get('/menu')->assertOk()->assertSee('منو برای')->assertSee('لاته تست');
+    }
+
+    public function test_public_home_and_reservation_use_dashboard_managed_media_assets(): void
+    {
+        SiteMediaAsset::query()->create([
+            'slot' => 'hero',
+            'path' => 'site-media/hero/dashboard-hero.webp',
+            'alt_text' => 'تصویر اصلی بارگذاری‌شده از داشبورد',
+            'uploaded_by' => $this->admin->id,
+        ]);
+        SiteMediaAsset::query()->create([
+            'slot' => 'gallery_1',
+            'path' => 'site-media/gallery_1/reservation.webp',
+            'alt_text' => 'تصویر رزرو بارگذاری‌شده از داشبورد',
+            'uploaded_by' => $this->admin->id,
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('/storage/site-media/hero/dashboard-hero.webp', false);
+
+        $this->get('/reserve')
+            ->assertOk()
+            ->assertSee('/storage/site-media/gallery_1/reservation.webp', false)
+            ->assertSee('رزرو و برنامه‌ریزی');
     }
 
     public function test_local_admin_seeder_uses_mobile_and_strong_password_credentials(): void
