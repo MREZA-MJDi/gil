@@ -144,6 +144,7 @@ class RestaurantDemoSeeder extends Seeder
                     $product = new Product();
                     $product->forceFill(['seed_key' => $seedKey]);
                     $product->fill([
+                'name' => $definition['name'],
                 'category_id' => $categories[$definition['category']]->id,
                 'description' => $definition['description'],
                 'ingredients' => $definition['ingredients'],
