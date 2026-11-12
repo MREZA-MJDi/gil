@@ -5,7 +5,11 @@
             <span class="site-brand-mark">@if ($brandLogo)<img src="{{ $brandLogo }}" alt="" />@else<svg viewBox="0 0 36 36" aria-hidden="true"><path d="M9 12h18l-2 16H11z" fill="currentColor"/><path d="M8 10h20v4H8z" fill="#f2a6ae"/></svg>@endif</span>
             <span class="site-brand-copy"><b>{{ $settings->name }}</b><small>یک مکث کوچک، یک حس خوب.</small></span>
         </a>
-        <p>یک فنجان خوب، یک مکث کوچک، یک روز بهتر.</p>
+        <div class="site-footer-contact">
+            <p>یک فنجان خوب، یک مکث کوچک، یک روز بهتر.</p>
+            @if ($settings->phone)<a href="tel:{{ preg_replace('/[^\\d+]/', '', $settings->phone) }}">{{ $settings->phone }}</a>@endif
+            @if ($settings->address)<span>{{ $settings->address }}</span>@endif
+        </div>
         <a class="site-footer-up" href="#home" aria-label="بازگشت به بالای صفحه">↑</a>
     </div>
     <div class="site-footer-bottom">

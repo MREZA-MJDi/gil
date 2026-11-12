@@ -11,14 +11,13 @@
 <body class="public-site public-booking-v2">
     <div class="site-topline"><span>قرار خوب، با برنامه‌ریزی بهتر شروع می‌شود.</span><span class="site-topline-right"><i></i> رزرو و مناسبت‌ها</span></div>
     @include('public.partials.nav')
-    @php($reservePhoto = \App\Models\SiteMediaAsset::urlFor('gallery_3', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1000&q=85'))
-    <main class="reserve-page section-wrap cup-stop" data-cup-stop>
+    <main class="reserve-page section-wrap">
         <div class="reserve-intro">
-            <span class="gil-eyebrow">برای قرار بعدی‌ات</span>
+            <span class="gil-eyebrow">رزرو و برنامه‌ریزی</span>
             <h1>برای قرار بعدی‌ات<br><em>یک میز خوب کنار بگذار.</em></h1>
             <p>برای رزرو میز، جشن تولد، دورهمی خصوصی، مشاوره یا کترینگ درخواست بفرست. ثبت درخواست به معنی تأیید نهایی نیست؛ تیم کافه بعد از بررسی ظرفیت و جزئیات با تو هماهنگ می‌کند.</p>
             <div class="reserve-assurance"><span>✓</span><div><b>درخواست شفاف، هماهنگی انسانی</b><small>زمان، تعداد مهمان و توضیحات ثبت می‌شوند تا همکاران اطلاعات لازم را یک‌جا ببینند.</small></div></div>
-            <div class="reserve-side-photo"><img src="{{ $reservePhoto }}" alt="چیدمان میز برای جشن و مراسم" loading="lazy"><span>تولد · دورهمی خصوصی · کترینگ</span></div>
+            <div class="reserve-side-photo"><img src="{{ $media['gallery_1']['url'] ?? 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1000&q=85' }}" alt="چیدمان میز برای جشن و مراسم" loading="lazy"><span>تولد · دورهمی خصوصی · کترینگ</span></div>
         </div>
         <section class="reserve-form-panel">
             <div class="reserve-form-heading"><span class="gil-eyebrow">درخواست رزرو</span><h2>جزئیات درخواست</h2><p>موارد ستاره‌دار برای پیگیری درخواست ضروری‌اند. از رقم فارسی یا انگلیسی می‌توانی استفاده کنی.</p></div>
