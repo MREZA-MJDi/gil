@@ -43,6 +43,33 @@ class MenuController extends Controller
 
         $settings = RestaurantSetting::current();
 
+        // Keep this public QR payload explicit. Returning Eloquent models directly
+        // would also expose operational fields such as stock_quantity and
+        // low_stock_threshold to anyone holding a table QR token.
+        $publicCategories = $categories->map(fn (Category $category) => [
+            'id' => (int) $category->id,
+            'name' => $category->name,
+            'products' => $category->products->map(fn ($product) => [
+                'id' => (int) $product->id,
+                'name' => $product->name,
+                'description' => $product->description,
+                'image_url' => $product->image_url,
+                'base_price' => (int) $product->base_price,
+                'unit' => $product->unit,
+                'ingredients' => $product->ingredients,
+                'allergens' => $product->allergens,
+                'dietary_tags' => $product->dietary_tags,
+                'calories' => $product->calories,
+                'preparation_time_minutes' => $product->preparation_time_minutes,
+                'options' => $product->options->map(fn ($option) => [
+                    'id' => (int) $option->id,
+                    'name' => $option->name,
+                    'type' => $option->type instanceof \\BackedEnum ? $option->type->value : (string) $option->type,
+                    'price' => (int) $option->price,
+                ])->values(),
+            ])->values(),
+        ])->values();
+
         return response()->json(['data' => [
             'table' => ['id' => $table->id, 'name' => $table->name],
             'settings' => [
@@ -55,7 +82,7 @@ class MenuController extends Controller
                 'tax_basis_points' => $settings->tax_basis_points,
                 'service_basis_points' => $settings->service_basis_points,
             ],
-            'categories' => $categories,
+            'categories' => $publicCategories,
         ]]);
     }
 
