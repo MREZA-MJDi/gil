@@ -16,13 +16,15 @@
     <main class="kg-reserve-main">
         <section class="kg-reserve-intro">
             <div class="kg-reserve-intro-copy">
-                <span class="kg-eyebrow">برای قرار بعدی‌ات</span>
+                <span class="kg-eyebrow">رزرو و برنامه‌ریزی قرار بعدی‌ات</span>
                 <h1>یک میز خوب،<br><em>کنار بگذار.</em></h1>
                 <p>برای رزرو میز، جشن تولد، دورهمی خصوصی، مشاوره یا کترینگ درخواست بفرست. درخواست پس از بررسی ظرفیت توسط همکاران مجموعه تأیید می‌شود.</p>
                 <div class="kg-reserve-assurance"><span>✓</span><div><b>ثبت درخواست، نه تأیید خودکار</b><small>زمان و تعداد مهمان ثبت می‌شود تا مجموعه درخواست را بررسی و برای هماهنگی با تو تماس بگیرد.</small></div></div>
             </div>
             <div class="kg-reserve-art">
-                @if(!empty($media['gallery_3']['url']))
+                @if(!empty($media['gallery_1']['url']))
+                    <img src="{{ $media['gallery_1']['url'] }}" alt="{{ $media['gallery_1']['alt_text'] ?? 'چیدمان میز' }}" loading="lazy">
+                @elseif(!empty($media['gallery_3']['url']))
                     <img src="{{ $media['gallery_3']['url'] }}" alt="{{ $media['gallery_3']['alt_text'] ?? 'چیدمان میز' }}" loading="lazy">
                 @elseif(!empty($media['story_small']['url']))
                     <img src="{{ $media['story_small']['url'] }}" alt="{{ $media['story_small']['alt_text'] ?? 'فضای کافه' }}" loading="lazy">
