@@ -173,6 +173,8 @@ if (orderingRoot) {
             const order = result?.data || {};
             cart.clear();
             form.reset();
+            orderingRoot.querySelectorAll('[data-online-option]').forEach(input => { input.checked = false; });
+            orderingRoot.querySelectorAll('[data-online-quantity]').forEach(input => { input.value = '1'; });
             pendingKey = null;
             pendingPayload = null;
             setLocked(false);
@@ -450,6 +452,7 @@ if (qrRoot) {
                 throw new Error(validation || result?.message || 'ثبت سفارش انجام نشد.');
             }
             cart.clear();
+            qrRoot.querySelectorAll('[data-qr-option]').forEach(input => { input.checked = false; });
             qrFormKey = makeKey();
             qrPendingPayload = null;
             qrUncertainRequest = false;
