@@ -731,7 +731,38 @@ export default function DashboardApp() {
     const [detailOrder,setDetailOrder]=useState(null);
     const [busy,setBusy]=useState(false);
     const [settings,setSettings]=useState(null);
-     useEffect(()=>{
+    const [listPage,setListPage]=useState(1);
+    const [listFilters,setListFilters]=useState({
+        orders:{query:'',status:'all'},
+        products:{query:'',category:'all'},
+    });
+
+    const updateListFilters=(section,patch)=>{
+        const previous=listFilters[section] || {};
+        const next={...previous,...patch};
+        if(Object.keys(next).every(key=>next[key]===previous[key]) && Object.keys(previous).length===Object.keys(next).length) return;
+        setListPage(1);
+        setListFilters(current=>({...current,[section]:next}));
+    };
+    const queryString=params=>{
+        const entries=Object.entries(params).filter(([,value])=>value!==undefined&&value!==null&&value!=='');
+        return entries.length?'?'+entries.map(([key,value])=>encodeURIComponent(key)+'='+encodeURIComponent(String(value))).join('&'):'';
+    };
+
+    useEffect(() => {
+        let active = true;
+        api('/settings').then(payload => {
+            const currencySettings = unwrapData(payload);
+            if (!active) return;
+            window.__restaurantCurrencyLabel = currencySettings?.currency_label || 'تومان';
+            setSettings(currencySettings);
+        }).catch(() => {
+            window.__restaurantCurrencyLabel = window.__restaurantCurrencyLabel || 'تومان';
+        });
+        return () => { active = false; };
+    }, []);
+
+    useEffect(()=>{
         let alive=true;
         const load=async()=>{
             setLoading(true);setError('');
@@ -794,19 +825,6 @@ export default function DashboardApp() {
         load();
         return ()=>{alive=false;};
     },[page,reloadVersion,listPage,listFilters]);
-ext.tables=unwrapList(tables);
-                }
-                if(page==='customers') next.feedback=unwrapList(await api('/feedback?per_page=100'));
-                if(page==='expenses') next.expenses=unwrapList(await api('/expenses?per_page=100'));
-                if(page==='reports') next.report=unwrapData(await api('/reports/sales'));
-                if(page==='settings') { next.settings=unwrapData(await api('/settings')); }
-                if(alive){setData(prev=>({...prev,...next}));if(next.settings){setSettings(next.settings);window.__restaurantCurrencyLabel=next.settings.currency_label||'تومان';}}
-            }catch(e){if(alive)setError(e?.message||'دریافت اطلاعات از سرور ناموفق بود.');}
-            finally{if(alive)setLoading(false);}
-        };
-        load();
-        return ()=>{alive=false;};
-    },[page,reloadVersion]);
 
     useEffect(() => {
         if (!['overview', 'orders', 'cashier'].includes(page)) return undefined;
