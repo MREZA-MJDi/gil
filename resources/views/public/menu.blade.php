@@ -74,13 +74,12 @@
             <div class="catalog-disclaimer"><span>✳</span><p>ترکیبات، آلرژن‌ها و اطلاعات تغذیه‌ای صرفاً بر اساس داده‌های واردشده توسط کافه نمایش داده می‌شوند. اگر آلرژی یا محدودیت غذایی داری، قبل از سفارش حتماً جزئیات را با کارکنان بررسی کن.</p></div>
         </section>
         <section class="online-order-panel section-wrap" id="online-cart" aria-live="polite">
-            <div class="online-order-heading"><span class="section-kicker">سفارش بیرون‌بر آنلاین</span><h2>سبد سفارش بیرون‌بر</h2><p>اقلام را اضافه کن؛ سفارش پس از ثبت در پنل مجموعه دیده می‌شود. مبلغ نهایی در سرور محاسبه می‌شود و پرداخت در این نسخه هنگام تحویل یا در صندوق است.</p></div>
+            <div class="online-order-heading"><span class="section-kicker">سفارش بیرون‌بر</span><h2>سبد سفارش بیرون‌بر</h2><p>اقلام را اضافه کن؛ سفارش پس از ثبت در پنل مجموعه دیده می‌شود. مبلغ نهایی در سرور محاسبه می‌شود و پرداخت در این نسخه هنگام تحویل یا در صندوق است.</p></div>
             <div id="online-cart-empty" class="online-cart-empty">هنوز چیزی به سبد اضافه نکرده‌ای.</div>
             <div id="online-cart-items" class="online-cart-items"></div>
             <div class="online-cart-total"><span>جمع تخمینی سبد</span><b id="online-cart-total">۰ {{ $settings->currency_label }}</b><small>قیمت و افزودنی‌ها در سرور دوباره بررسی می‌شوند.</small></div>
             <form id="online-checkout-form" class="online-checkout-form">
-
-                <label><span>نام و نام خانوادگی *</span><input name="customer_name" autocomplete="name" required maxlength="150"></label>
+                    <label><span>نام و نام خانوادگی *</span><input name="customer_name" autocomplete="name" required maxlength="150"></label>
                 <label><span>شماره تماس *</span><input name="customer_phone" autocomplete="tel" inputmode="tel" required maxlength="30"></label>
                 <label class="online-checkout-note"><span>توضیح سفارش (اختیاری)</span><textarea name="customer_note" rows="2" maxlength="2000" placeholder="مثلاً بدون شکر یا توضیح ضروری"></textarea></label>
                 <fieldset class="online-payment-preference">
@@ -94,7 +93,7 @@
                 <p id="online-checkout-message" role="status"></p>
             </form>
         </section>
-        <section class="menu-cta-band cup-stop" data-cup-stop><div><span class="section-kicker">یک مکث خوشمزه</span><h2>طعم بعدیِ موردعلاقه‌ات<br>شاید همین‌جا باشد.</h2></div><a href="{{ route('home') }}#visit" class="button button-cream">ملاقات در کافه <span>↗</span></a></section>
+        <section class="menu-cta-band cup-stop" data-cup-stop><div><span class="section-kicker">یک مکث دل‌چسب</span><h2>طعم بعدیِ موردعلاقه‌ات<br>شاید همین‌جا باشد.</h2></div><a href="{{ route('home') }}#visit" class="button button-cream">ملاقات در کافه <span>↗</span></a></section>
     </main>
     @include('public.partials.footer')
 </body>

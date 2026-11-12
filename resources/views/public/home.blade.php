@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#171614">
-    <meta name="description" content="{{ $settings->name }}؛ منوی واقعی کافه، سفارش مستقیم، منوی دیجیتال میز و هماهنگی رزرو و مراسم.">
+    <meta name="description" content="{{ $settings->name }}؛ منوی واقعی کافه، سفارش مستقیم، QR میز و هماهنگی رزرو و مراسم.">
     <title>{{ $settings->name }} | قهوه، غذا، تجربه</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -15,7 +15,7 @@
     </div>
     @include('public.partials.nav')
     <main class="gil-home">
-        <section class="gil-hero gil-hero-cinematic cup-stop" id="home" data-cup-stop>
+        <section class="gil-hero gil-hero-cinematic" id="home">
             <img class="gil-hero-photo" src="{{ $media['hero']['url'] ?? 'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=2400&q=90' }}" alt="چیدمان غذاهای تازه برای یک وعده کامل" fetchpriority="high">
             <div class="gil-hero-shade"></div>
             <div class="gil-hero-center">
@@ -45,13 +45,13 @@
                     <span class="gil-hero-phone"><span>✳</span><b>میزت را انتخاب کن؛ لحظه‌ات را بساز.</b></span>
                 @endif
                 <a class="gil-hero-scroll" href="#menu"><span>برای کشف منو پایین برو</span><b>↓</b></a>
-                <span class="gil-hero-edition">01 — تجربه خانه گیلاسی</span>
+                <span class="gil-hero-edition">۰۱ — تجربه خانه گیلاسی</span>
             </div>
         </section>
 
-        <section class="gil-category-strip section-wrap cup-stop" aria-label="دسته‌بندی منو" data-cup-stop>
+        <section class="gil-category-strip section-wrap" aria-label="دسته‌بندی منو">
             <div class="gil-strip-intro">
-                <span class="gil-eyebrow">گشت‌وگذار در منو</span>
+                <span class="gil-eyebrow">گشتی در منو</span>
                 <h2>هوسِ کدام طعم را کرده‌ای؟</h2>
                 <p>از یک اسپرسوی کوتاه تا یک وعدهٔ کامل؛ از دسته‌بندی شروع کن.</p>
             </div>
@@ -76,9 +76,9 @@
             </div>
         </section>
 
-        <section class="gil-menu-feature section-wrap cup-stop" id="menu" data-cup-stop>
+        <section class="gil-menu-feature section-wrap" id="menu">
             <div class="gil-section-heading">
-                <div><span class="gil-eyebrow">برای حال خوب تو</span><h2>انتخاب‌های<br><em>خوش‌طعم</em> ما.</h2></div>
+                <div><span class="gil-eyebrow">انتخاب‌های امروز</span><h2>انتخاب‌های<br><em>خوش‌طعم</em> ما.</h2></div>
                 <div class="gil-section-heading-side"><p>این بخش از محصولات فعال پایگاه داده ساخته می‌شود؛ قیمت و گزینه‌ها همان اطلاعاتی‌اند که در پنل ثبت شده‌اند.</p><div class="gil-menu-side-actions"><a class="gil-text-link" href="{{ route('public.menu') }}">دیدن منوی کامل <span>↗</span></a><div class="gil-carousel-controls" aria-label="حرکت بین محصولات"><button type="button" data-food-carousel="prev" aria-label="محصولات قبلی">‹</button><button type="button" data-food-carousel="next" aria-label="محصولات بعدی">›</button></div></div></div>
             </div>
             <div class="gil-food-grid">
@@ -105,14 +105,14 @@
             <div class="gil-menu-footer"><span>اطلاعات مواد اولیه و آلرژن‌ها بر اساس داده‌ای است که کافه ثبت کرده است.</span><a class="gil-button gil-button-dark" href="{{ route('public.menu') }}">منوی کامل و سفارش آنلاین <span>↗</span></a></div>
         </section>
 
-        <section class="gil-experience cup-stop" data-cup-stop>
+        <section class="gil-experience">
             <div class="gil-experience-images">
                 <div class="gil-experience-image gil-experience-image-main"><img src="{{ $media['story_main']['url'] ?? 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=88' }}" alt="غذای تازه در فضای رستوران" loading="lazy"><span>از آشپزخانه تا میز تو</span></div>
                 <div class="gil-experience-image gil-experience-image-small"><img src="{{ $media['story_small']['url'] ?? 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=85' }}" alt="قهوه در حال آماده‌شدن" loading="lazy"><span>قهوه با دقت</span></div>
                 <div class="gil-image-note"><b>جزئیات مهم‌اند</b><span>ترکیب خوب، انتخاب روشن، سرو باحوصله.</span></div>
             </div>
             <div class="gil-experience-copy">
-                <span class="gil-eyebrow">بیشتر از یک توقف کوتاه</span>
+                <span class="gil-eyebrow">فراتر از یک قرار</span>
                 <h2>اینجا برای<br>یک تجربهٔ <em>کامل</em><br>آمده‌ای.</h2>
                 <p>برای یک قهوهٔ کوتاه، یک وعدهٔ کامل، قرار دوستانه یا برنامه‌ریزی یک مناسبت. منو و مسیر سفارش ساده است تا تمرکزت روی لحظه‌ای باشد که برایش آمده‌ای.</p>
                 <div class="gil-experience-points">
@@ -124,35 +124,35 @@
             </div>
         </section>
 
-        <section class="gil-ordering section-wrap cup-stop" id="moments" data-cup-stop>
+        <section class="gil-ordering section-wrap" id="moments">
             <div class="gil-section-heading">
-                <div><span class="gil-eyebrow">راه‌های ساده سفارش</span><h2>هرجا هستی،<br><em>ساده سفارش بده.</em></h2></div>
+                <div><span class="gil-eyebrow">راه‌های سفارش</span><h2>هرجا هستی،<br><em>ساده سفارش بده.</em></h2></div>
                 <div class="gil-section-heading-side"><p>سه راه روشن برای تجربهٔ خانه گیلاسی؛ بدون اینکه بین چند مسیر نامشخص سردرگم شوی.</p></div>
             </div>
             <div class="gil-ordering-grid">
                 <a href="{{ route('public.menu') }}" class="gil-order-card gil-order-card-dark"><span class="gil-order-icon">↗</span><span class="gil-order-number">۰۱ / سفارش مستقیم</span><h3>سفارش از سایت</h3><p>منو را ببین، گزینه‌ها را انتخاب کن و سفارش بیرون‌بر را ثبت کن. مبلغ نهایی سمت سرور محاسبه می‌شود.</p><b>رفتن به منو <span>↗</span></b></a>
-                <article class="gil-order-card gil-order-card-light"><span class="gil-order-icon">▦</span><span class="gil-order-number">۰۲ / سفارش با QR میز</span><h3>سفارش از میز</h3><p>کد میز را اسکن کن؛ سفارش به همان میز وصل می‌شود تا کارکنان بتوانند آن را پیگیری کنند.</p><span class="gil-order-card-note">درخواست پرداخت از این صفحه به معنی پرداخت موفق نیست.</span></article>
-                <a href="{{ route('public.reservations.create') }}" class="gil-order-card gil-order-card-olive"><span class="gil-order-icon">◷</span><span class="gil-order-number">۰۳ / رزرو و مناسبت‌ها</span><h3>رزرو و جشن‌ها</h3><p>برای میز، جشن تولد، مشاوره، دورهمی خصوصی یا کترینگ درخواست بفرست؛ تیم کافه جزئیات را تأیید می‌کند.</p><b>ثبت درخواست رزرو <span>↗</span></b></a>
+                <article class="gil-order-card gil-order-card-light"><span class="gil-order-icon">▦</span><span class="gil-order-number">۰۲ / سفارش با کد میز</span><h3>سفارش از میز</h3><p>QR همان میز را اسکن کن؛ سفارش به همان میز وصل می‌شود تا کارکنان بتوانند آن را پیگیری کنند.</p><span class="gil-order-card-note">درخواست پرداخت از این صفحه به معنی پرداخت موفق نیست.</span></article>
+                <a href="{{ route('public.reservations.create') }}" class="gil-order-card gil-order-card-olive"><span class="gil-order-icon">◷</span><span class="gil-order-number">۰۳ / رزرو و مناسبت</span><h3>رزرو و جشن‌ها</h3><p>برای میز، جشن تولد، مشاوره، دورهمی خصوصی یا کترینگ درخواست بفرست؛ تیم کافه جزئیات را تأیید می‌کند.</p><b>ثبت درخواست رزرو <span>↗</span></b></a>
             </div>
         </section>
 
-        <section class="gil-event-banner cup-stop" id="story" data-cup-stop>
-            <img src="{{ $media['gallery_3']['url'] ?? 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=2200&q=88' }}" alt="میز چیده‌شده برای یک مناسبت" loading="lazy">
+        <section class="gil-event-banner" id="story">
+            <img src="{{ $media['gallery_1']['url'] ?? 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=2200&q=88' }}" alt="میز چیده‌شده برای یک مناسبت" loading="lazy">
             <div class="gil-event-shade"></div>
-            <div class="gil-event-content"><span class="gil-eyebrow">تولد · دورهمی خصوصی · کترینگ</span><h2>برای خاطره‌ای<br>که <em>می‌ماند</em>، میز بچین.</h2><p>تعداد مهمان، زمان، بودجهٔ تقریبی و جزئیات مراسم را بفرست. درخواستت در پنل ثبت می‌شود و هماهنگی نهایی با تیم کافه انجام خواهد شد.</p><a class="gil-button gil-button-gold" href="{{ route('public.reservations.create') }}">شروع برنامه‌ریزی <span>↗</span></a></div>
+            <div class="gil-event-content"><span class="gil-eyebrow">تولد · دورهمی خصوصی · پذیرایی</span><h2>برای خاطره‌ای<br>که <em>می‌ماند</em>، میز بچین.</h2><p>تعداد مهمان، زمان، بودجهٔ تقریبی و جزئیات مراسم را بفرست. درخواستت در پنل ثبت می‌شود و هماهنگی نهایی با تیم کافه انجام خواهد شد.</p><a class="gil-button gil-button-gold" href="{{ route('public.reservations.create') }}">شروع برنامه‌ریزی <span>↗</span></a></div>
         </section>
 
-        <section class="gil-gallery section-wrap cup-stop" data-cup-stop>
-            <div class="gil-gallery-heading"><div><span class="gil-eyebrow">نگاهی به فضای کافه</span><h2>جزئیاتی که<br><em>حال می‌سازند.</em></h2></div><p>از فنجان اول تا میز دورهمی؛ هر بخش از تجربه سهم خودش را دارد.</p></div>
+        <section class="gil-gallery section-wrap">
+            <div class="gil-gallery-heading"><div><span class="gil-eyebrow">نگاهی به فضای ما</span><h2>جزئیاتی که<br><em>حال می‌سازند.</em></h2></div><p>از فنجان اول تا میز دورهمی؛ هر بخش از تجربه سهم خودش را دارد.</p></div>
             <div class="gil-gallery-grid">
-                <figure class="gil-gallery-item gil-gallery-large"><img src="{{ $media['gallery_1']['url'] ?? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1300&q=88' }}" alt="فضای داخلی کافه و رستوران" loading="lazy"><figcaption><b>فضای ملاقات</b><span>برای مکث، گفت‌وگو و دورهمی</span></figcaption></figure>
-                <figure class="gil-gallery-item"><img src="{{ $media['gallery_2']['url'] ?? 'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=900&q=88' }}" alt="غذاهای آماده سرو" loading="lazy"><figcaption><b>از آشپزخانه</b><span>انتخاب‌های منو</span></figcaption></figure>
+                <figure class="gil-gallery-item gil-gallery-large"><img src="{{ $media['gallery_2']['url'] ?? 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1300&q=88' }}" alt="فضای داخلی کافه و رستوران" loading="lazy"><figcaption><b>فضای ملاقات</b><span>برای مکث، گفت‌وگو و دورهمی</span></figcaption></figure>
+                <figure class="gil-gallery-item"><img src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=900&q=88" alt="غذاهای آماده سرو" loading="lazy"><figcaption><b>از آشپزخانه</b><span>انتخاب‌های منو</span></figcaption></figure>
                 <figure class="gil-gallery-item"><img src="{{ $media['gallery_3']['url'] ?? 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=900&q=88' }}" alt="میزهای کافه" loading="lazy"><figcaption><b>یک میز برای تو</b><span>رزرو و برنامه‌ریزی</span></figcaption></figure>
             </div>
         </section>
 
-        <section class="gil-final-cta section-wrap cup-stop" id="visit" data-cup-stop>
-            <div><span class="gil-eyebrow">لحظه خوب بعدی تو</span><h2>لحظهٔ بعدی را<br><em>خوش‌طعم انتخاب کن.</em></h2></div>
+        <section class="gil-final-cta section-wrap" id="visit">
+            <div><span class="gil-eyebrow">قرار بعدی تو</span><h2>لحظهٔ بعدی را<br><em>خوش‌طعم انتخاب کن.</em></h2></div>
             <div><p>منوی به‌روز را ببین یا برای میز و مناسبت بعدی درخواست رزرو بفرست.</p><div class="gil-hero-actions"><a class="gil-button gil-button-gold" href="{{ route('public.menu') }}">دیدن منو <span>↗</span></a><a class="gil-button gil-button-outline" href="{{ route('public.reservations.create') }}">رزرو و جشن‌ها <span>↗</span></a></div></div>
         </section>
     </main>

@@ -2,11 +2,10 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\PublicHomeController;
-use App\Http\Controllers\PublicReservationController;
 use App\Http\Controllers\PublicOrderController;
+use App\Http\Controllers\PublicReservationController;
 use App\Http\Controllers\Integrations\OrderWebhookController;
 use App\Http\Controllers\Admin\RecipesController;
-use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\CashShiftController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExpenseController;
@@ -36,6 +35,9 @@ Route::post('/api/integrations/orders/{provider}', [OrderWebhookController::clas
     ->middleware('throttle:60,1')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
     ->name('integrations.orders.store');
+
+
+
 
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AuthController::class, 'create'])->name('admin.login');
@@ -76,6 +78,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:access-admin'])
         Route::post('/media', [MediaController::class, 'store'])->name('media.store');
         Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+
+
+
+
+
         Route::get('/inventory/movements', [InventoryController::class, 'movements'])->name('inventory.movements');
         Route::post('/inventory/adjustments', [InventoryController::class, 'adjust'])->name('inventory.adjustments.store');
         Route::post('/products', [ProductController::class, 'store'])->name('products.store');
