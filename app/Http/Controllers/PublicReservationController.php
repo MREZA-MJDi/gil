@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ReservationStatus;
 use App\Models\Reservation;
 use App\Models\RestaurantSetting;
+use App\Models\SiteMediaAsset;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,12 +20,19 @@ class PublicReservationController extends Controller
 {
     public function create(): View
     {
-        return view('public.reserve', ['settings' => RestaurantSetting::current()]);
+        return view('public.reserve', ['settings' => RestaurantSetting::current(), 'media' => $this->media()]);
     }
 
     public function received(): View
     {
-        return view('public.reservation-received', ['settings' => RestaurantSetting::current()]);
+        return view('public.reservation-received', ['settings' => RestaurantSetting::current(), 'media' => $this->media()]);
+    }
+
+    private function media(): array
+    {
+        return SiteMediaAsset::query()->get()->mapWithKeys(fn (SiteMediaAsset $asset) => [
+            $asset->slot => ['url' => $asset->url, 'alt_text' => $asset->alt_text],
+        ])->all();
     }
 
     public function store(Request $request, AuditLogger $audit): RedirectResponse
