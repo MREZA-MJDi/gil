@@ -397,7 +397,11 @@ class RestaurantOperationsTest extends TestCase
             ->assertJsonPath('data.categories.0.products.0.options.0.name', 'سایز بزرگ')
             ->assertJsonPath('data.categories.0.products.0.options.0.price', 25000)
             ->assertJsonPath('data.categories.0.products.0.options.1.name', 'سیروپ')
-            ->assertJsonPath('data.categories.0.products.0.options.1.price', 10000);
+            ->assertJsonPath('data.categories.0.products.0.options.1.price', 10000)
+            ->assertJsonMissingPath('data.categories.0.products.0.stock_quantity')
+            ->assertJsonMissingPath('data.categories.0.products.0.low_stock_threshold')
+            ->assertJsonMissingPath('data.categories.0.products.0.image_path')
+            ->assertJsonMissingPath('data.categories.0.products.0.options.0.product_id');
     }
 
     public function test_customer_qr_cannot_submit_an_order_for_another_table(): void
