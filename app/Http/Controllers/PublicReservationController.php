@@ -54,7 +54,7 @@ class PublicReservationController extends Controller
 
         $data = $request->validate([
             'customer_name' => ['required', 'string', 'max:150'],
-            'phone' => ['required', 'string', 'max:30', function (string $attribute, mixed $value, \\Closure $fail): void {
+            'phone' => ['required', 'string', 'max:30', function (string $attribute, mixed $value, Closure $fail): void {
                 if (! PhoneNumber::isValid(is_string($value) ? $value : null)) {
                     $fail('شماره موبایل معتبر وارد کن.');
                 }
