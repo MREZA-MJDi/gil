@@ -1165,9 +1165,23 @@ export default function DashboardApp() {
     const saveRecipe=(productId,ingredients)=>action(()=>api('/products/'+productId+'/recipe',{method:'PUT',body:{ingredients}}),'رسپی ذخیره شد؛ از این پس مصرف مواد این محصول در سفارش‌ها محاسبه می‌شود.',{close:false});
     const submitIngredientStock=(ingredient,payload)=>action(()=>api('/ingredients/'+ingredient.id+'/movements',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'گردش ماده اولیه ثبت شد.');
     const createReservation=payload=>action(()=>api('/reservations',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'رزرو ثبت شد.');
+    const updateReservation=(reservation,payload)=>action(()=>api('/reservations/'+reservation.id,{method:'PATCH',body:payload}),'اطلاعات رزرو به‌روزرسانی شد.');
+    const deleteReservation=reservation=>{
+        if(!window.confirm('رزرو نمونه «'+reservation.reference+'» حذف شود؟ این عملیات فقط برای رکوردهای DEMO مجاز است.')) return;
+        return action(()=>api('/reservations/'+reservation.id,{method:'DELETE'}),'رزرو نمونه حذف شد.');
+    };
     const transitionReservation=(item,status,tableId)=>action(()=>api('/reservations/'+item.id+'/status',{method:'PATCH',body:{status,restaurant_table_id:tableId}}),'وضعیت رزرو و تخصیص میز به‌روزرسانی شد.',{close:false});
     const respondFeedback=(item,payload)=>action(()=>api('/feedback/'+item.id+'/response',{method:'PATCH',body:payload}),'پاسخ بازخورد ذخیره شد.',{close:false});
     const createExpense=payload=>action(()=>api('/expenses',{method:'POST',body:payload}),'هزینه ثبت شد.');
+    const updateExpense=(expense,payload)=>action(()=>api('/expenses/'+expense.id,{method:'PATCH',body:payload}),'هزینه به‌روزرسانی شد.');
+    const deleteExpense=expense=>{
+        if(!window.confirm('هزینه نمونه «'+expense.title+'» حذف شود؟ اگر به شیفت باز متصل باشد، گردش صندوق آن نیز حذف می‌شود.')) return;
+        return action(()=>api('/expenses/'+expense.id,{method:'DELETE'}),'هزینه نمونه حذف شد.');
+    };
+    const deleteIngredient=ingredient=>{
+        if(!window.confirm('ماده اولیه «'+ingredient.name+'» حذف شود؟ فقط ماده‌ای بدون رسپی و گردش انبار قابل حذف است.')) return;
+        return action(()=>api('/ingredients/'+ingredient.id,{method:'DELETE'}),'ماده اولیه حذف شد.');
+    };
     const openShift=payload=>action(()=>api('/cash-shift/open',{method:'POST',body:payload}),'شیفت صندوق باز شد.');
     const closeShift=(id,payload)=>action(()=>api('/cash-shift/'+id+'/close',{method:'POST',body:payload}),'شیفت بسته و مغایرت محاسبه شد.');
     const cashMovement=(id,payload)=>action(()=>api('/cash-shift/'+id+'/movements',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'حرکت صندوق ثبت شد.',{close:false});
@@ -1184,11 +1198,11 @@ export default function DashboardApp() {
         if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} pagination={data.cashierOrdersPagination} onPageChange={setListPage} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} onPrint={printDocument} />;
         if(page==='menu') return <MenuPage products={data.products} categories={data.categories} filters={listFilters.products} onFiltersChange={patch=>updateListFilters('products',patch)} pagination={data.productsPagination} onPageChange={setListPage} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onProductDelete={deleteProduct} onCategory={category=>setModal({type:'category',category})} onCategoryDelete={deleteCategory} />;
         if(page==='inventory') return <InventoryPage products={data.products} movements={data.movements} pagination={data.movementsPagination} onPageChange={setListPage} onRefresh={refresh} onAdjust={product=>setModal({type:'inventory',product})} />;
-        if(page==='recipes') return <RecipesPage recipeData={data.recipes} onRefresh={refresh} onCreateIngredient={createIngredient} onUpdateIngredient={updateIngredient} onAdjustIngredient={ingredient=>setModal({type:'ingredient-stock',ingredient})} onSaveRecipe={saveRecipe} />;
+        if(page==='recipes') return <RecipesPage recipeData={data.recipes} onRefresh={refresh} onCreateIngredient={createIngredient} onUpdateIngredient={updateIngredient} onEditIngredient={ingredient=>setModal({type:'ingredient-edit',ingredient})} onDeleteIngredient={deleteIngredient} onAdjustIngredient={ingredient=>setModal({type:'ingredient-stock',ingredient})} onSaveRecipe={saveRecipe} />;
         if(page==='tables') return <TablesPage tables={data.tables} pagination={data.tablesPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createTable} onUpdate={updateTable} onEdit={table=>setModal({type:'table-edit',table})} onDelete={archiveTable} onRotate={rotateTable} onShowQr={table=>setModal({type:'qr',table})} />;
-        if(page==='reservations') return <ReservationsPage reservations={data.reservations} tables={data.tables} pagination={data.reservationsPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createReservation} onTransition={transitionReservation} />;
+        if(page==='reservations') return <ReservationsPage reservations={data.reservations} tables={data.tables} pagination={data.reservationsPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createReservation} onEdit={reservation=>setModal({type:'reservation-edit',reservation})} onDelete={deleteReservation} onTransition={transitionReservation} />;
         if(page==='customers') return <CustomersPage feedback={data.feedback} pagination={data.feedbackPagination} onPageChange={setListPage} onRefresh={refresh} onRespond={respondFeedback} />;
-        if(page==='expenses') return <ExpensesPage expenses={data.expenses} pagination={data.expensesPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createExpense} />;
+        if(page==='expenses') return <ExpensesPage expenses={data.expenses} pagination={data.expensesPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createExpense} onEdit={expense=>setModal({type:'expense-edit',expense})} onDelete={deleteExpense} />;
         if(page==='reports') return <ReportsPage report={data.report} onRefresh={runReport} />;
         if(page==='settings') return <SettingsPage settings={data.settings} onRefresh={refresh} onSave={saveSettings} />;
         if(page==='media') return <MediaManager onNavigate={navigate} />;
@@ -1221,6 +1235,9 @@ export default function DashboardApp() {
         {modal?.type==='details'&&<OrderDetailsModal order={detailOrder} onClose={()=>setModal(null)} onPrint={printDocument} onRefund={showRefund}/>}
         {modal?.type==='inventory'&&<InventoryModal product={modal.product} products={data.products||[]} onClose={()=>setModal(null)} onSubmit={adjustInventory}/>}
         {modal?.type==='ingredient-stock'&&<IngredientStockModal ingredient={modal.ingredient} onClose={()=>setModal(null)} onSubmit={payload=>submitIngredientStock(modal.ingredient,payload)}/>}
+        {modal?.type==='ingredient-edit'&&<IngredientEditModal ingredient={modal.ingredient} onClose={()=>setModal(null)} onSubmit={payload=>updateIngredient(modal.ingredient,payload)}/>}
+        {modal?.type==='reservation-edit'&&<ReservationEditModal reservation={modal.reservation} tables={data.tables||[]} onClose={()=>setModal(null)} onSubmit={payload=>updateReservation(modal.reservation,payload)}/>}
+        {modal?.type==='expense-edit'&&<ExpenseEditModal expense={modal.expense} onClose={()=>setModal(null)} onSubmit={payload=>updateExpense(modal.expense,payload)}/>} 
         {modal?.type==='qr'&&<QRCodeModal table={modal.table} onClose={()=>setModal(null)} />}
         {notice&&<div className="toast-message" role="status"><span>✓</span>{notice}<button type="button" aria-label="بستن پیام" onClick={()=>setNotice('')}>×</button></div>}
         {busy&&<div className="op-busy" aria-live="polite"><span className="op-spinner"/>در حال ثبت عملیات…</div>}
