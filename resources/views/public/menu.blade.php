@@ -110,6 +110,7 @@
             </form>
         </div>
     </section>
+    @include('public.partials.footer')
 </div>
 </body>
 </html>
