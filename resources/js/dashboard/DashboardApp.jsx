@@ -388,13 +388,13 @@ function TablesPage({ tables, pagination, onPageChange, onCreate, onUpdate, onEd
     </div>;
 }
 
-function ReservationsPage({ reservations, tables, pagination, onPageChange, onCreate, onTransition, onRefresh }) {
+function ReservationsPage({ reservations, tables, pagination, onPageChange, onCreate, onTransition, onRefresh, onEdit, onDelete }) {
     const emptyForm = { restaurant_table_id: '', customer_name: '', phone: '', party_size: '2', starts_at: '', duration_minutes: '90', notes: '' };
     const [form, setForm] = useState(emptyForm);
     const [requestKey, setRequestKey] = useState(() => idempotencyKey());
     const set = (key, value) => setForm(v => ({...v, [key]: value}));
     return <div className="page-content">
-        <PageHeader title="رزرو میز" subtitle="رزرو با بازه زمانی و کنترل هم‌پوشانی برای هر میز؛ تغییر وضعیت در تاریخچه حسابرسی می‌شود." />
+        <PageHeader title="رزرو میز" subtitle="اطلاعات رزرو قابل ویرایش است؛ تغییر وضعیت و حذف رزروهای نمونه با قواعد جداگانه کنترل می‌شود." />
         <section className="panel op-card"><div className="panel-heading"><div><h2>ثبت رزرو جدید</h2><p>اگر میز مشخص شود، برخورد زمانی روی سرور کنترل می‌شود.</p></div></div>
             <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onCreate({ ...form, restaurant_table_id: form.restaurant_table_id ? Number(form.restaurant_table_id) : null, party_size: Number(form.party_size), duration_minutes: Number(form.duration_minutes), starts_at: localDateTime(form.starts_at), idempotency_key: requestKey }).then(ok => { if (ok) { setForm(emptyForm); setRequestKey(idempotencyKey()); } }); }}>
                 <Field label="نام مشتری"><input value={form.customer_name} onChange={e => set('customer_name', e.target.value)} maxLength="150" required /></Field>
@@ -407,12 +407,68 @@ function ReservationsPage({ reservations, tables, pagination, onPageChange, onCr
                 <div className="op-form-actions"><Button kind="primary" type="submit">ثبت رزرو</Button></div>
             </form>
         </section>
-        <section className="panel orders-panel"><div className="panel-heading"><div><h2>رزروها</h2><p>وضعیت هر رزرو با قواعد گردش کار تغییر می‌کند.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
-            {reservations?.length ? <TableWrap><thead><tr><th>شناسه</th><th>نوع درخواست</th><th>مشتری</th><th>میز</th><th>زمان</th><th>نفرات</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>{reservations.map(r => <tr key={r.id}><td className="mono">{r.reference}<small className="op-subtext">{r.source==='website'?'ثبت از سایت':'ثبت توسط کارکنان'}</small></td><td><b>{reservationPurposeLabel[r.purpose] || 'رزرو میز'}</b>{r.occasion_name&&<small className="op-subtext">{r.occasion_name}</small>}</td><td>{r.customer_name}<small className="op-subtext">{r.phone}</small></td><td>{r.table?.name || 'تخصیص‌نیافته'}</td><td>{dateTime(r.starts_at)}</td><td>{numberFa(r.party_size)}</td><td><Pill value={r.status} dictionary={reservationStatusLabel} /></td><td><div className="op-actions">{reservationNext(r.status).map(s => <Button key={s} kind={s === 'cancelled' ? 'danger' : 'secondary'} onClick={() => onTransition(r, s)}>{reservationStatusLabel[s]}</Button>)}</div></td></tr>)}</tbody></TableWrap> : <Empty>رزروی ثبت نشده است.</Empty>}
+        <section className="panel orders-panel"><div className="panel-heading"><div><h2>رزروها</h2><p>رزروهای نمونه با برچسب مشخص، از همین جدول قابل ویرایش و حذف هستند.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
+            {reservations?.length ? <TableWrap><thead><tr><th>شناسه</th><th>نوع درخواست</th><th>مشتری</th><th>میز</th><th>زمان</th><th>نفرات</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>{reservations.map(r => <tr key={r.id}>
+                <td className="mono">{r.reference}<small className="op-subtext">{r.source==='website'?'ثبت از سایت':'ثبت توسط کارکنان'}{String(r.reference||'').startsWith('DEMO-RSV-')?' · نمونه':''}</small></td>
+                <td><b>{reservationPurposeLabel[r.purpose] || 'رزرو میز'}</b>{r.occasion_name&&<small className="op-subtext">{r.occasion_name}</small>}</td>
+                <td>{r.customer_name}<small className="op-subtext">{r.phone}</small></td><td>{r.table?.name || 'تخصیص‌نیافته'}</td><td>{dateTime(r.starts_at)}</td><td>{numberFa(r.party_size)}</td>
+                <td><Pill value={r.status} dictionary={reservationStatusLabel} /></td>
+                <td><div className="op-actions"><Button onClick={() => onEdit(r)}>ویرایش</Button>{reservationNext(r.status).map(s => <Button key={s} kind={s === 'cancelled' ? 'danger' : 'secondary'} onClick={() => onTransition(r, s)}>{reservationStatusLabel[s]}</Button>)}{String(r.reference||'').startsWith('DEMO-RSV-')&&<Button kind="danger" onClick={()=>onDelete(r)}>حذف نمونه</Button>}</div></td>
+            </tr>)}</tbody></TableWrap> : <Empty>رزروی ثبت نشده است.</Empty>}
             <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
     </div>;
 }
+function reservationNext(status) {
+    return ({ pending: ['confirmed','cancelled'], confirmed: ['arrived','no_show','cancelled'], arrived: ['cancelled'], cancelled: [], no_show: [] })[status] || [];
+}
+
+function ReservationEditModal({ reservation, tables, onClose, onSubmit }) {
+    const [form, setForm] = useState(() => ({
+        restaurant_table_id: reservation.restaurant_table_id ? String(reservation.restaurant_table_id) : '',
+        customer_name: reservation.customer_name || '',
+        phone: reservation.phone || '',
+        email: reservation.email || '',
+        party_size: String(reservation.party_size || 2),
+        starts_at: String(reservation.starts_at || '').replace(' ', 'T').slice(0, 16),
+        duration_minutes: String(reservation.duration_minutes || 90),
+        purpose: reservation.purpose || 'table',
+        occasion_name: reservation.occasion_name || '',
+        estimated_budget: reservation.estimated_budget == null ? '' : String(reservation.estimated_budget),
+        notes: reservation.notes || '',
+    }));
+    const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
+    return <Modal title={'ویرایش رزرو ' + (reservation.reference || '')} eyebrow="RESERVATION DETAILS" onClose={onClose} wide>
+        <form className="op-form op-form-grid" onSubmit={event => {
+            event.preventDefault();
+            onSubmit({
+                ...form,
+                restaurant_table_id: form.restaurant_table_id ? Number(form.restaurant_table_id) : null,
+                party_size: Number(form.party_size),
+                starts_at: localDateTime(form.starts_at),
+                duration_minutes: Number(form.duration_minutes),
+                estimated_budget: form.estimated_budget === '' ? null : Number(form.estimated_budget),
+                email: form.email.trim() || null,
+                occasion_name: form.occasion_name.trim() || null,
+                notes: form.notes.trim() || null,
+            });
+        }}>
+            <Field label="نام مشتری"><input value={form.customer_name} onChange={event=>set('customer_name',event.target.value)} maxLength="150" required /></Field>
+            <Field label="تلفن"><input value={form.phone} onChange={event=>set('phone',event.target.value)} maxLength="30" required /></Field>
+            <Field label="ایمیل"><input type="email" value={form.email} onChange={event=>set('email',event.target.value)} maxLength="150" /></Field>
+            <Field label="تعداد نفرات"><input type="number" min="1" max="50" value={form.party_size} onChange={event=>set('party_size',event.target.value)} required /></Field>
+            <Field label="میز"><select value={form.restaurant_table_id} onChange={event=>set('restaurant_table_id',event.target.value)}><option value="">بدون تخصیص میز</option>{(tables||[]).filter(table=>table.is_active || String(table.id)===form.restaurant_table_id).map(table=><option key={table.id} value={table.id}>{table.name}</option>)}</select></Field>
+            <Field label="تاریخ و ساعت"><JalaliDateTimeInput value={form.starts_at} onChange={value=>set('starts_at',value)} required /></Field>
+            <Field label="مدت"><select value={form.duration_minutes} onChange={event=>set('duration_minutes',event.target.value)}><option value="30">۳۰ دقیقه</option><option value="60">۶۰ دقیقه</option><option value="90">۹۰ دقیقه</option><option value="120">۱۲۰ دقیقه</option><option value="150">۱۵۰ دقیقه</option><option value="180">۱۸۰ دقیقه</option><option value="240">۲۴۰ دقیقه</option><option value="300">۳۰۰ دقیقه</option><option value="360">۳۶۰ دقیقه</option></select></Field>
+            <Field label="نوع درخواست"><select value={form.purpose} onChange={event=>set('purpose',event.target.value)}>{Object.entries(reservationPurposeLabel).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></Field>
+            <Field label="مناسبت"><input value={form.occasion_name} onChange={event=>set('occasion_name',event.target.value)} maxLength="150" /></Field>
+            <Field label={'بودجه تخمینی ('+currencyLabel()+')'}><input type="number" min="0" value={form.estimated_budget} onChange={event=>set('estimated_budget',event.target.value)} /></Field>
+            <Field label="یادداشت"><input value={form.notes} onChange={event=>set('notes',event.target.value)} maxLength="1000" /></Field>
+            <div className="op-form-actions"><Button onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ذخیره تغییرات</Button></div>
+        </form>
+    </Modal>;
+}
+
 function reservationNext(status) {
     return ({ pending: ['confirmed','cancelled'], confirmed: ['arrived','no_show','cancelled'], arrived: ['cancelled'], cancelled: [], no_show: [] })[status] || [];
 }
