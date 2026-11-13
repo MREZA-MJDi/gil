@@ -6,9 +6,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#ffffff">
     <title>منوی میز {{ $table->name }} | {{ $settings->name }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site page-qr-menu">
@@ -21,6 +18,7 @@
             <a href="{{ route('home') }}">خانه</a>
             <a href="{{ route('public.menu') }}">منو و سفارش بیرون‌بر</a>
             <a href="{{ route('public.reservations.create') }}">رزرو میز</a>
+            @if($settings->phone)<a href="tel:{{ preg_replace('/[^0-9+]/', '', $settings->phone) }}">تماس با ما</a>@endif
         </nav>
     </header>
     <p class="menu-intro">طعم دلخواهت، همین‌جاست.</p>
