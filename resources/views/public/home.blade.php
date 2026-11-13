@@ -10,7 +10,7 @@
 </head>
 <body class="public-site page-home" id="top">
 <div class="wrap">
-    <div class="logo">{{ $settings->name }}</div>
+    <div class="logo">@if(!empty($media['brand_logo']['url']))<img class="kg-home-logo-image" src="{{ $media['brand_logo']['url'] }}" alt="" loading="eager">@endif{{ $settings->name }}</div>
     <main class="frame">
         <section class="slot hero" aria-labelledby="home-title">
             @if(!empty($media['hero']['url']))
@@ -27,9 +27,20 @@
                     <a href="{{ route('public.menu') }}">منو</a>
                     <a href="{{ route('home') }}#about">درباره ما</a>
                     <a href="{{ route('public.reservations.create') }}" class="cta">رزرو میز</a>
+                    @auth
+                        @if(auth()->user()->is_admin)
+                            <a href="{{ route('admin.dashboard') }}">پنل مدیریت</a>
+                            <form method="POST" action="{{ route('admin.logout') }}">@csrf<button type="submit">خروج</button></form>
+                        @else
+                            <a href="{{ route('admin.login') }}">ورود کارکنان</a>
+                        @endif
+                    @else
+                        <a href="{{ route('admin.login') }}">ورود کارکنان</a>
+                    @endauth
                 </nav>
             </header>
             <h1 class="headline" id="home-title">{{ $homepageContent['hero_title_line1'] ?? 'طعمی مثل' }}<br>{{ $homepageContent['hero_title_line2'] ?? 'گیلاس' }}</h1>
+            <span class="sr-only">{{ $homepageContent['hero_eyebrow'] ?? '' }} {{ $homepageContent['hero_description'] ?? '' }} @if($featuredProducts->first()) محصول منتخب منو: {{ $featuredProducts->first()->name }} @endif</span>
             <div class="socials">
                 @if(!empty($settings->instagram_url))
                     <a href="{{ $settings->instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام">
@@ -60,6 +71,8 @@
                     <img src="{{ $media['reservation_cover']['url'] }}" alt="{{ $media['reservation_cover']['alt_text'] ?: 'رزرو میز' }}" loading="lazy">
                 @elseif(!empty($media['gallery_1']['url']))
                     <img src="{{ $media['gallery_1']['url'] }}" alt="{{ $media['gallery_1']['alt_text'] ?: 'فضای رستوران' }}" loading="lazy">
+                @elseif($featuredProducts->get(1)?->image_url)
+                    <img src="{{ $featuredProducts->get(1)->image_url }}" alt="{{ $featuredProducts->get(1)->name }}" loading="lazy">
                 @endif
                 <div class="tag"><i>←</i>رزرو میز</div>
             </a>
@@ -68,6 +81,8 @@
                     <img src="{{ $media['story_main']['url'] }}" alt="{{ $media['story_main']['alt_text'] ?: 'رستوران خانه گیلاسی' }}" loading="lazy">
                 @elseif(!empty($media['gallery_3']['url']))
                     <img src="{{ $media['gallery_3']['url'] }}" alt="{{ $media['gallery_3']['alt_text'] ?: 'رستوران خانه گیلاسی' }}" loading="lazy">
+                @elseif($featuredProducts->get(2)?->image_url)
+                    <img src="{{ $featuredProducts->get(2)->image_url }}" alt="{{ $featuredProducts->get(2)->name }}" loading="lazy">
                 @endif
                 <div class="tag"><i>←</i>رستوران ما</div>
             </a>
