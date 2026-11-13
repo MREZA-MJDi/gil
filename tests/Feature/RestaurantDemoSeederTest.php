@@ -148,8 +148,8 @@ class RestaurantDemoSeederTest extends TestCase
         putenv('ALLOW_PRODUCTION_DEMO_SEED=false');
 
         try {
-            $this->expectException(\\RuntimeException::class);
-            app(\\Database\\Seeders\\RestaurantDemoSeeder::class)->run();
+            $this->expectException(\RuntimeException::class);
+            app(\Database\Seeders\RestaurantDemoSeeder::class)->run();
         } finally {
             if ($previous === false) {
                 putenv('ALLOW_PRODUCTION_DEMO_SEED');
