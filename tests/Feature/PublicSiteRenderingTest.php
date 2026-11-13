@@ -22,7 +22,7 @@ class PublicSiteRenderingTest extends TestCase
     }
 
 
-    public function test_homepage_uses_database_product_photos_for_the_hero_and_food_carousel(): void
+    public function test_single_hero_landing_uses_database_product_photos_in_its_navigation_tiles(): void
     {
         $category = Category::query()->create([
             'name' => 'غذاهای خانه',
@@ -50,13 +50,12 @@ class PublicSiteRenderingTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('data-home-carousel', false)
-            ->assertSee('data-home-carousel-card', false)
             ->assertSee('غذای تصویر اول')
             ->assertSee('غذای تصویر دوم')
             ->assertSee(e($first->image_url), false)
             ->assertSee(e($second->image_url), false)
-            ->assertSee('kg-reference-hero', false);
+            ->assertDontSee('data-home-carousel', false)
+            ->assertDontSee('kg-reference-hero', false);
     }
 
     public function test_homepage_copy_is_read_from_dashboard_managed_settings(): void
@@ -82,7 +81,7 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('صبح دلنشین،')
             ->assertSee('طعم تازه.')
             ->assertSee('متن ویرایش‌شده از داشبورد')
-            ->assertSee('انتخاب‌های تازه');
+            ->assertDontSee('انتخاب‌های تازه');
     }
 
     public function test_homepage_category_count_includes_products_beyond_the_preview_limit(): void
@@ -112,11 +111,12 @@ class PublicSiteRenderingTest extends TestCase
             'sort_order' => 6,
         ]);
 
-        $this->get(route('home'))
+        $this->get(route('public.menu'))
             ->assertOk()
-            ->assertSee('5 محصول در منو')
+            ->assertSee('نوشیدنی‌های تست')
             ->assertSee('نوشیدنی تست 4')
-            ->assertSee('نوشیدنی تست 5');
+            ->assertSee('نوشیدنی تست 5')
+            ->assertDontSee('محصول ناموجود برای شمارش');
     }
 
 
@@ -126,8 +126,6 @@ class PublicSiteRenderingTest extends TestCase
         $assets = [
             'hero' => 'site-media/hero.webp',
             'brand_logo' => 'site-media/logo.png',
-            'home_showcase_background' => 'site-media/showcase.webp',
-            'home_reservation_banner' => 'site-media/home-reservation.webp',
             'gallery_1' => 'site-media/gallery-one.webp',
             'menu_cover' => 'site-media/menu-cover.webp',
             'reservation_cover' => 'site-media/reservation-cover.webp',
@@ -146,10 +144,9 @@ class PublicSiteRenderingTest extends TestCase
             ->assertOk()
             ->assertSee('site-media/hero.webp')
             ->assertSee('site-media/logo.png')
-            ->assertSee('site-media/showcase.webp')
-            ->assertSee('site-media/home-reservation.webp')
             ->assertSee('site-media/gallery-one.webp')
-            ->assertSee('kg-photo-gallery', false);
+            ->assertDontSee('kg-photo-gallery', false)
+            ->assertDontSee('data-home-carousel', false);
 
         $this->get(route('public.menu'))
             ->assertOk()
@@ -225,7 +222,10 @@ class PublicSiteRenderingTest extends TestCase
             ->assertOk()
             ->assertSee('درخواست پس از بررسی ظرفیت')
             ->assertSee('name="starts_at"', false)
-            ->assertSee('name="idempotency_key"', false);
+            ->assertSee('name="idempotency_key"', false)
+            ->assertSee('data-jalali-datetime', false)
+            ->assertSee('data-jalali-trigger', false)
+            ->assertSee('انتخاب تاریخ شمسی', false);
 
         $this->get(route('public.reservations.received'))
             ->assertOk()

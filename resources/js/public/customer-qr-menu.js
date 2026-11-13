@@ -1,50 +1,81 @@
-/* Per-table QR menu. The API response is the only source of catalog data. */
+/* Per-table QR menu: catalog and prices are fetched from the server. */
 const qrRoot = document.querySelector('[data-customer-qr-menu]');
 if (qrRoot) {
     const escapeHtml = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
     const makeKey = () => globalThis.crypto?.randomUUID?.().replaceAll('-', '') || ('qr' + Date.now().toString(36) + Math.random().toString(36).slice(2, 22));
     const cart = new Map();
+    const productsById = new Map();
     let currency = 'تومان';
     let qrFormKey = makeKey();
     let qrPendingPayload = null;
     let qrUncertainRequest = false;
+    let activeCategory = null;
+    let activePage = 0;
+    let qrCategories = [];
+    const pageSize = 4;
     const money = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0)) + ' ' + currency;
 
-    function qrCard(product) {
+    function featureMarkup(product) {
         const image = product.image_url
-            ? '<img src="' + escapeHtml(product.image_url) + '" alt="' + escapeHtml(product.name) + '" loading="lazy">'
-            : '<span>🍽️</span>';
-        const options = (product.options || []).filter(option => option.is_active !== false).map(option => {
+            ? '<img data-menu-image src="' + escapeHtml(product.image_url) + '" alt="' + escapeHtml(product.name) + '" loading="eager"><span data-menu-image-fallback hidden>🍒</span>'
+            : '<span data-menu-image-fallback>🍒</span>';
+        const options = (product.options || []).map(option => {
             const type = option.type?.value || option.type || 'addon';
-            return '<label><input type="checkbox" data-qr-option="' + Number(option.id) + '" data-option-type="' + escapeHtml(type) + '" data-option-name="' + escapeHtml(option.name) + '" data-option-price="' + Number(option.price || 0) + '"> ' +
-                escapeHtml(option.name) + ' <small>' + (Number(option.price || 0) > 0 ? '+' + money(option.price) : 'رایگان') + '</small></label>';
+            return '<label class="kg-option-row"><input type="checkbox" data-qr-option="' + Number(option.id) + '" data-option-type="' + escapeHtml(type) + '" data-option-name="' + escapeHtml(option.name) + '" data-option-price="' + Number(option.price || 0) + '">' +
+                '<span>' + escapeHtml(option.name) + ' <small>' + (type === 'size' ? 'سایز' : 'افزودنی') + '</small></span><b>' +
+                (Number(option.price || 0) > 0 ? '+' + money(option.price) : 'رایگان') + '</b></label>';
         }).join('');
-        return '<article class="kg-qr-product" data-qr-product="' + Number(product.id) + '">' +
-            '<div class="kg-qr-product-photo">' + image + '</div>' +
-            '<div class="kg-qr-product-body"><h3>' + escapeHtml(product.name) + '</h3>' +
-            '<p>' + escapeHtml(product.description || '') + '</p>' +
-            '<b class="kg-qr-product-price">' + money(product.base_price) + '</b>' +
-            (options ? '<div class="kg-qr-options">' + options + '</div>' : '') +
-            '<button type="button" class="kg-qr-add" data-qr-add data-product-id="' + Number(product.id) + '" data-product-name="' + escapeHtml(product.name) + '" data-product-price="' + Number(product.base_price || 0) + '">افزودن به سفارش +</button>' +
-            '</div></article>';
+        return '<div class="plate">' + image + '</div><div class="info" data-qr-product="' + Number(product.id) + '">' +
+            '<h2>' + escapeHtml(product.name) + '</h2><p>' + escapeHtml(product.description || 'با مواد اولیه تازه و با دقت در خانه گیلاسی آماده می‌شود.') + '</p>' +
+            (product.ingredients ? '<p><strong>ترکیبات:</strong> ' + escapeHtml(product.ingredients) + '</p>' : '') +
+            (Array.isArray(product.allergens) && product.allergens.length ? '<p><strong>آلرژن‌ها:</strong> ' + escapeHtml(product.allergens.join('، ')) + '</p>' : '') +
+            (Array.isArray(product.dietary_tags) && product.dietary_tags.length ? '<p>' + escapeHtml(product.dietary_tags.join(' · ')) + '</p>' : '') +
+            (options ? '<div class="product-extra">' + options + '</div>' : '') +
+            '<div class="buy"><div class="price">' + money(product.base_price) + '<small>قیمت پایه</small></div>' +
+            '<button type="button" class="order" data-qr-add data-product-id="' + Number(product.id) + '" data-product-name="' + escapeHtml(product.name) + '" data-product-price="' + Number(product.base_price || 0) + '">افزودن به سفارش +</button></div>' +
+            (product.preparation_time_minutes ? '<p class="product-extra">◷ ' + Number(product.preparation_time_minutes) + ' دقیقه آماده‌سازی</p>' : '') +
+            '</div>';
+    }
+
+    function renderCategory(category) {
+        const products = category.products || [];
+        const visible = products.slice(activePage * pageSize, activePage * pageSize + pageSize);
+        const first = products[activePage * pageSize] || products[0];
+        const cards = visible.map(product =>
+            '<button type="button" class="card ' + (first && product.id === first.id ? 'is-active' : '') + '" data-qr-select="' + Number(product.id) + '" aria-pressed="' + (first && product.id === first.id ? 'true' : 'false') + '">' +
+            (product.image_url ? '<img data-menu-image src="' + escapeHtml(product.image_url) + '" alt="' + escapeHtml(product.name) + '" loading="lazy"><span data-menu-image-fallback hidden>🍒</span>' : '<span data-menu-image-fallback>🍒</span>') +
+            '<span class="p">' + new Intl.NumberFormat('fa-IR').format(Number(product.base_price || 0)) + '</span>' +
+            '<span class="n">' + escapeHtml(product.name) + '</span><span class="s">' + escapeHtml(product.preparation_time_minutes ? product.preparation_time_minutes + ' دقیقه آماده‌سازی' : 'پیشنهاد خانه گیلاسی') + '</span></button>'
+        ).join('');
+        const pages = Math.max(1, Math.ceil(products.length / pageSize));
+        const dots = pages > 1 ? '<div class="dots">' + Array.from({ length: pages }, (_, index) =>
+            '<button type="button" data-qr-page="' + index + '" class="' + (index === activePage ? 'is-active' : '') + '" aria-label="صفحه ' + (index + 1) + '" aria-current="' + (index === activePage ? 'page' : 'false') + '"></button>'
+        ).join('') + '</div>' : '';
+        return '<section class="category-panel" data-qr-category-panel="' + Number(category.id) + '">' +
+            '<div class="stage" data-qr-featured>' + (first ? featureMarkup(first) : '') + '</div>' +
+            '<div class="cards">' + (cards || '<p class="kg-cart-empty">در این دسته محصول فعالی وجود ندارد.</p>') + '</div>' + dots + '</section>';
     }
 
     function renderQrCatalog(categories, tableName) {
-        const sections = categories.map((category, index) =>
-            '<section class="kg-qr-category" id="qr-category-' + Number(category.id) + '">' +
-            '<h2>' + escapeHtml(category.name) + '</h2><div class="kg-qr-products">' +
-            (category.products || []).map(qrCard).join('') + '</div></section>'
+        categories.forEach(category => (category.products || []).forEach(product => productsById.set(Number(product.id), product)));
+        activeCategory = categories[0]?.id ?? null;
+        const categoryNav = categories.map((category, index) =>
+            '<button type="button" data-qr-category="' + Number(category.id) + '" class="' + (index === 0 ? 'is-active' : '') + '" aria-pressed="' + (index === 0 ? 'true' : 'false') + '">' + escapeHtml(category.name) + '</button>'
+        ).join('');
+        const panels = categories.map((category, index) =>
+            '<div data-qr-panel-wrap="' + Number(category.id) + '" ' + (index ? 'hidden' : '') + '>' + renderCategory(category) + '</div>'
         ).join('');
         qrRoot.innerHTML =
-            '<div class="kg-qr-catalog"><div class="kg-qr-catalog-list">' +
-            (sections || '<div class="kg-empty-state"><span>🍒</span><b>منو در حال تکمیل است.</b></div>') +
-            '</div><aside class="kg-qr-cart"><h2>سفارش میز ' + escapeHtml(tableName) + '</h2>' +
+            '<div class="kg-qr-intro"><div><span class="kg-eyebrow">خوش آمدی</span><h1>از میز خودت سفارش بده.</h1><p>محصولات را انتخاب کن و سفارش را برای همین میز ثبت کن.</p></div><span class="kg-table-badge">میز ' + escapeHtml(tableName) + '</span></div>' +
+            '<div class="menu-layout"><nav class="cats" aria-label="دسته‌بندی منو">' + (categoryNav || '<span>منو</span>') + '</nav>' +
+            '<div class="kg-qr-panels">' + (panels || '<div class="kg-empty-state"><span>🍒</span><b>منو در حال تکمیل است.</b></div>') + '</div></div>' +
+            '<section class="kg-qr-cart" aria-live="polite"><h2>سفارش میز ' + escapeHtml(tableName) + '</h2>' +
             '<div class="kg-qr-cart-lines" id="kg-qr-cart-lines"><p class="kg-cart-empty">هنوز محصولی انتخاب نشده است.</p></div>' +
             '<div class="kg-qr-cart-total"><span>جمع تخمینی</span><b id="kg-qr-total">۰ ' + escapeHtml(currency) + '</b></div>' +
             '<form id="kg-qr-order-form"><input name="customer_name" maxlength="150" placeholder="نام شما (اختیاری)">' +
             '<input name="customer_phone" maxlength="30" inputmode="tel" placeholder="شماره تماس (اختیاری)">' +
             '<button type="submit" id="kg-qr-submit" disabled>ثبت سفارش برای این میز</button>' +
-            '<p class="kg-qr-status" id="kg-qr-status" role="status"></p></form></aside></div>';
+            '<p class="kg-qr-status" id="kg-qr-status" role="status"></p></form></section>';
     }
 
     function renderQrCart() {
@@ -63,30 +94,48 @@ if (qrRoot) {
         if (submit) submit.disabled = cart.size === 0;
     }
 
-    async function loadQrMenu() {
-        try {
-            const response = await fetch(qrRoot.dataset.dataUrl, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result?.message || 'منوی این میز در دسترس نیست.');
-            const data = result.data || {};
-            currency = data.settings?.currency_label || 'تومان';
-            renderQrCatalog(data.categories || [], data.table?.name || qrRoot.dataset.tableName || '');
-            renderQrCart();
-        } catch (error) {
-            qrRoot.innerHTML = '<div class="kg-empty-state"><span>🍒</span><b>' + escapeHtml(error?.message || 'دریافت منو انجام نشد.') + '</b><p>صفحه را تازه کن یا با کارکنان مجموعه هماهنگ کن.</p></div>';
-        }
-    }
-
     qrRoot.addEventListener('click', event => {
+        const categoryButton = event.target.closest('[data-qr-category]');
+        if (categoryButton) {
+            activeCategory = Number(categoryButton.dataset.qrCategory);
+            activePage = 0;
+            qrRoot.querySelectorAll('[data-qr-category]').forEach(button => {
+                const active = Number(button.dataset.qrCategory) === activeCategory;
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+            qrRoot.querySelectorAll('[data-qr-panel-wrap]').forEach(panel => { panel.hidden = Number(panel.dataset.qrPanelWrap) !== activeCategory; });
+            return;
+        }
+        const pageButton = event.target.closest('[data-qr-page]');
+        if (pageButton) {
+            const category = qrCategories.find(item => Number(item.id) === activeCategory);
+            if (!category) return;
+            activePage = Number(pageButton.dataset.qrPage) || 0;
+            const wrap = qrRoot.querySelector('[data-qr-panel-wrap="' + activeCategory + '"]');
+            if (wrap) wrap.innerHTML = renderCategory(category);
+            return;
+        }
+        const select = event.target.closest('[data-qr-select]');
+        if (select) {
+            const product = productsById.get(Number(select.dataset.qrSelect));
+            const panel = select.closest('[data-qr-panel-wrap]');
+            if (!product || !panel) return;
+            panel.querySelector('[data-qr-featured]').innerHTML = featureMarkup(product);
+            panel.querySelectorAll('[data-qr-select]').forEach(button => {
+                const active = Number(button.dataset.qrSelect) === Number(product.id);
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+            return;
+        }
         const add = event.target.closest('[data-qr-add]');
         if (add) {
             if (qrUncertainRequest) return;
-            const card = add.closest('[data-qr-product]');
-            const options = [...card.querySelectorAll('[data-qr-option]:checked')].map(input => ({
-                id: Number(input.dataset.qrOption),
-                type: input.dataset.optionType || 'addon',
-                name: input.dataset.optionName || '',
-                price: Number(input.dataset.optionPrice || 0)
+            const card = add.closest('[data-qr-product]') || add.closest('.info');
+            const options = [...(card?.querySelectorAll('[data-qr-option]:checked') || [])].map(input => ({
+                id: Number(input.dataset.qrOption), type: input.dataset.optionType || 'addon',
+                name: input.dataset.optionName || '', price: Number(input.dataset.optionPrice || 0)
             }));
             if (options.filter(option => option.type === 'size').length > 1) {
                 const status = document.getElementById('kg-qr-status');
@@ -115,6 +164,14 @@ if (qrRoot) {
         }
     });
 
+    qrRoot.addEventListener('error', event => {
+        const image = event.target;
+        if (!image.matches?.('[data-menu-image]')) return;
+        image.hidden = true;
+        const fallback = image.nextElementSibling;
+        if (fallback?.matches('[data-menu-image-fallback]')) fallback.hidden = false;
+    }, true);
+
     qrRoot.addEventListener('submit', async event => {
         if (event.target.id !== 'kg-qr-order-form') return;
         event.preventDefault();
@@ -125,30 +182,21 @@ if (qrRoot) {
         if (!qrPendingPayload) {
             const fields = new FormData(form);
             qrPendingPayload = {
-                channel: 'dine_in',
-                payment_preference: 'at_counter',
-                discount: 0,
+                channel: 'dine_in', payment_preference: 'at_counter',
                 customer_name: String(fields.get('customer_name') || '').trim() || null,
                 customer_phone: String(fields.get('customer_phone') || '').trim() || null,
                 items: [...cart.values()].map(item => ({ product_id: item.product_id, quantity: item.quantity, options: item.options.map(option => ({ id: option.id })) })),
                 idempotency_key: qrFormKey
             };
         }
-        const payload = qrPendingPayload;
         submit.disabled = true;
         if (status) status.textContent = 'در حال ثبت سفارش…';
         let response = null;
         try {
             response = await fetch(qrRoot.dataset.orderUrl, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                    'Idempotency-Key': qrFormKey
-                },
-                body: JSON.stringify(payload)
+                method: 'POST', credentials: 'same-origin',
+                headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '', 'Idempotency-Key': qrFormKey },
+                body: JSON.stringify(qrPendingPayload)
             });
             const result = await response.json();
             if (!response.ok) {
@@ -167,12 +215,9 @@ if (qrRoot) {
         } catch (error) {
             const definiteClientError = response && response.status >= 400 && response.status < 500 && response.status !== 429;
             if (definiteClientError) {
-                qrFormKey = makeKey();
-                qrPendingPayload = null;
-                qrUncertainRequest = false;
+                qrFormKey = makeKey(); qrPendingPayload = null; qrUncertainRequest = false;
                 qrRoot.querySelectorAll('[data-qr-add], [data-qr-option], #kg-qr-order-form input').forEach(control => { control.disabled = false; });
             } else {
-                /* Preserve the exact body and key: a timeout may happen after the order is saved. */
                 qrUncertainRequest = true;
                 qrRoot.querySelectorAll('[data-qr-add], [data-qr-option], #kg-qr-order-form input').forEach(control => { control.disabled = true; });
                 if (submit) submit.textContent = 'ارسال دوباره با همان اطلاعات';
@@ -182,6 +227,18 @@ if (qrRoot) {
         }
     });
 
-    loadQrMenu();
+    /* Keep the fetched catalog available to delegated page navigation. */
+    fetch(qrRoot.dataset.dataUrl, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+        .then(response => response.json().then(result => ({ response, result })))
+        .then(({ response, result }) => {
+            if (!response.ok) throw new Error(result?.message || 'منوی این میز در دسترس نیست.');
+            const data = result.data || {};
+            currency = data.settings?.currency_label || 'تومان';
+            qrCategories = data.categories || [];
+            renderQrCatalog(qrCategories, data.table?.name || qrRoot.dataset.tableName || '');
+            renderQrCart();
+        })
+        .catch(error => {
+            qrRoot.innerHTML = '<div class="kg-empty-state"><span>🍒</span><b>' + escapeHtml(error?.message || 'دریافت منو انجام نشد.') + '</b><p>صفحه را تازه کن یا با کارکنان مجموعه هماهنگ کن.</p></div>';
+        });
 }
-
