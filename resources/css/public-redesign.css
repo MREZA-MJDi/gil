@@ -250,3 +250,39 @@ body.public-site { margin: 0; min-height: 100vh; font-family: "Vazirmatn", Tahom
     .kg-qr-page .kg-qr-cart { padding: 14px; }
     .kg-qr-footer { padding: 0 14px 18px; }
 }
+
+/* Reservation form fields and success states */
+.page-reserve .kg-reserve-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px 12px; }
+.page-reserve .kg-reserve-fields > label, .page-reserve .kg-reserve-fields > .field-wide { min-width: 0; }
+.page-reserve .kg-reserve-fields > .field-wide { grid-column: 1 / -1; }
+.page-reserve .kg-reserve-fields label > span, .page-reserve .kg-reserve-fields > .field-wide > label { display: block; color: var(--kg-muted); font-size: 12px; margin-bottom: 5px; }
+.page-reserve .kg-reserve-fields label b { color: #d47a8b; }
+.page-reserve .kg-reserve-fields input, .page-reserve .kg-reserve-fields select, .page-reserve .kg-reserve-fields textarea { min-width: 0; }
+.page-reserve .kg-reserve-fields .hint { display: block; color: #918875; font-size: 10px; line-height: 1.7; margin-top: 5px; }
+.page-reserve .kg-jalali-datetime { display: grid; grid-template-columns: minmax(0,1fr) 132px; gap: 10px; align-items: end; }
+.page-reserve .kg-jalali-date-shell { position: relative; }
+.page-reserve .kg-jalali-date-trigger { width: 100%; min-height: 43px; text-align: right; background: #07080a; border: 1px solid var(--kg-line); color: var(--kg-cream); border-radius: 10px; padding: 10px 13px; }
+.page-reserve .kg-jalali-time-field { display: grid; gap: 5px; }
+.page-reserve .kg-jalali-time-field > span { color: var(--kg-muted); font-size: 11px; }
+.page-reserve .jalali-calendar-popover { position: absolute; z-index: 30; right: 0; top: calc(100% + 8px); width: min(320px, calc(100vw - 60px)); padding: 14px; border-radius: 14px; background: #17191c; color: var(--kg-cream); border: 1px solid var(--kg-line); box-shadow: 0 18px 45px rgba(0,0,0,.45); }
+.page-reserve .jalali-calendar-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.page-reserve .jalali-calendar-heading button { border: 1px solid var(--kg-line); border-radius: 8px; color: var(--kg-cream); background: #08090b; width: 32px; height: 32px; }
+.page-reserve .jalali-calendar-weekdays, .page-reserve .jalali-calendar-days { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 4px; text-align: center; }
+.page-reserve .jalali-calendar-weekdays { color: var(--kg-muted); font-size: 11px; margin-bottom: 6px; }
+.page-reserve .jalali-calendar-days button, .page-reserve .jalali-calendar-days span { min-height: 34px; display: grid; place-items: center; border-radius: 8px; }
+.page-reserve .jalali-calendar-days button { border: 0; color: var(--kg-cream); background: #26282b; padding: 0; }
+.page-reserve .jalali-calendar-days button.is-selected { background: var(--kg-cream); color: var(--kg-ink); }
+.page-reserve .jalali-calendar-days button:disabled { opacity: .25; cursor: not-allowed; }
+.page-reserve .kg-honeypot { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; }
+.page-reserve .form .ok:not(:empty) { display: block; }
+.page-reserve .kg-reserve-success { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px; border-radius: 12px; background: rgba(142,42,58,.18); border: 1px solid #c9506a; }
+.page-reserve .kg-reserve-success > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--kg-cream); color: var(--kg-cherry); }
+.page-reserve .kg-reserve-success p, .page-reserve .kg-reserve-success small { margin: 3px 0; color: var(--kg-muted); font-size: 11px; }
+.page-reserve .kg-reserve-success button { margin-right: auto; border: 1px solid var(--kg-line); border-radius: 8px; background: transparent; color: var(--kg-cream); padding: 8px 10px; font-size: 11px; }
+.page-reserve .headline { position: absolute; z-index: 4; right: 34px; bottom: 30px; max-width: 80%; color: var(--kg-cream); font: 400 clamp(30px,4vw,54px)/1.3 Amiri,serif; text-shadow: 0 4px 28px rgba(0,0,0,.5); }
+.page-reserve .slot .kg-public-nav { z-index: 8; }
+.page-reserve .reserve-status { margin: 0; }
+
+/* Keep the product quantity control quiet and aligned with the reference composition. */
+.menu-layout .kg-quantity { display: inline-flex; align-items: center; }
+.menu-layout .kg-quantity input { width: 58px; border: 1px solid #ddd6cb; border-radius: 8px; padding: 8px 6px; color: var(--kg-ink); background: #fff; text-align: center; }
