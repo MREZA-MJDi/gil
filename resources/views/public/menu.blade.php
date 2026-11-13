@@ -12,6 +12,9 @@
 </head>
 <body class="public-site page-menu" id="top">
 <div class="m">
+    @if(!empty($media['menu_cover']['url']))
+        <div class="kg-menu-cover" aria-hidden="true"><img src="{{ $media['menu_cover']['url'] }}" alt="" loading="lazy"></div>
+    @endif
     <header class="top" data-kg-header>
         <button class="burger2" type="button" data-kg-menu-toggle aria-expanded="false" aria-controls="menu-nav" aria-label="باز کردن منو"><i></i><i></i></button>
         <a class="brand" href="{{ route('home') }}">{{ $settings->name }}</a>
@@ -20,11 +23,22 @@
             <a href="{{ route('public.menu') }}" aria-current="page">منو</a>
             <a href="{{ route('home') }}#about">درباره ما</a>
             <a href="{{ route('public.reservations.create') }}">رزرو میز</a>
+            @auth
+                @if(auth()->user()->is_admin)
+                    <a href="{{ route('admin.dashboard') }}">پنل مدیریت</a>
+                    <form method="POST" action="{{ route('admin.logout') }}">@csrf<button type="submit">خروج</button></form>
+                @else
+                    <a href="{{ route('admin.login') }}">ورود کارکنان</a>
+                @endif
+            @else
+                <a href="{{ route('admin.login') }}">ورود کارکنان</a>
+            @endauth
         </nav>
         <div class="tools"><a href="#online-cart" aria-label="سبد سفارش"><span></span></a></div>
     </header>
 
     <main class="menu-layout" data-public-ordering data-menu-showcase data-order-endpoint="{{ route('public.orders.store') }}">
+        <h1 class="sr-only">طعم دلخواهت را از منوی خانه گیلاسی انتخاب کن</h1>
         @if($categories->isNotEmpty())
             <nav class="cats" aria-label="دسته‌بندی‌های منو">
                 @foreach($categories as $category)
