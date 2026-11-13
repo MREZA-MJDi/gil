@@ -131,7 +131,7 @@ body.public-site { margin: 0; min-height: 100vh; font-family: "Vazirmatn", Tahom
 .page-reserve { background: #0d0f11 radial-gradient(ellipse at 20% 10%,rgba(255,255,255,.07),transparent 55%); color: var(--kg-cream); }
 .page-reserve .wrap { max-width: 1280px; margin: 0 auto; padding: 24px; min-height: 100vh; display: flex; flex-direction: column; }
 .page-reserve .logo { text-align: center; font: 400 clamp(42px,5.5vw,64px)/1.1 Amiri,serif; color: var(--kg-cream); -webkit-text-stroke: .5px var(--kg-cream); margin: 0 0 22px; }
-.page-reserve .frame { flex: 1; min-height: 620px; background: #07080a; border-radius: 22px; padding: 10px; box-shadow: 0 30px 80px rgba(0,0,0,.6),inset 0 0 0 1px var(--kg-line); display: grid; grid-template-columns: 1.1fr 1fr; gap: 10px; }
+.page-reserve .frame { flex: 1; min-height: 620px; background: #07080a; border-radius: 22px; padding: 10px; box-shadow: 0 30px 80px rgba(0,0,0,.6),inset 0 0 0 1px var(--kg-line); display: grid; grid-template-columns: 1fr 1.1fr; gap: 10px; }
 .page-reserve .slot { position: relative; min-height: 520px; overflow: hidden; background: #1a1d21; border-radius: 14px; }
 .page-reserve .slot > img { position: absolute; inset: 0; }
 .page-reserve .slot::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top,rgba(0,0,0,.58),transparent 55%); pointer-events: none; }
@@ -286,3 +286,6 @@ body.public-site { margin: 0; min-height: 100vh; font-family: "Vazirmatn", Tahom
 /* Keep the product quantity control quiet and aligned with the reference composition. */
 .menu-layout .kg-quantity { display: inline-flex; align-items: center; }
 .menu-layout .kg-quantity input { width: 58px; border: 1px solid #ddd6cb; border-radius: 8px; padding: 8px 6px; color: var(--kg-ink); background: #fff; text-align: center; }
+
+.menu-layout .plate > [data-menu-image-fallback] { display: grid; place-items: center; width: 100%; height: 100%; font-size: 72px; }
+.menu-layout .card > [data-menu-image-fallback] { position: absolute; z-index: 0; inset: 0; display: grid; place-items: center; font-size: 38px; opacity: .75; }
