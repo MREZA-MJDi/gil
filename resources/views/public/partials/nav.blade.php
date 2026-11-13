@@ -24,7 +24,7 @@
         </a>
 
         <button class="kg-menu-toggle" type="button" data-kg-menu-toggle aria-expanded="false" aria-controls="kg-main-nav" aria-label="باز کردن منو">
-            <span></span><span></span>
+            
         </button>
 
         <nav class="kg-nav" id="kg-main-nav" data-kg-nav aria-label="ناوبری اصلی">
@@ -34,19 +34,20 @@
             <a href="{{ route('home') }}#about">درباره ما</a>
             @auth
                 @if (auth()->user()->is_admin)
-                    <a class="kg-nav-admin" href="{{ route('admin.dashboard') }}">پنل مدیریت <span>↗</span></a>
+                    <a class="kg-nav-admin" href="{{ route('admin.dashboard') }}">پنل مدیریت</a>
                     <form class="kg-nav-logout" method="POST" action="{{ route('admin.logout') }}">
                         @csrf
                         <button type="submit">خروج</button>
                     </form>
                 @else
-                    <a class="kg-nav-admin" href="{{ route('admin.login') }}">ورود کارکنان</a>
+                    <a class="kg-nav-admin" href="{{ route('customer.dashboard') }}">حساب من</a>
                 @endif
-            @else
-                <a class="kg-nav-admin" href="{{ route('admin.login') }}">ورود کارکنان</a>
             @endauth
+            @if(!auth()->check() || !auth()->user()->is_admin)
+                <a class="kg-nav-admin" href="{{ route('admin.login') }}">ورود مدیر</a>
+            @endif
         </nav>
 
-        <a class="kg-header-cta" href="{{ route('public.menu') }}">دیدن منو <span>↗</span></a>
+        <a class="kg-header-cta" href="{{ route('public.menu') }}">دیدن منو </a>
     </div>
 </header>

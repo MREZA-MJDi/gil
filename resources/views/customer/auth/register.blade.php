@@ -23,7 +23,7 @@
                 <label><span>ایمیل (اختیاری)</span><input type="email" name="email" value="{{ old('email') }}" autocomplete="email" maxlength="190"></label>
                 <label><span>رمز عبور (حداقل ۱۴ نویسه)</span><input type="password" name="password" autocomplete="new-password" minlength="14" required></label>
                 <label><span>تکرار رمز عبور</span><input type="password" name="password_confirmation" autocomplete="new-password" minlength="14" required></label>
-                <button class="submit" type="submit">ساخت حساب و ادامه ↗</button>
+                <button class="submit" type="submit">ساخت حساب و ادامه </button>
             </form>
             <p class="account-switch">قبلاً حساب ساختی؟ <a href="{{ route('customer.login') }}">وارد شو</a></p>
             <a class="account-back" href="{{ route('home') }}">بازگشت به سایت</a>

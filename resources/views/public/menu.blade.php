@@ -23,7 +23,7 @@
             <a href="{{ route('public.reservations.create') }}">رزرو میز</a>
             @guest<a href="{{ route('customer.login') }}">ورود مشتری</a>@else @can('access-customer')<a href="{{ route('customer.dashboard') }}">حساب من</a>@endcan @endguest
         </nav>
-        <div class="tools"><span></span></div>
+        <div class="tools"></div>
     </div>
 
     @if(!empty($media['menu_cover']['url']))
@@ -119,7 +119,7 @@
                 <label class="cart-field-wide">توضیحات سفارش<textarea name="customer_note" rows="2" maxlength="1000"></textarea></label>
                 <label>روش پرداخت<select name="payment_preference"><option value="at_counter">پرداخت هنگام دریافت</option><option value="online">پرداخت آنلاین (در صورت فعال بودن)</option></select></label>
             </div>
-            <button type="submit" id="online-checkout-submit" disabled>ثبت سفارش بیرون‌بر ↗</button>
+            <button type="submit" id="online-checkout-submit" disabled>ثبت سفارش بیرون‌بر </button>
             <p id="online-checkout-message" role="status" aria-live="polite"></p>
         </form>
     </section>

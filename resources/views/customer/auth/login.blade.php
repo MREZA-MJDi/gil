@@ -21,7 +21,7 @@
                 <label><span>شماره موبایل</span><input type="tel" name="phone" value="{{ old('phone') }}" inputmode="tel" autocomplete="username" dir="ltr" placeholder="۰۹۱۲۰۰۰۰۰۰۰" required></label>
                 <label><span>رمز عبور</span><input type="password" name="password" autocomplete="current-password" placeholder="رمز عبور حساب" required></label>
                 <label class="remember-line"><input type="checkbox" name="remember" value="1"> مرا به خاطر بسپار</label>
-                <button class="submit" type="submit">ورود به حساب ↗</button>
+                <button class="submit" type="submit">ورود به حساب </button>
             </form>
             <p class="account-switch">حساب نداری؟ <a href="{{ route('customer.register') }}">ثبت‌نام کن</a></p>
             <a class="account-back" href="{{ route('home') }}">بازگشت به سایت</a>

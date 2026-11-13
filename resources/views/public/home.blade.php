@@ -28,8 +28,8 @@
             </h1>
             <p class="home-hero-description">{{ $homepageContent['hero_description'] ?? 'برای یک قهوه کوتاه، یک وعده خوش‌طعم یا یک دورهمی دوست‌داشتنی؛ منتظرت هستیم.' }}</p>
             <div class="home-hero-actions">
-                <a href="{{ route('public.menu') }}">دیدن منو <span>↗</span></a>
-                <a href="{{ route('public.reservations.create') }}">رزرو میز <span>↗</span></a>
+                <a href="{{ route('public.menu') }}">دیدن منو </a>
+                <a href="{{ route('public.reservations.create') }}">رزرو میز </a>
             </div>
         </div>
         <div class="side" data-home-carousel-stage>
@@ -93,7 +93,7 @@
     @if(!empty($media['home_reservation_banner']['url']))
         <section class="home-reservation-banner">
             <img src="{{ $media['home_reservation_banner']['url'] }}" alt="{{ $media['home_reservation_banner']['alt_text'] ?: 'بنر رزرو' }}" loading="lazy">
-            <div><span>تولد · دورهمی · قرار دوستانه</span><h2>برای یک خاطره خوب، میز بچین.</h2><a href="{{ route('public.reservations.create') }}">درخواست رزرو ↗</a></div>
+            <div><span>تولد · دورهمی · قرار دوستانه</span><h2>برای یک خاطره خوب، میز بچین.</h2><a href="{{ route('public.reservations.create') }}">درخواست رزرو </a></div>
         </section>
     @endif
 

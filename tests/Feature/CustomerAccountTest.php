@@ -184,4 +184,20 @@ class CustomerAccountTest extends TestCase
         $this->assertGuest();
         $this->get(route('customer.dashboard'))->assertRedirect(route('customer.login'));
     }
+
+    public function test_public_navigation_exposes_customer_account_and_manager_login_links(): void
+    {
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('ورود مشتری')
+            ->assertSee(route('admin.login'));
+
+        $customer = $this->customer();
+
+        $this->actingAs($customer)->get(route('home'))
+            ->assertOk()
+            ->assertSee('حساب من')
+            ->assertSee(route('admin.login'));
+    }
+
 }

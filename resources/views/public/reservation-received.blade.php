@@ -12,7 +12,7 @@
         <div class="form received-form">
             <span class="received-check">✓</span><h2>درخواستت به دست ما رسید.</h2>
             <p class="sub">درخواست رزرو در پنل مجموعه ثبت شده و اکنون در انتظار بررسی است. تأیید نهایی را از حساب مشتری خودت پیگیری کن.</p>
-            <a class="submit" href="{{ route('customer.dashboard') }}">مشاهده وضعیت رزرو ↗</a>
+            <a class="submit" href="{{ route('customer.dashboard') }}">مشاهده وضعیت رزرو </a>
             <a class="received-link" href="{{ route('public.menu') }}">دیدن منو</a>
         </div>
         <div class="slot hero reserve-art">

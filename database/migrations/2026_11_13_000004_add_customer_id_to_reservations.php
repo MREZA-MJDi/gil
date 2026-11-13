@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('reservations') || Schema::hasColumn('reservations', 'customer_id')) {
+            return;
+        }
+
         Schema::table('reservations', function (Blueprint $table): void {
             $table->foreignId('customer_id')->nullable()->constrained('users')->nullOnDelete();
         });
@@ -15,6 +19,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasTable('reservations') || ! Schema::hasColumn('reservations', 'customer_id')) {
+            return;
+        }
+
         Schema::table('reservations', function (Blueprint $table): void {
             $table->dropConstrainedForeignId('customer_id');
         });
