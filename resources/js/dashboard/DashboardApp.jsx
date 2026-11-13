@@ -524,7 +524,7 @@ function ExpensesPage({ expenses, pagination, onPageChange, onCreate, onEdit, on
         </section>
         <section className="panel orders-panel"><div className="panel-heading"><div><h2>آخرین هزینه‌ها</h2><p>هزینه‌ی پرداخت‌نشده با خروج وجه صندوق یکی نیست. رکوردهای DEMO برای تست ساخته شده‌اند.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
             {expenses?.length ? <TableWrap><thead><tr><th>زمان</th><th>عنوان</th><th>دسته</th><th>مبلغ</th><th>پرداخت</th><th>روش</th><th>ثبت‌کننده</th><th>عملیات</th></tr></thead><tbody>{expenses.map(ex => <tr key={ex.id}>
-                <td>{dateTime(ex.created_at)}</td><td>{ex.title}{String(ex.title||'').startsWith('DEMO ·')&&<small className="op-subtext">داده نمونه</small>}</td><td>{expenseCategoryLabel[ex.category] || ex.category}</td><td>{money(ex.amount)}</td>
+                <td>{dateTime(ex.created_at)}</td><td>{ex.title}{String(ex.seed_key||'').startsWith('demo-expense:')&&<small className="op-subtext">داده نمونه</small>}</td><td>{expenseCategoryLabel[ex.category] || ex.category}</td><td>{money(ex.amount)}</td>
                 <td><Pill value={ex.is_paid ? 'paid' : 'unpaid'} dictionary={{paid:'پرداخت شده',unpaid:'پرداخت نشده'}} /></td><td>{paymentMethodLabel[ex.payment_method] || ex.payment_method}</td><td>{ex.user?.name || '—'}</td>
                 <td><div className="op-actions"><Button onClick={()=>onEdit(ex)}>ویرایش</Button>{String(ex.title||'').startsWith('DEMO ·')&&<Button kind="danger" onClick={()=>onDelete(ex)}>حذف نمونه</Button>}</div></td>
             </tr>)}</tbody></TableWrap> : <Empty>هزینه‌ای ثبت نشده است.</Empty>}
@@ -543,7 +543,7 @@ function ExpenseEditModal({ expense, onClose, onSubmit }) {
         note: expense.note || '',
     });
     const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
-    const isDemo = String(expense.title || '').startsWith('DEMO ·');
+    const isDemo = String(expense.seed_key || '').startsWith('demo-expense:');
     return <Modal title="ویرایش هزینه" eyebrow={isDemo ? 'SAMPLE EXPENSE' : 'EXPENSE DETAILS'} onClose={onClose}>
         <form className="op-form" onSubmit={event => { event.preventDefault(); onSubmit({ ...form, title: form.title.trim(), amount: Number(form.amount), note: form.note.trim() || null }); }}>
             <Field label="عنوان هزینه"><input value={form.title} onChange={event=>set('title',event.target.value)} maxLength="150" required /></Field>
