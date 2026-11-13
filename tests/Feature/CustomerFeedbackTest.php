@@ -118,9 +118,9 @@ class CustomerFeedbackTest extends TestCase
         ];
 
         $this->actingAs($this->customer)
-            ->from('/account')
+            ->from(route('customer.dashboard'))
             ->post(route('customer.feedback.store'), $payload)
-            ->assertRedirect('/account')
+            ->assertRedirect(route('customer.dashboard'))
             ->assertSessionHasErrors('order_id');
 
         $order->forceFill(['status' => OrderStatus::Delivered])->save();
@@ -134,17 +134,18 @@ class CustomerFeedbackTest extends TestCase
         ]);
 
         $this->actingAs($otherCustomer)
-            ->from('/account')
+            ->from(route('customer.dashboard'))
             ->post(route('customer.feedback.store'), $payload)
-            ->assertRedirect('/account')
+            ->assertRedirect(route('customer.dashboard'))
             ->assertSessionHasErrors('order_id');
 
         $this->actingAs($this->customer)
             ->post(route('customer.feedback.store'), $payload)
             ->assertRedirect(route('customer.dashboard').'#customer-feedback');
 
-        $this->post(route('customer.feedback.store'), $payload)
-            ->assertRedirect('/account')
+        $this->from(route('customer.dashboard'))
+            ->post(route('customer.feedback.store'), $payload)
+            ->assertRedirect(route('customer.dashboard'))
             ->assertSessionHasErrors('order_id');
 
         $this->assertSame(1, CustomerFeedback::query()->count());
