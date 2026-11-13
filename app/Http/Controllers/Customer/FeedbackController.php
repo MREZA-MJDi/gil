@@ -51,7 +51,7 @@ class FeedbackController extends Controller
                     || (int) $order->customer_id !== (int) $customer->id
                 ) {
                     throw ValidationException::withMessages([
-                        'order_id' => 'فقط برای سفارش تحویل‌شده‌ای که با شماره موبایل حساب تو ثبت شده می‌توان بازخورد فرستاد.',
+                        'order_id' => 'فقط برای سفارش تحویل‌شده‌ای که هنگام ثبت با همین حساب واردش شده‌ای می‌توان بازخورد فرستاد.',
                     ]);
                 }
 
