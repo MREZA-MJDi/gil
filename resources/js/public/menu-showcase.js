@@ -93,7 +93,7 @@ if (menuRoot) {
     }, true);
 
     if (categoryButtons.length) {
-        const requestedCategoryId = window.location.hash.match(/^#category-(\\d+)$/)?.[1] || null;
+        const requestedCategoryId = window.location.hash.match(/^#category-([0-9]+)$/)?.[1] || null;
         const requestedProductId = new URLSearchParams(window.location.search).get('product');
         const requestedPanel = requestedCategoryId
             ? categoryPanels.find(item => item.dataset.menuCategoryPanel === requestedCategoryId)
