@@ -212,13 +212,75 @@ class RestaurantOperationsTest extends TestCase
                     'orders_by_status',
                     'open_invoice_amount',
                     'low_stock_count',
+                    'low_stock_products' => [['id', 'name', 'stock_quantity', 'low_stock_threshold']],
+                    'popular_products',
+                    'pending_orders_count',
+                    'pending_reservations_count',
+                    'recent_reservations',
                     'today_reservations_count',
                     'active_cash_shift',
                     'recent_orders',
                 ],
             ])
             ->assertJsonPath('data.orders_count', 0)
-            ->assertJsonPath('data.low_stock_count', 1);
+            ->assertJsonPath('data.low_stock_count', 1)
+            ->assertJsonPath('data.low_stock_products.0.id', $this->product->id)
+            ->assertJsonPath('data.pending_orders_count', 0)
+            ->assertJsonPath('data.pending_reservations_count', 0);
+    }
+
+    public function test_dashboard_exposes_recent_reservation_requests_low_stock_and_seven_day_top_sellers(): void
+    {
+        $this->actingAs($this->admin);
+
+        $order = $this->postJson('/admin/api/orders', $this->orderPayload(2), [
+            'Idempotency-Key' => 'dashboard-signals-order-0001',
+        ])->assertCreated();
+        $orderId = $order->json('data.id');
+
+        $startsAt = now()->addDays(3)->setTime(18, 30);
+        $reservation = $this->postJson('/admin/api/reservations', [
+            'customer_name' => 'مهمان داشبورد',
+            'phone' => '09121234567',
+            'party_size' => 4,
+            'starts_at' => $startsAt->format('Y-m-d H:i:s'),
+            'duration_minutes' => 90,
+            'notes' => 'درخواست نمونه داشبورد',
+        ], ['Idempotency-Key' => 'dashboard-signals-reservation-01'])->assertCreated();
+        $reservationReference = $reservation->json('data.reference');
+
+        $this->getJson('/admin/api/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.pending_orders_count', 1)
+            ->assertJsonPath('data.pending_reservations_count', 1)
+            ->assertJsonPath('data.recent_reservations.0.reference', $reservationReference)
+            ->assertJsonPath('data.low_stock_products.0.id', $this->product->id)
+            ->assertJsonPath('data.popular_products.0.product_id', $this->product->id)
+            ->assertJsonPath('data.popular_products.0.units_sold', 2);
+
+        $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => 'new']);
+    }
+
+    public function test_admin_order_list_is_sorted_by_latest_created_order_first(): void
+    {
+        $this->actingAs($this->admin);
+
+        $first = $this->postJson('/admin/api/orders', $this->orderPayload(1), [
+            'Idempotency-Key' => 'order-latest-sort-first-0001',
+        ])->assertCreated();
+        $second = $this->postJson('/admin/api/orders', $this->orderPayload(1), [
+            'Idempotency-Key' => 'order-latest-sort-second-01',
+        ])->assertCreated();
+
+        $firstId = $first->json('data.id');
+        $secondId = $second->json('data.id');
+        Order::query()->whereKey($firstId)->update(['created_at' => now()->subHours(2)]);
+        Order::query()->whereKey($secondId)->update(['created_at' => now()->subMinute()]);
+
+        $this->getJson('/admin/api/orders?sort=latest&per_page=10')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $secondId)
+            ->assertJsonPath('data.1.id', $firstId);
     }
 
     public function test_dashboard_aggregates_sales_collections_and_open_invoices_from_database(): void
