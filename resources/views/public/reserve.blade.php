@@ -18,7 +18,7 @@
     <main class="frame">
         <section class="reserve-form">
             <h1>رزرو میز</h1>
-            <p class="sub">میزتان را از قبل رزرو کنید تا فقط به لذت طعم‌ها فکر کنید.</p>
+            <p class="sub">میزتان را از قبل رزرو کنید تا فقط به لذت طعم‌ها فکر کنید. درخواست پس از بررسی ظرفیت و هماهنگی با مجموعه قطعی می‌شود.</p>
 
             <form method="POST" action="{{ route('public.reservations.store') }}" data-public-reservation>
                 @csrf
@@ -94,7 +94,7 @@
                 <img src="{{ $media['gallery_3']['url'] }}" alt="{{ $media['gallery_3']['alt_text'] ?: 'چیدمان میز' }}" loading="eager">
             @endif
             @include('public.partials.reference-nav')
-            <h2 class="headline">لحظه‌ات را رزرو کن</h2>
+            <h2 class="headline">لحظه‌ات را رزرو کن</h2><p class="reserve-image-caption">رزرو و برنامه‌ریزی قرار بعدی‌ات</p>
         </section>
     </main>
 </div>
