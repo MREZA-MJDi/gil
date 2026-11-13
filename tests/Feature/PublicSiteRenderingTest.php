@@ -225,7 +225,7 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('name="idempotency_key"', false)
             ->assertSee('data-jalali-datetime', false)
             ->assertSee('data-jalali-trigger', false)
-            ->assertSee('تقویم شمسی', false);
+            ->assertSee('انتخاب تاریخ شمسی', false);
 
         $this->get(route('public.reservations.received'))
             ->assertOk()
