@@ -64,7 +64,25 @@
                     <label><span>نام و نام خانوادگی <b>*</b></span><input name="customer_name" value="{{ old('customer_name') }}" autocomplete="name" required maxlength="150" placeholder="نام شما"></label>
                     <label><span>شماره تماس <b>*</b></span><input name="phone" value="{{ old('phone') }}" autocomplete="tel" inputmode="tel" required maxlength="30" placeholder="0912 123 4567"></label>
                     <label><span>ایمیل (اختیاری)</span><input type="email" name="email" value="{{ old('email') }}" autocomplete="email" maxlength="150" placeholder="name@example.com"></label>
-                    <label><span>تاریخ و ساعت پیشنهادی <b>*</b></span><input type="datetime-local" name="starts_at" value="{{ old('starts_at') }}" min="{{ now(config('app.timezone'))->addMinutes(30)->format('Y-m-d\TH:i') }}" required><small>زمان پیشنهادی به وقت تهران است؛ ظرفیت در زمان بررسی درخواست کنترل می‌شود.</small></label>
+                    <label class="kg-reservation-date-field"><span>تاریخ و ساعت پیشنهادی <b>*</b></span>
+                        <div class="kg-jalali-datetime" data-jalali-datetime data-min="{{ now(config('app.timezone'))->addMinutes(30)->format('Y-m-d\\TH:i') }}">
+                            <input type="hidden" name="starts_at" value="{{ old('starts_at') }}" data-jalali-value>
+                            <div class="kg-jalali-date-shell">
+                                <button type="button" class="kg-jalali-date-trigger" data-jalali-trigger aria-haspopup="dialog" aria-expanded="false">انتخاب تاریخ شمسی</button>
+                                <div class="jalali-calendar-popover" data-jalali-calendar role="dialog" aria-label="انتخاب تاریخ شمسی" hidden>
+                                    <div class="jalali-calendar-heading">
+                                        <button type="button" data-jalali-prev aria-label="ماه قبل">‹</button>
+                                        <strong data-jalali-month></strong>
+                                        <button type="button" data-jalali-next aria-label="ماه بعد">›</button>
+                                    </div>
+                                    <div class="jalali-calendar-weekdays"><span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span></div>
+                                    <div class="jalali-calendar-days" data-jalali-days></div>
+                                </div>
+                            </div>
+                            <div class="kg-jalali-time-field"><span>ساعت</span><input type="time" data-jalali-time required value="{{ old('starts_at') ? substr((string) old('starts_at'), 11, 5) : '18:00' }}"></div>
+                        </div>
+                        <small>تاریخ شمسی و ساعت به وقت تهران ثبت می‌شود؛ ظرفیت هنگام بررسی درخواست کنترل خواهد شد.</small>
+                    </label>
                     <label><span>تعداد مهمان <b>*</b></span><input type="number" name="party_size" value="{{ old('party_size', 2) }}" min="1" max="50" required></label>
                     <label><span>مدت تقریبی حضور <b>*</b></span>
                         <select name="duration_minutes" required>

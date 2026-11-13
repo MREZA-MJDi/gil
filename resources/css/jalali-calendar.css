@@ -1,0 +1,59 @@
+/* Shared Persian calendar controls used by the public reservation page and admin forms. */
+.jalali-picker { position: relative; display: grid; min-width: 0; }
+.jalali-picker-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 12px;
+    border: 1px solid #e7ded4;
+    border-radius: 10px;
+    color: #423b34;
+    background: #fff;
+    text-align: right;
+    font: inherit;
+    font-size: 11px;
+    cursor: pointer;
+}
+.jalali-picker-trigger::after { content: "▦"; margin-inline-start: 10px; color: #ad654b; font-size: 15px; }
+.jalali-picker-trigger:focus-visible { outline: 3px solid rgba(180,101,74,.2); border-color: #b96e50; }
+.jalali-calendar-popover {
+    position: absolute;
+    z-index: 120;
+    inset-block-start: calc(100% + 7px);
+    inset-inline-start: 0;
+    width: min(310px, calc(100vw - 36px));
+    padding: 13px;
+    border: 1px solid #e8dfd6;
+    border-radius: 14px;
+    color: #37312b;
+    background: #fffdfa;
+    box-shadow: 0 18px 42px rgba(44,35,27,.18);
+    direction: rtl;
+}
+.jalali-calendar-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.jalali-calendar-heading strong { color: #423a32; font-size: 12px; font-weight: 850; }
+.jalali-calendar-heading button { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #eee7df; border-radius: 8px; color: #94513d; background: #faf5ef; font-size: 19px; line-height: 1; }
+.jalali-calendar-weekdays,.jalali-calendar-days { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 4px; text-align: center; }
+.jalali-calendar-weekdays { margin-bottom: 5px; }
+.jalali-calendar-weekdays span { padding: 5px 0; color: #9a8d80; font-size: 9px; font-weight: 800; }
+.jalali-calendar-days button,.jalali-calendar-days > span { display: grid; place-items: center; min-width: 0; min-height: 34px; border: 1px solid transparent; border-radius: 8px; color: #554b40; background: transparent; font: inherit; font-size: 10px; }
+.jalali-calendar-days button:hover:not(:disabled) { border-color: #ead7ca; background: #fbf2ec; }
+.jalali-calendar-days button.is-selected { border-color: #a94d38; color: #fff; background: #a94d38; font-weight: 850; }
+.jalali-calendar-days button:disabled { color: #d2cbc3; cursor: not-allowed; text-decoration: line-through; }
+.jalali-datetime-picker { display: grid; grid-template-columns: minmax(0,1fr) minmax(112px,.42fr); align-items: start; gap: 10px; }
+.jalali-time-field { display: grid; gap: 5px; color: #756b60; font-size: 10px; font-weight: 750; }
+.jalali-time-field input { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid #e7ded4; border-radius: 10px; color: #423b34; background: #fff; direction: ltr; font: inherit; font-size: 11px; }
+.kg-jalali-datetime { display: grid; grid-template-columns: minmax(0,1fr) minmax(115px,.38fr); align-items: start; gap: 10px; width: 100%; }
+.kg-jalali-date-shell { position: relative; min-width: 0; }
+.kg-jalali-date-trigger { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--kg-line); border-radius: 11px; color: var(--kg-ink); background: #fffdfa; text-align: right; font: inherit; font-size: 11px; font-weight: 600; }
+.kg-jalali-date-trigger::after { content: "▦"; float: left; color: var(--kg-red); font-size: 15px; }
+.kg-jalali-time-field { display: grid; gap: 6px; color: var(--kg-ink); font-size: 10px; font-weight: 800; }
+.kg-jalali-time-field input { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid var(--kg-line); border-radius: 11px; color: var(--kg-ink); background: #fffdfa; direction: ltr; font: inherit; font-size: 11px; }
+.kg-jalali-datetime .jalali-calendar-popover { inset-inline-start: auto; inset-inline-end: 0; }
+@media (max-width: 560px) {
+    .jalali-datetime-picker,.kg-jalali-datetime { grid-template-columns: minmax(0,1fr) minmax(104px,.38fr); gap: 7px; }
+    .jalali-calendar-popover { width: min(300px, calc(100vw - 30px)); }
+    .jalali-calendar-days button,.jalali-calendar-days > span { min-height: 32px; }
+}

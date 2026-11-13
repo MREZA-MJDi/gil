@@ -3,7 +3,9 @@
 @import 'tailwindcss';
 @import './dashboard.css';
 @import './dashboard-media.css';
+@import './dashboard-overview.css';
 @import './iranian-ui.css';
+@import './jalali-calendar.css';
 @import './auth.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
