@@ -117,13 +117,17 @@ class RestaurantOperationsTest extends TestCase
     public function test_dashboard_settings_has_a_live_brand_logo_uploader_with_public_sized_preview(): void
     {
         $dashboard = file_get_contents(resource_path('js/dashboard/DashboardApp.jsx'));
+        $logoSettings = file_get_contents(resource_path('js/dashboard/BrandLogoSettings.jsx'));
         $styles = file_get_contents(resource_path('css/dashboard.css'));
 
         $this->assertIsString($dashboard);
+        $this->assertIsString($logoSettings);
         $this->assertIsString($styles);
-        $this->assertStringContainsString('لوگوی اصلی سایت', $dashboard);
-        $this->assertStringContainsString("payload.append('slot', 'brand_logo')", $dashboard);
-        $this->assertStringContainsString('settings-brand-preview-frame', $dashboard);
+        $this->assertStringContainsString("import BrandLogoSettings from './BrandLogoSettings.jsx';", $dashboard);
+        $this->assertStringContainsString('<BrandLogoSettings restaurantName={form.name} />', $dashboard);
+        $this->assertStringContainsString('لوگوی اصلی سایت', $logoSettings);
+        $this->assertStringContainsString("body.append('slot', 'brand_logo')", $logoSettings);
+        $this->assertStringContainsString('settings-brand-preview-frame', $logoSettings);
         $compactStyles = preg_replace('/\\s+/', '', $styles);
         $this->assertStringContainsString('width:60px;height:60px;', $compactStyles);
         $this->assertStringContainsString('width:52px;height:52px;', $compactStyles);
