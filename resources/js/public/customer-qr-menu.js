@@ -121,9 +121,7 @@ if (qrRoot) {
         }
         if (totalEl) totalEl.textContent = money(total);
         if (submit) submit.disabled = cart.size === 0;
-        qrRoot.querySelectorAll('[data-qr-add], [data-qr-option], [data-qr-qty]').forEach(control => {
-            control.disabled = uncertainRequest;
-        });
+        qrRoot.querySelectorAll('[data-qr-add], [data-qr-option], [data-qr-qty], '# + 'kg-qr-order-form input').forEach(control => {\n            control.disabled = uncertainRequest;\n        });
     }
 
     async function loadQrMenu() {
