@@ -30,6 +30,127 @@
             @if($customer->email)<div><small>ایمیل</small><b>{{ $customer->email }}</b></div>@endif
             <div><small>تعداد درخواست‌ها</small><b>{{ number_format($reservations->total()) }}</b></div>
         </section>
+        @php
+            $eligibleFeedbackOrders = $orders->filter(fn ($order) => $order->customerFeedback->isEmpty());
+        @endphp
+        <section class="customer-feedback-panel" id="customer-feedback">
+            <div class="customer-section-heading">
+                <div><span>صدای مشتری</span><h2>ثبت بازخورد</h2></div>
+                <small>نظر تو مستقیماً برای مجموعه ارسال می‌شود.</small>
+            </div>
+            @if(session('status'))
+                <div class="customer-feedback-flash" role="status">{{ session('status') }}</div>
+            @endif
+            @if($errors->any())
+                <div class="customer-feedback-error" role="alert">{{ $errors->first() }}</div>
+            @endif
+            <form method="POST" action="{{ route('customer.feedback.store') }}" class="customer-feedback-form">
+                @csrf
+                <div class="customer-feedback-form-grid">
+                    <label class="customer-feedback-field">
+                        <span>موضوع بازخورد</span>
+                        <select name="kind" required>
+                            <option value="">انتخاب کن</option>
+                            <option value="praise" @selected(old('kind') === 'praise')>قدردانی از تجربه خوب</option>
+                            <option value="suggestion" @selected(old('kind') === 'suggestion')>پیشنهاد برای بهتر شدن</option>
+                            <option value="complaint" @selected(old('kind') === 'complaint')>ثبت مشکل یا شکایت</option>
+                        </select>
+                    </label>
+                    <label class="customer-feedback-field">
+                        <span>سفارش مرتبط <small>(اختیاری)</small></span>
+                        <select name="order_id">
+                            <option value="">بازخورد عمومی؛ بدون اتصال به سفارش</option>
+                            @foreach($eligibleFeedbackOrders as $order)
+                                <option value="{{ $order->id }}" @selected((string) old('order_id') === (string) $order->id)>
+                                    {{ $order->number }} · {{ number_format((int) $order->total) }} تومان
+                                </option>
+                            @endforeach
+                        </select>
+                        @if($eligibleFeedbackOrders->isEmpty())
+                            <small>در حال حاضر سفارش تحویل‌شده و ثبت‌نشده‌ای برای این حساب پیدا نشد؛ همچنان می‌توانی بازخورد عمومی بفرستی.</small>
+                        @else
+                            <small>فقط سفارش‌های تحویل‌شده‌ای نمایش داده می‌شوند که شماره موبایل آن‌ها با این حساب مطابقت دارد.</small>
+                        @endif
+                    </label>
+                </div>
+                <fieldset class="customer-feedback-rating">
+                    <legend>امتیاز تجربه‌ات از ۱ تا ۵</legend>
+                    <div>
+                        @foreach([1 => 'خیلی ضعیف', 2 => 'ضعیف', 3 => 'معمولی', 4 => 'خوب', 5 => 'عالی'] as $score => $label)
+                            <label>
+                                <input type="radio" name="rating" value="{{ $score }}" required @checked((string) old('rating') === (string) $score)>
+                                <span>{{ $score }} ★</span>
+                                <small>{{ $label }}</small>
+                            </label>
+                        @endforeach
+                    </div>
+                </fieldset>
+                <label class="customer-feedback-field customer-feedback-message">
+                    <span>توضیحات</span>
+                    <textarea name="message" rows="4" minlength="5" maxlength="5000" required placeholder="چه چیزی خوب بود؟ چه چیزی باید بهتر شود؟">{{ old('message') }}</textarea>
+                </label>
+                <div class="customer-feedback-form-footer">
+                    <p>اطلاعات حساب تو همراه بازخورد ثبت می‌شود تا مجموعه بتواند پیگیری کند. اطلاعاتت در صفحه عمومی نمایش داده نمی‌شود.</p>
+                    <button type="submit">ارسال بازخورد</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="customer-feedback-history" id="customer-feedback-history">
+            <div class="customer-section-heading">
+                <div><span>پیگیری پاسخ مجموعه</span><h2>بازخوردهای من</h2></div>
+            </div>
+            @if($feedback->count())
+                <div class="customer-feedback-list">
+                    @foreach($feedback as $entry)
+                        @php
+                            $feedbackStatus = $entry->status instanceof \BackedEnum ? $entry->status->value : (string) $entry->status;
+                            $feedbackStatusText = match ($feedbackStatus) {
+                                'new' => 'ثبت‌شده؛ در انتظار بررسی',
+                                'in_progress' => 'در حال بررسی',
+                                'resolved' => 'رسیدگی‌شده',
+                                'closed' => 'بسته‌شده',
+                                default => 'در انتظار بررسی',
+                            };
+                            $feedbackKindText = match ($entry->kind) {
+                                'complaint' => 'شکایت',
+                                'suggestion' => 'پیشنهاد',
+                                'praise' => 'قدردانی',
+                                default => 'بازخورد',
+                            };
+                        @endphp
+                        <article class="customer-feedback-card">
+                            <div class="customer-feedback-card-head">
+                                <div><b>{{ $feedbackKindText }}</b><small>{{ $entry->created_at?->format('Y/m/d · H:i') }}@if($entry->order) · سفارش {{ $entry->order->number }}@endif</small></div>
+                                <span class="customer-feedback-status status-{{ $feedbackStatus }}">{{ $feedbackStatusText }}</span>
+                            </div>
+                            <div class="customer-feedback-card-rating">امتیاز تو: {{ number_format((int) $entry->rating) }} از ۵</div>
+                            <p class="customer-feedback-card-message">{{ $entry->message }}</p>
+                            @if($entry->admin_response)
+                                <div class="customer-feedback-reply">
+                                    <b>پاسخ مجموعه</b>
+                                    <p>{{ $entry->admin_response }}</p>
+                                    @if($entry->responder)<small>پاسخ از طرف {{ $entry->responder->name }}</small>@endif
+                                    @if($entry->responded_at)<small> · {{ $entry->responded_at->format('Y/m/d · H:i') }}</small>@endif
+                                </div>
+                            @else
+                                <p class="customer-feedback-awaiting">بازخوردت ثبت شده است؛ پس از بررسی، پاسخ مجموعه در همین قسمت نمایش داده می‌شود.</p>
+                            @endif
+                        </article>
+                    @endforeach
+                </div>
+                @if($feedback->hasPages())
+                    <nav class="account-pagination" aria-label="صفحه‌بندی بازخوردها">
+                        @if($feedback->previousPageUrl())<a href="{{ $feedback->previousPageUrl() }}#customer-feedback-history">← قبلی</a>@endif
+                        <span>صفحه {{ number_format($feedback->currentPage()) }} از {{ number_format($feedback->lastPage()) }}</span>
+                        @if($feedback->nextPageUrl())<a href="{{ $feedback->nextPageUrl() }}#customer-feedback-history">بعدی →</a>@endif
+                    </nav>
+                @endif
+            @else
+                <div class="customer-feedback-empty">هنوز بازخوردی ثبت نکرده‌ای. بعد از تجربه‌ات، نظرت را برای مجموعه بفرست.</div>
+            @endif
+        </section>
+
         <section class="customer-reservations">
             <div class="customer-section-heading"><div><span>پیگیری درخواست‌ها</span><h2>رزروهای من</h2></div><button type="button" data-account-refresh>تازه‌سازی وضعیت ↻</button></div>
             @if($reservations->count())
