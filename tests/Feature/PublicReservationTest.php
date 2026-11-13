@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Reservation;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -15,12 +16,10 @@ class PublicReservationTest extends TestCase
     {
         $startsAt = Carbon::now(config('app.timezone'))->addDays(3)->setTime(18, 30)->format('Y-m-d\TH:i');
 
-        $response = $this->withHeaders([
+        $response = $this->actingAs($customer)->withHeaders([
             'Accept' => 'application/json',
             'Idempotency-Key' => 'public-reserve-test-0001',
         ])->postJson(route('public.reservations.store'), [
-            'customer_name' => 'مشتری آزمایشی',
-            'phone' => '۰۹۱۲۱۲۳۴۵۶۷',
             'party_size' => 3,
             'starts_at' => $startsAt,
             'duration_minutes' => 90,
@@ -34,6 +33,7 @@ class PublicReservationTest extends TestCase
 
         $this->assertDatabaseHas('reservations', [
             'source' => 'website',
+            'customer_id' => $customer->id,
             'phone' => '+989121234567',
             'customer_name' => 'مشتری آزمایشی',
         ]);
@@ -41,9 +41,8 @@ class PublicReservationTest extends TestCase
 
     public function test_retried_public_reservation_does_not_create_a_duplicate(): void
     {
+        $customer = User::factory()->create(['name' => 'مشتری تکراری شبکه', 'phone' => '+989121234568', 'email' => null, 'is_admin' => false]);
         $payload = [
-            'customer_name' => 'مشتری تکراری شبکه',
-            'phone' => '09121234568',
             'party_size' => 2,
             'starts_at' => Carbon::now(config('app.timezone'))->addDays(4)->setTime(19, 0)->format('Y-m-d\TH:i'),
             'duration_minutes' => 90,
@@ -51,10 +50,10 @@ class PublicReservationTest extends TestCase
             'idempotency_key' => 'public-reserve-test-0002',
         ];
 
-        $this->withHeaders(['Accept' => 'application/json', 'Idempotency-Key' => $payload['idempotency_key']])
+        $this->actingAs($customer)->withHeaders(['Accept' => 'application/json', 'Idempotency-Key' => $payload['idempotency_key']])
             ->postJson(route('public.reservations.store'), $payload)->assertCreated();
 
-        $this->withHeaders(['Accept' => 'application/json', 'Idempotency-Key' => $payload['idempotency_key']])
+        $this->actingAs($customer)->withHeaders(['Accept' => 'application/json', 'Idempotency-Key' => $payload['idempotency_key']])
             ->postJson(route('public.reservations.store'), $payload)->assertOk();
 
         $this->assertSame(1, Reservation::query()->where('idempotency_key', $payload['idempotency_key'])->count());

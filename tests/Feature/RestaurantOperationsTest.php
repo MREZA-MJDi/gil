@@ -103,7 +103,8 @@ class RestaurantOperationsTest extends TestCase
             ->assertOk()
             ->assertSee('/storage/site-media/hero/dashboard-hero.webp', false);
 
-        $this->get('/reserve')
+        $customer = User::query()->create(['name' => 'مشتری رزرو تست', 'phone' => '+989121234567', 'email' => null, 'password' => 'customer-test-password-12345', 'is_admin' => false]);
+        $this->actingAs($customer)->get('/reserve')
             ->assertOk()
             ->assertSee('/storage/site-media/gallery_1/reservation.webp', false)
             ->assertSee('رزرو و برنامه‌ریزی');

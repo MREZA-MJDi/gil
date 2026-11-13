@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\SiteMediaAsset;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -156,7 +157,8 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('site-media/menu-cover.webp')
             ->assertSee('kg-menu-cover', false);
 
-        $this->get(route('public.reservations.create'))
+        $customer = User::factory()->create(['phone' => '+989121234567', 'email' => null, 'is_admin' => false]);
+        $this->actingAs($customer)->get(route('public.reservations.create'))
             ->assertOk()
             ->assertSee('site-media/reservation-cover.webp');
     }
@@ -227,7 +229,7 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('name="starts_at"', false)
             ->assertSee('name="idempotency_key"', false);
 
-        $this->get(route('public.reservations.received'))
+        $this->actingAs($customer)->get(route('public.reservations.received'))
             ->assertOk()
             ->assertSee('در انتظار تأیید');
     }
@@ -244,7 +246,7 @@ class PublicSiteRenderingTest extends TestCase
         foreach ($publicViews as $viewPath) {
             $source = file_get_contents($viewPath);
             $this->assertIsString($source);
-            $this->assertStringContainsString("resources/css/public.css", $source);
+            $this->assertStringContainsString("resources/css/public-reference.css", $source);
             $this->assertStringContainsString("resources/js/public-site.js", $source);
             $this->assertStringNotContainsString("resources/js/app.jsx", $source);
             $this->assertStringNotContainsString("resources/js/app.js", $source);
