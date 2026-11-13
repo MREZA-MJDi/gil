@@ -107,6 +107,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:access-admin'])
 
         Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
         Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+        Route::patch('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
         Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
         Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
         Route::patch('/reservations/{reservation}/status', [ReservationController::class, 'transition'])->name('reservations.transition');
