@@ -297,3 +297,8 @@
 .public-site .menu-intro { margin:0 0 3px; color:#8e2a3a; font-size:12px; font-weight:800; text-align:center; }
 .public-site.page-qr-menu .menu-intro { margin-bottom:0; }
 @media(max-width:600px) { .public-site .menu-intro { margin:0 0 5px; font-size:10px; } }
+
+
+.public-site .reference-nav-logout { display:flex; margin:0; }
+.public-site .reference-nav-logout button { padding:8px 10px; border:0; border-radius:8px; color:inherit; background:transparent; font-size:12px; cursor:pointer; }
+.public-site .reference-nav-logout button:hover { background:#ffffff14; }
