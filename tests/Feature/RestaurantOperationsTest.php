@@ -84,6 +84,47 @@ class RestaurantOperationsTest extends TestCase
         $this->get('/menu')->assertOk()->assertSee('طعم دلخواهت')->assertSee('لاته تست');
     }
 
+    public function test_landing_page_renders_three_featured_product_photo_cards(): void
+    {
+        $this->product->forceFill([
+            'name' => 'اسپرسو تصویری',
+            'image_path' => 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04',
+            'sort_order' => 1,
+        ])->save();
+
+        Product::query()->create([
+            'category_id' => $this->category->id,
+            'name' => 'لاته تصویری',
+            'image_path' => 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735',
+            'base_price' => 145000,
+            'status' => 'active',
+            'sort_order' => 2,
+            'stock_quantity' => 5,
+            'low_stock_threshold' => 1,
+        ]);
+
+        Product::query()->create([
+            'category_id' => $this->category->id,
+            'name' => 'کیک تصویری',
+            'image_path' => 'https://images.unsplash.com/photo-1578985545062-69928b1d9587',
+            'base_price' => 165000,
+            'status' => 'active',
+            'sort_order' => 3,
+            'stock_quantity' => 5,
+            'low_stock_threshold' => 1,
+        ]);
+
+        $response = $this->get('/')->assertOk()
+            ->assertSee('اسپرسو تصویری')
+            ->assertSee('لاته تصویری')
+            ->assertSee('کیک تصویری')
+            ->assertSee('kg-home-product-card', false)
+            ->assertSee(route('public.menu'), false)
+            ->assertSee(route('public.reservations.create'), false);
+
+        $this->assertSame(3, substr_count($response->getContent(), 'kg-home-product-card'));
+    }
+
     public function test_public_home_and_reservation_use_dashboard_managed_media_assets(): void
     {
         SiteMediaAsset::query()->create([
@@ -714,6 +755,9 @@ class RestaurantOperationsTest extends TestCase
             ->assertJsonPath('data.payments_total', 65000)
             ->assertJsonPath('data.cash_payments_total', 50000)
             ->assertJsonPath('data.card_payments_total', 15000)
+            ->assertJsonPath('data.cash_in_total', 50000)
+            ->assertJsonPath('data.cash_out_total', 0)
+            ->assertJsonPath('data.cash_movements_count', 1)
             ->assertJsonPath('data.refunds_total', 5000)
             ->assertJsonPath('data.net_collections_total', 60000)
             ->assertJsonPath('data.expected_cash', 60000)
@@ -727,6 +771,9 @@ class RestaurantOperationsTest extends TestCase
             'gross_sales' => $total,
             'cash_payments_total' => 50000,
             'card_payments_total' => 15000,
+            'cash_in_total' => 50000,
+            'cash_out_total' => 0,
+            'cash_movements_count' => 1,
             'refunds_total' => 5000,
             'net_collections_total' => 60000,
             'counted_cash' => 60000,
