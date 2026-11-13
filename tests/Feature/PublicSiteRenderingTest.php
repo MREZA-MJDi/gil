@@ -318,6 +318,26 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('غذای ویژه تست');
     }
 
+    public function test_menu_page_refines_featured_plate_categories_brand_and_takeaway_form(): void
+    {
+        $response = $this->get(route('public.menu'));
+
+        $response->assertOk()
+            ->assertSee('class="brand"', false)
+            ->assertDontSee('class="menu-brand-logo"', false)
+            ->assertSee('class="checkout-heading"', false)
+            ->assertSee('placeholder="مثلاً علی رضایی"', false)
+            ->assertSee('placeholder="0912 123 4567"', false)
+            ->assertSee('id="online-checkout-submit"', false);
+
+        $styles = file_get_contents(resource_path('css/public-reference.css'));
+        $this->assertIsString($styles);
+        $this->assertStringContainsString('translate(8px,-24px) rotate(2.2deg)', preg_replace('/\\s+/', '', $styles));
+        $this->assertStringContainsString('top:calc(50% - 18px)', preg_replace('/\\s+/', '', $styles));
+        $this->assertStringContainsString('#online-checkout-form', $styles);
+        $this->assertStringContainsString('#online-checkout-submit:not(:disabled):hover', $styles);
+    }
+
     public function test_public_menu_accepts_and_persists_a_takeaway_order(): void
     {
         $category = Category::query()->create([
