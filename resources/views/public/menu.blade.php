@@ -7,9 +7,6 @@
     <meta name="currency-label" content="{{ $settings->currency_label }}">
     <meta name="theme-color" content="#ffffff">
     <title>منو | {{ $settings->name }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site page-menu">
@@ -22,7 +19,7 @@
         <a class="brand" href="{{ route('home') }}">{{ $settings->name ?: 'خانه گیلاسی' }}</a>
         <nav class="menu-nav" id="kg-menu-nav" data-kg-nav aria-label="ناوبری اصلی">
             <a href="{{ route('home') }}">خانه</a><a href="{{ route('public.menu') }}" aria-current="page">منو</a>
-            <a href="{{ route('home') }}#about">درباره ما</a><a href="{{ route('public.reservations.create') }}">رزرو میز</a>
+            <a href="{{ route('home') }}#about">درباره ما</a><a href="{{ route('public.reservations.create') }}">رزرو میز</a>@if($settings->phone)<a href="tel:{{ preg_replace('/[^0-9+]/', '', $settings->phone) }}">تماس</a>@endif
         </nav>
     </header>
     <p class="menu-intro">طعم دلخواهت، همین‌جاست.</p>
