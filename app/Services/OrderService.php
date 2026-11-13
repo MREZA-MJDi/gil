@@ -46,7 +46,7 @@ class OrderService
 
             $settings = RestaurantSetting::current();
             $productIds = collect($input['items'])->pluck('product_id')->map(fn ($v) => (int) $v)->unique()->sort()->values();
-            $products = Product::query()->whereIn('id', $productIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $products = Product::query()->with('category:id,is_active')->whereIn('id', $productIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             if ($products->count() !== $productIds->count()) {
                 throw ValidationException::withMessages(['items' => 'یک یا چند محصول معتبر نیست.']);
             }
@@ -74,7 +74,7 @@ class OrderService
             $subtotal = 0;
             foreach ($input['items'] as $item) {
                 $product = $products->get((int) $item['product_id']);
-                if ($product->status !== ProductStatus::Active || ! $product->category()->where('is_active', true)->exists()) {
+                if ($product->status !== ProductStatus::Active || ! $product->category?->is_active) {
                     throw ValidationException::withMessages(['items' => "محصول «{$product->name}» در حال حاضر قابل سفارش نیست."]);
                 }
 
