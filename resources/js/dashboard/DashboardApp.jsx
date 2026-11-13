@@ -482,9 +482,6 @@ function ReservationEditModal({ reservation, tables, onClose, onSubmit }) {
     </Modal>;
 }
 
-function reservationNext(status) {
-    return ({ pending: ['confirmed','cancelled'], confirmed: ['arrived','no_show','cancelled'], arrived: ['cancelled'], cancelled: [], no_show: [] })[status] || [];
-}
 
 function CustomersPage({ feedback, pagination, onPageChange, onRespond, onRefresh }) {
     const [drafts, setDrafts] = useState({});
