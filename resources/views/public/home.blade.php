@@ -21,22 +21,6 @@
 
             @include('public.partials.reference-nav')
 
-            @php
-                $heroTitleLine1 = (string) ($homepageContent['hero_title_line1'] ?? 'خوش‌آمدی به');
-                $heroTitleLine2 = (string) ($homepageContent['hero_title_line2'] ?? $settings->name);
-                $legacyHeroCopy = str_contains($heroTitleLine1.' '.$heroTitleLine2, 'طعم خوب')
-                    || str_contains($heroTitleLine1.' '.$heroTitleLine2, 'حال خوب');
-                if ($legacyHeroCopy) {
-                    $heroTitleLine1 = 'خوش‌آمدی به';
-                    $heroTitleLine2 = $settings->name;
-                }
-            @endphp
-            <span class="home-eyebrow">{{ $homepageContent['hero_eyebrow'] ?? 'کافه و رستوران' }}</span>
-            <h1 class="headline">
-                {{ $heroTitleLine1 }}
-                @if($heroTitleLine2 !== '')<br>{{ $heroTitleLine2 }}@endif
-            </h1>
-            <p class="home-hero-description">{{ $homepageContent['hero_description'] ?? 'برای یک قهوه کوتاه، یک وعده خوش‌طعم یا یک دورهمی دوست‌داشتنی؛ منتظرت هستیم.' }}</p>
             <div class="home-hero-actions">
                 <a href="{{ route('public.menu') }}">دیدن منو </a>
                 <a href="{{ route('public.reservations.create') }}">رزرو میز </a>
