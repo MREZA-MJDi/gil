@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="currency-label" content="{{ $settings->currency_label }}">
     <meta name="description" content="منوی به‌روز {{ $settings->name }}؛ محصولات، قیمت‌ها و افزودنی‌های فعال.">
+    <!-- The separate legacy public.css entry remains for QR Menu and reservation receipt pages. -->
     <title>منو و سفارش | {{ $settings->name }}</title>
     @vite(['resources/css/public-reference.css', 'resources/js/public-site.js'])
 </head>
@@ -15,6 +16,13 @@
     <div class="top">
         @include('public.partials.nav')
     </div>
+
+    @if(!empty($media['menu_cover']['url']))
+        <section class="kg-menu-cover menu-cover">
+            <img src="{{ $media['menu_cover']['url'] }}" alt="{{ $media['menu_cover']['alt_text'] ?: 'تصویر منوی خانه گیلاسی' }}" fetchpriority="high">
+            <div><span>منوی {{ $settings->name }}</span><b>از انتخاب تا سفارش، ساده و روشن</b></div>
+        </section>
+    @endif
 
     <header class="menu-intro">
         <span>منوی {{ $settings->name }}</span>

@@ -228,3 +228,42 @@ img:not([src]),img[src=""]{display:none}
 @media(prefers-reduced-motion:reduce){
  *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+/* Dashboard-managed homepage media and catalog content retained below the reference hero. */
+.nav .brand{display:inline-flex;align-items:center;gap:8px}
+.ref-brand-logo{width:32px;height:32px;object-fit:contain;border-radius:50%}
+.home-showcase{position:relative;isolation:isolate;overflow:hidden;margin-top:26px;padding:30px;border:1px solid rgba(241,232,212,.16);border-radius:18px;background:linear-gradient(115deg,rgba(7,8,10,.94),rgba(20,17,16,.88)),var(--showcase-bg,linear-gradient(135deg,#29201d,#111));background-size:cover;background-position:center;color:var(--cream)}
+.home-showcase>header>span,.home-photo-gallery>header>span{font-size:11px;color:#e8cba7;font-weight:800}
+.home-showcase h2,.home-photo-gallery h2{font-size:clamp(24px,3vw,36px);font-weight:900;margin:5px 0}
+.home-showcase>header>p{font-size:11px;line-height:1.9;color:var(--muted)}
+.home-showcase-products{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin-top:22px}
+.home-showcase-product{overflow:hidden;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.3)}
+.home-showcase-product>img{height:116px;object-fit:cover}
+.home-showcase-product>span{display:grid;gap:5px;padding:10px}
+.home-showcase-product b{font-size:11px}
+.home-showcase-product strong{font-size:10px;color:#e8cba7}
+.home-category-counts{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.home-category-counts a{display:flex;gap:9px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:10px}
+.home-category-counts small{color:var(--muted)}
+.home-reservation-banner{position:relative;overflow:hidden;min-height:190px;margin-top:18px;border-radius:16px;background:#18100d;color:var(--cream)}
+.home-reservation-banner>img{position:absolute;inset:0;z-index:0;opacity:.55}
+.home-reservation-banner::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.88),rgba(0,0,0,.18));z-index:1}
+.home-reservation-banner>div{position:relative;z-index:2;padding:24px}
+.home-reservation-banner span{font-size:10px;color:#e8cba7}
+.home-reservation-banner h2{font-size:clamp(20px,3vw,30px);margin:8px 0 14px}
+.home-reservation-banner a{display:inline-flex;padding:8px 13px;border-radius:8px;background:var(--cream);color:#111;font-size:11px;font-weight:800}
+.home-photo-gallery{margin-top:24px;padding:24px;border:1px solid var(--line);border-radius:16px;color:var(--cream);background:#111}
+.home-photo-gallery>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.home-photo-gallery figure{position:relative;overflow:hidden;border-radius:11px;min-height:130px}
+.home-photo-gallery img{position:absolute;inset:0}
+.home-photo-gallery figcaption{position:absolute;z-index:1;right:10px;bottom:9px;padding:5px 9px;border-radius:7px;background:rgba(0,0,0,.7);font-size:10px}
+.home-note form{display:inline-flex}
+.home-note form button{border:0;background:transparent;color:var(--cream);cursor:pointer;font:inherit;font-weight:700}
+.menu-cover{position:relative;overflow:hidden;height:170px;border-radius:14px;background:#201916;color:#fff}
+.menu-cover>img{position:absolute;inset:0;opacity:.6}
+.menu-cover::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.1),rgba(0,0,0,.8))}
+.menu-cover>div{position:absolute;z-index:2;right:24px;bottom:22px;display:grid;gap:5px}
+.menu-cover span{font-size:11px;color:#f1d8bd}
+.menu-cover b{font-size:22px}
+@media(max-width:860px){.home-showcase{padding:20px}.home-photo-gallery>div{grid-template-columns:1fr 1fr}.home-reservation-banner{min-height:170px}}
+@media(max-width:520px){.home-category-counts{display:grid}.home-photo-gallery>div{grid-template-columns:1fr}.home-photo-gallery figure{min-height:170px}.ref-brand-logo{width:26px;height:26px}}

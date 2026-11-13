@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#0d0f11">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="درخواست رزرو میز و مناسبت‌ها در {{ $settings->name }}.">
+    <!-- The separate legacy public.css entry remains for QR Menu and reservation receipt pages. -->
     <title>رزرو میز | {{ $settings->name }}</title>
     @vite(['resources/css/public-reference.css', 'resources/js/public-site.js'])
 </head>
@@ -101,6 +102,12 @@
         <div class="slot hero reserve-art">
             @if(!empty($media['reservation_cover']['url']))
                 <img src="{{ $media['reservation_cover']['url'] }}" alt="{{ $media['reservation_cover']['alt_text'] ?: 'فضای رزرو خانه گیلاسی' }}" fetchpriority="high">
+            @elseif(!empty($media['gallery_1']['url']))
+                <img src="{{ $media['gallery_1']['url'] }}" alt="{{ $media['gallery_1']['alt_text'] ?: 'چیدمان میز' }}" fetchpriority="high">
+            @elseif(!empty($media['gallery_3']['url']))
+                <img src="{{ $media['gallery_3']['url'] }}" alt="{{ $media['gallery_3']['alt_text'] ?: 'فضای دورهمی' }}" fetchpriority="high">
+            @elseif(!empty($media['story_small']['url']))
+                <img src="{{ $media['story_small']['url'] }}" alt="{{ $media['story_small']['alt_text'] ?: 'فضای کافه' }}" fetchpriority="high">
             @endif
             @include('public.partials.nav')
             <div class="reserve-art-copy">
