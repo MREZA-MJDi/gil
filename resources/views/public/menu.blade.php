@@ -21,9 +21,8 @@
         <nav class="menu-nav" data-kg-nav aria-label="ناوبری اصلی">
             <a href="{{ route('home') }}">خانه</a><a href="{{ route('public.menu') }}" class="act" aria-current="page">منو</a>
             <a href="{{ route('public.reservations.create') }}">رزرو میز</a>
-            @guest<a href="{{ route('customer.login') }}">ورود مشتری</a>@else @can('access-customer')<a href="{{ route('customer.dashboard') }}">حساب من</a>@endcan @endguest
         </nav>
-        <div class="tools"><span></span></div>
+        @include('public.partials.profile-link')
     </div>
 
     @if(!empty($media['menu_cover']['url']))

@@ -386,3 +386,210 @@ img:not([src]),img[src=""]{display:none}
  .reservation-account-strip{align-items:flex-start}
  .reservation-account-strip a{margin-inline-start:0}
 }
+
+
+/* ---------- Shared account icon ---------- */
+.profile-link{
+    width:38px;height:38px;flex:0 0 38px;display:inline-grid;place-items:center;
+    border:1px solid rgba(241,232,212,.22);border-radius:50%;
+    color:var(--cream);background:rgba(12,14,16,.84);
+    transition:background .2s,border-color .2s,transform .2s;
+}
+.profile-link:hover{background:var(--cherry);border-color:var(--cherry);transform:translateY(-1px)}
+.profile-link svg{display:block;width:20px;height:20px}
+.top .profile-link{
+    color:var(--ink);background:#fff;border-color:#e7e2dc;
+}
+.top .profile-link:hover{color:#fff;background:var(--cherry);border-color:var(--cherry)}
+.kg-header-inner>.profile-link{margin-inline-start:4px}
+
+/* ---------- Mobile: keep the same desktop composition ---------- */
+@media(max-width:860px){
+    .wrap{
+        width:100%;max-width:1280px;min-height:100svh;
+        padding:clamp(8px,2vw,16px);
+    }
+    .logo{font-size:clamp(34px,7vw,48px);margin-bottom:12px}
+
+    /* The hero and its vertical photo rail stay side by side. */
+    .page-home .frame{
+        grid-template-columns:minmax(0,1fr) minmax(88px,.34fr);
+        gap:7px;padding:7px;min-height:clamp(430px,68svh,560px);
+    }
+    .page-home .frame>.hero{height:auto;min-height:0}
+    .page-home .side{
+        display:grid;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(0,1fr));
+        min-height:0;gap:7px;
+    }
+    .page-home .tile{height:auto;min-height:0}
+    .page-home .tag{max-width:100%;padding:6px;font-size:9px;gap:4px}
+    .page-home .tag i{width:20px;height:20px;flex-basis:20px}
+    .headline{right:clamp(12px,3vw,24px);bottom:clamp(58px,11vw,76px);font-size:clamp(25px,5.2vw,42px);max-width:82%}
+    .home-eyebrow{right:clamp(12px,3vw,24px);bottom:clamp(116px,22vw,148px);font-size:10px}
+    .home-hero-description{right:clamp(12px,3vw,24px);bottom:12px;max-width:78%;font-size:10px;line-height:1.75}
+    .home-hero-actions{left:8px;bottom:8px;gap:5px}
+    .home-hero-actions a{padding:6px 8px;font-size:9px}
+    .home-showcase,.home-photo-gallery{padding:clamp(12px,3vw,20px)}
+    .home-showcase-products{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .home-photo-gallery>div{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .home-category-counts{display:flex;flex-wrap:wrap}
+    .home-category-counts a{flex:1 1 130px}
+
+    /* Same two-panel reservation and authentication layouts, scaled to fit. */
+    .page-reserve .frame,
+    .account-auth-frame{
+        grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
+        gap:7px;padding:7px;min-height:unset;
+    }
+    .page-reserve .frame>.form,
+    .account-auth-form{padding:clamp(10px,2.2vw,18px)}
+    .page-reserve .frame>.reserve-art,
+    .account-auth-art{height:auto;min-height:100%;order:initial}
+    .form{gap:9px}
+    .form h2{font-size:clamp(21px,4vw,34px)}
+    .form .sub{font-size:clamp(9px,1.7vw,11px);line-height:1.75}
+    .form label{font-size:clamp(9px,1.55vw,11px)}
+    .form input,.form select,.form textarea{padding:7px 8px;font-size:11px}
+    .form .row{grid-template-columns:1fr;gap:7px}
+    .date-time{grid-template-columns:minmax(0,1fr) 84px;gap:5px}
+    .chip{padding:5px 7px;font-size:10px}
+    .submit{padding:9px 10px;font-size:11px}
+    .reserve-art-copy{right:12px;bottom:14px;max-width:90%}
+    .reserve-art-copy h2{font-size:clamp(20px,4vw,34px)}
+    .reserve-art-copy p{font-size:9px}
+    .account-auth-form form{gap:8px}
+    .account-auth-form label{font-size:10px}
+    .account-auth-form input{min-height:34px;padding:6px 8px;font-size:11px}
+    .account-auth-form .remember-line input{min-height:0}
+    .account-art-copy{right:12px;bottom:14px;max-width:90%}
+    .account-art-copy h2{font-size:clamp(20px,4vw,34px)}
+    .account-art-copy p{font-size:9px}
+    .account-switch,.account-back{font-size:9px}
+
+    /* Compact nav: logo, menu control and the single profile icon remain visible. */
+    .nav{
+        top:8px;right:8px;left:8px;width:auto;max-width:none;
+        justify-content:space-between;gap:5px;padding:5px 7px;border-radius:10px;
+    }
+    .nav .brand{font-size:clamp(14px,3.4vw,19px);padding:0 3px;max-width:54%;overflow:hidden}
+    .nav .brand span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .nav .burger{width:30px;height:30px;flex:0 0 30px}
+    .nav .burger i{width:13px}
+    .nav .ref-nav-links{display:none}
+    .nav .ref-nav-links.is-open{
+        position:absolute;top:calc(100% + 6px);right:0;left:0;
+        display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;
+        padding:7px;background:rgba(12,14,16,.97);border:1px solid var(--line);
+        border-radius:10px;
+    }
+    .nav .ref-nav-links.is-open a{
+        display:flex;align-items:center;justify-content:center;
+        padding:7px 3px;font-size:10px;text-align:center;white-space:nowrap;
+    }
+    .profile-link{width:32px;height:32px;flex-basis:32px}
+    .profile-link svg{width:18px;height:18px}
+
+    /* Menu and account pages retain a horizontal header and a two-column feature. */
+    .m{width:100%;padding:10px clamp(8px,2vw,16px) 22px;gap:8px}
+    .top{height:58px;gap:8px;position:relative}
+    .top .brand{margin-right:40px;font-size:clamp(21px,5vw,29px);max-width:calc(100% - 100px)}
+    .top .brand span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .burger2{right:0;top:10px;width:32px;height:32px}
+    .burger2 i{width:14px}
+    .menu-nav{display:none}
+    .menu-nav.is-open{
+        position:absolute;z-index:20;top:calc(100% + 5px);right:0;left:0;
+        display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;
+        margin:0;padding:7px;background:#fff;border:1px solid #e5e0da;border-radius:10px;
+        box-shadow:0 12px 28px rgba(0,0,0,.12);
+    }
+    .menu-nav.is-open a{display:flex;justify-content:center;align-items:center;padding:8px 3px;font-size:10px;white-space:nowrap}
+    .top .profile-link{margin-inline-start:auto}
+    .menu-intro h1{font-size:clamp(22px,5vw,32px)}
+    .menu-intro p{font-size:10px}
+    .kg-menu-cover{height:clamp(86px,20vw,120px)}
+    .stage-feature{
+        grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);
+        gap:10px;min-height:0;padding:8px 0 12px;
+    }
+    .plate{width:100%;max-width:clamp(105px,34vw,260px);margin:auto}
+    .info{text-align:right}
+    .info h2{font-size:clamp(20px,4.5vw,36px);margin-bottom:6px}
+    .info p{font-size:clamp(9px,1.8vw,12px);line-height:1.8}
+    .product-detail{font-size:9px;flex-wrap:wrap}
+    .product-tags span{font-size:8px;padding:3px 6px}
+    .buy{justify-content:flex-start;gap:7px;margin-top:9px}
+    .price{font-size:clamp(16px,3.6vw,24px)}
+    .order{padding:7px 10px;font-size:10px}
+    .product-quantity{font-size:9px}
+    .product-quantity input{width:44px;padding:5px}
+    .menu-panels{margin-right:clamp(34px,8vw,54px)}
+    .cats{right:0;gap:clamp(8px,2vw,16px)}
+    .cats button{font-size:clamp(9px,1.8vw,12px);padding:5px 2px}
+    .cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .card{height:clamp(100px,28vw,145px);padding:8px}
+    .card .n{font-size:10px}
+    .card .s,.card .p{font-size:8px}
+    .order-cart{padding:14px;margin-top:18px}
+    .cart-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .cart-field-wide{grid-column:1/-1}
+    .cart-fields label{font-size:10px}
+    .cart-fields input,.cart-fields textarea,.cart-fields select{padding:7px;font-size:10px}
+
+    /* Customer dashboard stays dense and side-by-side like desktop. */
+    .customer-dashboard{padding:10px 0 24px}
+    .customer-welcome{flex-direction:row;align-items:center;gap:10px;padding:10px 0 14px}
+    .customer-welcome h1{font-size:clamp(20px,4.4vw,30px)}
+    .customer-welcome p{font-size:9px;line-height:1.7}
+    .account-primary-link{padding:8px 9px;font-size:9px}
+    .customer-account-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:7px;padding:10px 0}
+    .customer-account-meta>div{min-width:0;padding:8px}
+    .customer-account-meta small{font-size:8px}
+    .customer-account-meta b{font-size:9px}
+    .customer-section-heading h2{font-size:22px}
+    .customer-section-heading button{font-size:9px;padding:6px 8px}
+    .customer-reservation-card{padding:10px}
+    .customer-reservation-details{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .customer-reservation-details small{font-size:8px}
+    .customer-reservation-details b{font-size:9px}
+    .customer-status-note{font-size:9px;padding:8px}
+    .account-logout button{padding:6px 8px;font-size:9px}
+
+    /* Table QR ordering keeps a compact catalogue and a visible cart column. */
+    .kg-qr-catalog{grid-template-columns:minmax(0,1fr) minmax(125px,.58fr);gap:8px}
+    .kg-qr-products{grid-template-columns:1fr;gap:8px}
+    .kg-qr-product-photo{height:clamp(78px,22vw,125px)}
+    .kg-qr-product-body{padding:8px;gap:5px}
+    .kg-qr-product-body h3{font-size:14px}
+    .kg-qr-product-body p{font-size:8px}
+    .kg-qr-cart{position:sticky;top:8px;padding:8px}
+    .kg-qr-cart h2{font-size:15px}
+    .kg-qr-cart-line{font-size:8px}
+    .kg-qr-cart-total{font-size:9px}
+    #kg-qr-order-form input,#kg-qr-submit{font-size:9px;padding:7px}
+}
+@media(max-width:520px){
+    .wrap{padding:7px}
+    .page-home .frame{grid-template-columns:minmax(0,1fr) minmax(82px,.34fr);min-height:clamp(400px,66svh,500px)}
+    .page-home .tag{font-size:8px}
+    .home-hero-actions a{font-size:8px;padding:5px 6px}
+    .page-reserve .frame,.account-auth-frame{grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr)}
+    .form{padding:9px}
+    .form .sub{font-size:9px}
+    .nav .brand{max-width:48%}
+    .nav .ref-nav-links.is-open{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .m{padding:8px 7px 18px}
+    .stage-feature{grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);gap:7px}
+    .plate{max-width:clamp(96px,31vw,190px)}
+    .menu-panels{margin-right:32px}
+    .cats button{font-size:8px}
+    .cards{gap:6px}
+    .card{height:104px;padding:6px}
+    .cart-fields{grid-template-columns:1fr}
+    .cart-field-wide{grid-column:auto}
+    .customer-welcome h1{font-size:19px}
+    .customer-welcome p{font-size:8px}
+    .account-primary-link{font-size:8px;padding:7px}
+    .kg-qr-catalog{grid-template-columns:minmax(0,1fr) minmax(112px,.58fr)}
+    .kg-qr-product-body h3{font-size:12px}
+}

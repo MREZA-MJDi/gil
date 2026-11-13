@@ -10,6 +10,7 @@ use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -36,6 +37,24 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'max:200'],
             'remember' => ['sometimes', 'boolean'],
         ], ['phone.required' => 'شماره موبایل را وارد کن.', 'phone.regex' => 'شماره موبایل معتبر وارد کن.']);
+
+        // The public profile icon opens one neutral sign-in form for both account types.
+        // Admin access still requires the server-configured phone and the stored password hash.
+        $adminPhone = PhoneNumber::normalize((string) config('admin.phone'));
+
+        if ($adminPhone !== null && hash_equals($adminPhone, $credentials['phone'])) {
+            $admin = User::query()
+                ->where('phone', $adminPhone)
+                ->where('is_admin', true)
+                ->first();
+
+            if ($admin && Hash::check($credentials['password'], (string) $admin->password)) {
+                Auth::guard('web')->login($admin, $request->boolean('remember'));
+                $request->session()->regenerate();
+
+                return redirect()->intended(route('admin.dashboard'));
+            }
+        }
 
         if (! Auth::guard('web')->attempt([
             'phone' => $credentials['phone'],

@@ -32,21 +32,8 @@
             <a href="{{ route('public.menu') }}" @if(request()->routeIs('public.menu')) aria-current="page" @endif>منو و سفارش</a>
             <a href="{{ route('public.reservations.create') }}" @if(request()->routeIs('public.reservations.create')) aria-current="page" @endif>رزرو و مناسبت‌ها</a>
             <a href="{{ route('home') }}#about">درباره ما</a>
-            @auth
-                @if (auth()->user()->is_admin)
-                    <a class="kg-nav-admin" href="{{ route('admin.dashboard') }}">پنل مدیریت</a>
-                    <form class="kg-nav-logout" method="POST" action="{{ route('admin.logout') }}">
-                        @csrf
-                        <button type="submit">خروج</button>
-                    </form>
-                @else
-                    <a class="kg-nav-admin" href="{{ route('customer.dashboard') }}">حساب من</a>
-                @endif
-            @endauth
-            @if(!auth()->check() || !auth()->user()->is_admin)
-                <a class="kg-nav-admin" href="{{ route('admin.login') }}">ورود مدیر</a>
-            @endif
         </nav>
+        @include('public.partials.profile-link')
 
         <a class="kg-header-cta" href="{{ route('public.menu') }}">دیدن منو </a>
     </div>

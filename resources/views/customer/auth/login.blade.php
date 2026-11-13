@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0d0f11">
-    <title>ورود مشتری | {{ $settings->name }}</title>
+    <title>ورود به حساب | {{ $settings->name }}</title>
     @vite(['resources/css/public-reference.css', 'resources/js/public-site.js'])
 </head>
 <body class="page-reserve account-auth-page">
@@ -12,9 +12,9 @@
     <div class="logo">{{ $settings->name }}</div>
     <section class="frame account-auth-frame">
         <div class="form account-auth-form">
-            <span class="account-eyebrow">باشگاه مشتریان</span>
+            <span class="account-eyebrow">حساب کاربری</span>
             <h2>خوش برگشتی</h2>
-            <p class="sub">برای ثبت رزرو و پیگیری تأیید آن وارد حساب خودت شو.</p>
+            <p class="sub">برای ادامه، شماره موبایل و رمز عبورت را وارد کن.</p>
             @if($errors->any())<div class="form-errors" role="alert">{{ $errors->first() }}</div>@endif
             <form method="POST" action="{{ route('customer.login.store') }}">
                 @csrf

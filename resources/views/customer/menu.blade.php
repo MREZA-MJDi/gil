@@ -12,6 +12,7 @@
         <button type="button" class="burger2" data-kg-menu-toggle aria-expanded="false" aria-label="باز کردن منو"><i></i><i></i></button>
         <a class="brand" href="{{ route('home') }}"><span>{{ $settings->name }}</span></a>
         <nav class="menu-nav" data-kg-nav aria-label="ناوبری اصلی"><a href="{{ route('home') }}">خانه</a><a href="{{ route('public.menu') }}">منوی بیرون‌بر</a><a href="{{ route('public.reservations.create') }}">رزرو میز</a></nav>
+        @include('public.partials.profile-link')
         <span class="kg-table-badge">میز {{ $table->name }}</span>
     </header>
     <main class="kg-qr-main">

@@ -185,19 +185,48 @@ class CustomerAccountTest extends TestCase
         $this->get(route('customer.dashboard'))->assertRedirect(route('customer.login'));
     }
 
-    public function test_public_navigation_exposes_customer_account_and_manager_login_links(): void
+    public function test_public_navigation_uses_one_role_aware_profile_icon_without_staff_labels(): void
     {
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('ورود مشتری')
-            ->assertSee(route('admin.login'));
+            ->assertSee('class="profile-link"', false)
+            ->assertSee(route('customer.login'))
+            ->assertDontSee('ورود مدیر')
+            ->assertDontSee('ورود مشتری');
 
         $customer = $this->customer();
 
         $this->actingAs($customer)->get(route('home'))
             ->assertOk()
-            ->assertSee('حساب من')
-            ->assertSee(route('admin.login'));
+            ->assertSee('class="profile-link"', false)
+            ->assertSee(route('customer.dashboard'))
+            ->assertDontSee('ورود مدیر');
+
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->get(route('home'))
+            ->assertOk()
+            ->assertSee('class="profile-link"', false)
+            ->assertSee(route('admin.dashboard'))
+            ->assertDontSee('ورود مدیر');
+    }
+
+    public function test_admin_can_sign_in_through_the_same_generic_profile_login_form(): void
+    {
+        $admin = $this->admin();
+        config(['admin.phone' => $admin->phone]);
+
+        $this->get(route('customer.login'))
+            ->assertOk()
+            ->assertDontSee('ورود مدیر')
+            ->assertSee('ورود به حساب');
+
+        $this->post(route('customer.login.store'), [
+            'phone' => '۰۹۱۲۱۲۳۴۵۹۹',
+            'password' => 'admin-test-password-12345',
+        ])->assertRedirect(route('admin.dashboard'));
+
+        $this->assertAuthenticatedAs($admin);
     }
 
 }

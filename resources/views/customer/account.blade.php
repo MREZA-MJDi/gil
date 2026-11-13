@@ -16,8 +16,8 @@
         <nav class="menu-nav" data-kg-nav aria-label="ناوبری اصلی">
             <a href="{{ route('home') }}">خانه</a><a href="{{ route('public.menu') }}">منو</a>
             <a href="{{ route('public.reservations.create') }}">رزرو میز</a>
-            <a href="{{ route('customer.dashboard') }}" class="act" aria-current="page">حساب من</a>
         </nav>
+        @include('public.partials.profile-link')
         <form method="POST" action="{{ route('customer.logout') }}" class="account-logout">@csrf<button type="submit">خروج</button></form>
     </header>
     <main class="customer-dashboard">
