@@ -17,8 +17,8 @@ class RecipesController extends Controller
 {
     public function index(): JsonResponse
     {
-        $ingredients = Ingredient::query()->orderBy('name')->limit(500)->get([
-            'id', 'name', 'unit', 'stock_quantity', 'low_stock_threshold', 'cost_per_unit', 'is_active',
+        $ingredients = Ingredient::query()->withCount(['products', 'movements'])->orderBy('name')->limit(500)->get([
+            'id', 'name', 'unit', 'stock_quantity', 'low_stock_threshold', 'cost_per_unit', 'is_active', 'seed_key',
         ]);
         $products = Product::query()
             ->with(['category:id,name', 'recipeIngredients:id,name,unit,cost_per_unit,is_active'])
@@ -105,6 +105,20 @@ class RecipesController extends Controller
         }, attempts: 3);
 
         return response()->json(['data' => $updated]);
+    }
+
+
+    public function destroyIngredient(Request $request, Ingredient $ingredient, AuditLogger $audit): JsonResponse
+    {
+        abort_if($ingredient->products()->exists(), 409, 'این ماده در رسپی محصول استفاده شده است؛ ابتدا رسپی‌ها را اصلاح کن.');
+        abort_if($ingredient->movements()->exists(), 409, 'این ماده سابقه گردش موجودی دارد؛ برای حفظ تاریخچه، آن را غیرفعال کن.');
+
+        $audit->record('ingredient.deleted', $ingredient, $ingredient->only([
+            'name', 'unit', 'stock_quantity', 'cost_per_unit', 'is_active',
+        ]), [], 'ingredient_delete', $request->user()->id);
+        $ingredient->delete();
+
+        return response()->json(['message' => 'ماده اولیه حذف شد.']);
     }
 
     public function adjustIngredient(Request $request, Ingredient $ingredient, AuditLogger $audit): JsonResponse
