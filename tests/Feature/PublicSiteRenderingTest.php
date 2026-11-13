@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\SiteMediaAsset;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -115,6 +117,48 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('5 محصول در منو')
             ->assertSee('نوشیدنی تست 4')
             ->assertSee('نوشیدنی تست 5');
+    }
+
+
+    public function test_dashboard_media_assets_are_rendered_on_home_menu_navigation_and_reservation_pages(): void
+    {
+        Storage::fake('public');
+        $assets = [
+            'hero' => 'site-media/hero.webp',
+            'brand_logo' => 'site-media/logo.png',
+            'home_showcase_background' => 'site-media/showcase.webp',
+            'home_reservation_banner' => 'site-media/home-reservation.webp',
+            'gallery_1' => 'site-media/gallery-one.webp',
+            'menu_cover' => 'site-media/menu-cover.webp',
+            'reservation_cover' => 'site-media/reservation-cover.webp',
+        ];
+
+        foreach ($assets as $slot => $path) {
+            Storage::disk('public')->put($path, 'test-image');
+            SiteMediaAsset::query()->create([
+                'slot' => $slot,
+                'path' => $path,
+                'alt_text' => 'Managed '.$slot,
+            ]);
+        }
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('site-media/hero.webp')
+            ->assertSee('site-media/logo.png')
+            ->assertSee('site-media/showcase.webp')
+            ->assertSee('site-media/home-reservation.webp')
+            ->assertSee('site-media/gallery-one.webp')
+            ->assertSee('kg-photo-gallery', false);
+
+        $this->get(route('public.menu'))
+            ->assertOk()
+            ->assertSee('site-media/menu-cover.webp')
+            ->assertSee('kg-menu-cover', false);
+
+        $this->get(route('public.reservations.create'))
+            ->assertOk()
+            ->assertSee('site-media/reservation-cover.webp');
     }
 
     public function test_public_menu_hides_products_with_zero_tracked_stock(): void
