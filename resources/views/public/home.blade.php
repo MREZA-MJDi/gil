@@ -114,7 +114,18 @@
         <span>{{ $settings->name }}</span>
         <div>
             <a href="{{ route('public.menu') }}">منو</a><a href="{{ route('public.reservations.create') }}">رزرو میز</a>
-            @guest<a href="{{ route('customer.login') }}">ورود مشتری</a>@else @can('access-customer')<a href="{{ route('customer.dashboard') }}">حساب من</a>@endcan @endguest
+            @guest
+                <a href="{{ route('customer.login') }}">ورود مشتری</a>
+                <a href="{{ route('admin.login') }}">ورود کارکنان</a>
+            @else
+                @can('access-customer')
+                    <a href="{{ route('customer.dashboard') }}">حساب من</a>
+                @endcan
+                @can('access-admin')
+                    <a href="{{ route('admin.dashboard') }}">پنل مدیریت</a>
+                    <form method="POST" action="{{ route('admin.logout') }}">@csrf<button type="submit">خروج</button></form>
+                @endcan
+            @endguest
         </div>
     </footer>
 </div>

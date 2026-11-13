@@ -43,7 +43,7 @@
                         <input type="hidden" name="party_size" value="{{ old('party_size',2) }}" required>
                         <div class="chips" data-reservation-chip-group data-field="party_size">
                             @foreach([1,2,3,4,5,6,8,10] as $count)
-                                <button type="button" class="chip {{ (int)old('party_size',2)===$count?'act':'' }}" data-reservation-chip data-value="{{ $count }}" aria-pressed="{{ (int)old('party_size',2)===$count?'true':'false' }}">{{ \App\Support\PersianNumber::format($count) }}</button>
+                                <button type="button" class="chip {{ (int)old('party_size',2)===$count?'act':'' }}" data-reservation-chip data-value="{{ $count }}" aria-pressed="{{ (int)old('party_size',2)===$count?'true':'false' }}">{{ number_format($count) }}</button>
                             @endforeach
                         </div>
                     </div>

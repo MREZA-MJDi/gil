@@ -689,7 +689,15 @@ class RestaurantOperationsTest extends TestCase
 
     public function test_public_birthday_request_is_recorded_as_pending_for_staff_confirmation(): void
     {
-        $this->post('/reserve', [
+        $reservationCustomer = User::query()->create([
+            'name' => 'مشتری جشن',
+            'email' => 'birthday-customer@example.test',
+            'phone' => '+989121111111',
+            'password' => 'birthday-customer-test-password',
+            'is_admin' => false,
+        ]);
+
+        $this->actingAs($reservationCustomer)->post('/reserve', [
             'customer_name' => 'مشتری جشن',
             'phone' => '09121111111',
             'email' => 'birthday@example.test',

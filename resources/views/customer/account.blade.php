@@ -28,7 +28,7 @@
         <section class="customer-account-meta">
             <div><small>شماره موبایل حساب</small><b dir="ltr">{{ $customer->phone }}</b></div>
             @if($customer->email)<div><small>ایمیل</small><b>{{ $customer->email }}</b></div>@endif
-            <div><small>تعداد درخواست‌ها</small><b>{{ \App\Support\PersianNumber::format($reservations->total()) }}</b></div>
+            <div><small>تعداد درخواست‌ها</small><b>{{ number_format($reservations->total()) }}</b></div>
         </section>
         <section class="customer-reservations">
             <div class="customer-section-heading"><div><span>پیگیری درخواست‌ها</span><h2>رزروهای من</h2></div><button type="button" data-account-refresh>تازه‌سازی وضعیت ↻</button></div>
@@ -58,8 +58,8 @@
                             <div class="customer-reservation-details">
                                 <div><small>تاریخ و ساعت</small><b data-jalali-date="{{ $reservation->starts_at->toIso8601String() }}">{{ $reservation->starts_at->format('Y/m/d H:i') }}</b></div>
                                 <div><small>نوع درخواست</small><b>{{ $purposeText }}</b></div>
-                                <div><small>تعداد نفرات</small><b>{{ \App\Support\PersianNumber::format($reservation->party_size) }}</b></div>
-                                <div><small>مدت حضور</small><b>{{ \App\Support\PersianNumber::format($reservation->duration_minutes) }} دقیقه</b></div>
+                                <div><small>تعداد نفرات</small><b>{{ number_format($reservation->party_size) }}</b></div>
+                                <div><small>مدت حضور</small><b>{{ number_format($reservation->duration_minutes) }} دقیقه</b></div>
                                 @if($reservation->table)<div><small>میز تخصیص‌یافته</small><b>{{ $reservation->table->name }}</b></div>@endif
                             </div>
                             @if($status === 'pending')<p class="customer-status-note">درخواستت ثبت شده و در انتظار بررسی مجموعه است. برای دیدن آخرین وضعیت، این صفحه را تازه کن.</p>
@@ -71,7 +71,7 @@
                 @if($reservations->hasPages())
                     <nav class="account-pagination" aria-label="صفحه‌بندی رزروها">
                         @if($reservations->previousPageUrl())<a href="{{ $reservations->previousPageUrl() }}">← قبلی</a>@endif
-                        <span>صفحه {{ \App\Support\PersianNumber::format($reservations->currentPage()) }} از {{ \App\Support\PersianNumber::format($reservations->lastPage()) }}</span>
+                        <span>صفحه {{ number_format($reservations->currentPage()) }} از {{ number_format($reservations->lastPage()) }}</span>
                         @if($reservations->nextPageUrl())<a href="{{ $reservations->nextPageUrl() }}">بعدی →</a>@endif
                     </nav>
                 @endif
