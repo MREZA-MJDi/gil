@@ -11,6 +11,7 @@ if (qrRoot) {
     let qrUncertainRequest = false;
     let activeCategory = null;
     let activePage = 0;
+    let qrCategories = [];
     const pageSize = 4;
     const money = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0)) + ' ' + currency;
 
@@ -122,7 +123,7 @@ if (qrRoot) {
         }
         const pageButton = event.target.closest('[data-qr-page]');
         if (pageButton) {
-            const category = (window.__kgQrCategories || []).find(item => Number(item.id) === activeCategory);
+            const category = qrCategories.find(item => Number(item.id) === activeCategory);
             if (!category) return;
             activePage = Number(pageButton.dataset.qrPage) || 0;
             const wrap = qrRoot.querySelector('[data-qr-panel-wrap="' + activeCategory + '"]');
@@ -214,7 +215,7 @@ if (qrRoot) {
             qrPendingPayload = null;
             qrUncertainRequest = false;
             form.reset();
-            qrRoot.querySelectorAll('[data-qr-add], [data-qr-option], '# + "'#kg-qr-order-form input'" + ').forEach(control => { control.disabled = false; });
+            qrRoot.querySelectorAll('[data-qr-add], [data-qr-option], #kg-qr-order-form input').forEach(control => { control.disabled = false; });
             renderQrCart();
             if (status) status.textContent = 'سفارش ' + (result?.data?.number || '') + ' برای میز ثبت شد. پرداخت هنوز ثبت نشده است.';
         } catch (error) {
@@ -233,15 +234,14 @@ if (qrRoot) {
     });
 
     /* Keep the fetched catalog available to delegated page navigation. */
-    window.__kgQrCategories = [];
     fetch(qrRoot.dataset.dataUrl, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
         .then(response => response.json().then(result => ({ response, result })))
         .then(({ response, result }) => {
             if (!response.ok) throw new Error(result?.message || 'منوی این میز در دسترس نیست.');
             const data = result.data || {};
             currency = data.settings?.currency_label || 'تومان';
-            window.__kgQrCategories = data.categories || [];
-            renderQrCatalog(window.__kgQrCategories, data.table?.name || qrRoot.dataset.tableName || '');
+            qrCategories = data.categories || [];
+            renderQrCatalog(qrCategories, data.table?.name || qrRoot.dataset.tableName || '');
             renderQrCart();
         })
         .catch(error => {
