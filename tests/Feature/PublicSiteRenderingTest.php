@@ -232,6 +232,55 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('غذای ویژه تست');
     }
 
+    public function test_public_menu_accepts_and_persists_a_takeaway_order(): void
+    {
+        $category = Category::query()->create([
+            'name' => 'سفارش‌های تست',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $product = Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'ساندویچ تست',
+            'base_price' => 125000,
+            'status' => 'active',
+            'sort_order' => 1,
+        ]);
+
+        $this->postJson(route('public.orders.store'), [
+            'items' => [[
+                'product_id' => $product->id,
+                'quantity' => 2,
+                'options' => [],
+            ]],
+            'customer_name' => 'مشتری تست',
+            'customer_phone' => '09121234567',
+            'customer_note' => 'بدون پیاز',
+            'payment_preference' => 'card_terminal',
+            'idempotency_key' => Str::random(32),
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.status', 'new')
+            ->assertJsonPath('data.payment_status', 'unpaid')
+            ->assertJsonPath('data.total', 250000)
+            ->assertJsonStructure(['data' => ['number', 'status', 'payment_status', 'total']]);
+
+        $this->assertDatabaseHas('orders', [
+            'channel' => 'takeaway',
+            'customer_name' => 'مشتری تست',
+            'customer_phone' => '09121234567',
+            'payment_preference' => 'card_terminal',
+            'payment_status' => 'unpaid',
+        ]);
+        $this->assertDatabaseHas('order_items', [
+            'product_id' => $product->id,
+            'name' => 'ساندویچ تست',
+            'quantity' => 2,
+            'line_total' => 250000,
+        ]);
+    }
+
     public function test_reservation_pages_render_and_describe_pending_confirmation(): void
     {
         $customer = User::factory()->create(['name' => 'مشتری تست', 'phone' => '+989121234567', 'email' => null, 'is_admin' => false]);
