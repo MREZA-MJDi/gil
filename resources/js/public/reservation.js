@@ -1,6 +1,145 @@
+import {
+    currentJalaliDate,
+    gregorianDateToJalali,
+    jalaliDateToGregorian,
+    jalaliMonthInfo,
+    shiftJalaliMonth,
+    toPersianDigits,
+} from '../date-utils.js';
+
+function initializeJalaliReservationPicker(form) {
+    const wrapper = form.querySelector('[data-jalali-datetime]');
+    if (!wrapper) return;
+
+    const hidden = wrapper.querySelector('[data-jalali-value]');
+    const trigger = wrapper.querySelector('[data-jalali-trigger]');
+    const calendar = wrapper.querySelector('[data-jalali-calendar]');
+    const monthLabel = wrapper.querySelector('[data-jalali-month]');
+    const days = wrapper.querySelector('[data-jalali-days]');
+    const timeInput = wrapper.querySelector('[data-jalali-time]');
+    const previous = wrapper.querySelector('[data-jalali-prev]');
+    const next = wrapper.querySelector('[data-jalali-next]');
+    if (!hidden || !trigger || !calendar || !monthLabel || !days || !timeInput) return;
+
+    const minValue = String(wrapper.dataset.min || '');
+    const minDate = minValue.slice(0, 10);
+    const minTime = minValue.slice(11, 16);
+    let selectedDate = hidden.value ? hidden.value.slice(0, 10) : '';
+    let calendarParts = (selectedDate ? gregorianDateToJalali(selectedDate) : currentJalaliDate()).split('/').map(Number);
+    let calendarYear = calendarParts[0];
+    let calendarMonth = calendarParts[1];
+
+    const setOpen = open => {
+        calendar.hidden = !open;
+        trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+
+    const updateValue = () => {
+        const time = timeInput.value;
+        timeInput.min = selectedDate === minDate ? minTime : '';
+        const tooEarly = selectedDate && minDate && (
+            selectedDate < minDate || (selectedDate === minDate && minTime && time && time < minTime)
+        );
+
+        if (!selectedDate) timeInput.setCustomValidity('ابتدا یک تاریخ شمسی انتخاب کن.');
+        else if (!time) timeInput.setCustomValidity('ساعت رزرو را انتخاب کن.');
+        else if (tooEarly) timeInput.setCustomValidity('زمان رزرو باید دست‌کم ۳۰ دقیقه بعد از زمان فعلی باشد.');
+        else timeInput.setCustomValidity('');
+
+        hidden.value = selectedDate && time && !tooEarly ? selectedDate + 'T' + time : '';
+        trigger.textContent = selectedDate
+            ? toPersianDigits(gregorianDateToJalali(selectedDate))
+            : 'انتخاب تاریخ شمسی';
+    };
+
+    const render = () => {
+        const info = jalaliMonthInfo(calendarYear, calendarMonth);
+        monthLabel.textContent = info.monthName + ' ' + toPersianDigits(calendarYear);
+        days.replaceChildren();
+
+        for (let index = 0; index < info.startOffset; index += 1) {
+            const blank = document.createElement('span');
+            blank.setAttribute('aria-hidden', 'true');
+            days.append(blank);
+        }
+
+        for (let day = 1; day <= info.daysInMonth; day += 1) {
+            const date = jalaliDateToGregorian(
+                calendarYear + '/' + String(calendarMonth).padStart(2, '0') + '/' + String(day).padStart(2, '0')
+            );
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = toPersianDigits(day);
+            button.className = 'jalali-calendar-day';
+            button.setAttribute('aria-pressed', date === selectedDate ? 'true' : 'false');
+            if (date === selectedDate) button.classList.add('is-selected');
+            if (minDate && date < minDate) button.disabled = true;
+            button.addEventListener('click', () => {
+                selectedDate = date;
+                updateValue();
+                render();
+                setOpen(false);
+            });
+            days.append(button);
+        }
+    };
+
+    previous?.addEventListener('click', () => {
+        const shifted = shiftJalaliMonth(calendarYear, calendarMonth, -1);
+        calendarYear = shifted.year;
+        calendarMonth = shifted.month;
+        render();
+    });
+    next?.addEventListener('click', () => {
+        const shifted = shiftJalaliMonth(calendarYear, calendarMonth, 1);
+        calendarYear = shifted.year;
+        calendarMonth = shifted.month;
+        render();
+    });
+    trigger.addEventListener('click', () => {
+        render();
+        setOpen(calendar.hidden);
+    });
+    timeInput.addEventListener('input', updateValue);
+    timeInput.addEventListener('change', updateValue);
+
+    document.addEventListener('click', event => {
+        if (!wrapper.contains(event.target)) setOpen(false);
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') setOpen(false);
+    });
+
+    form.addEventListener('submit', event => {
+        updateValue();
+        if (!hidden.value) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            timeInput.reportValidity();
+        }
+    }, true);
+
+    form.addEventListener('reset', () => {
+        window.setTimeout(() => {
+            selectedDate = '';
+            timeInput.value = '18:00';
+            calendarParts = currentJalaliDate().split('/').map(Number);
+            calendarYear = calendarParts[0];
+            calendarMonth = calendarParts[1];
+            updateValue();
+            render();
+            setOpen(false);
+        }, 0);
+    });
+
+    updateValue();
+    render();
+}
+
 /* Reservation form: sends the backend's exact accepted fields, ISO-local date/time. */
 const reservationForm = document.querySelector('[data-public-reservation]');
 if (reservationForm) {
+    initializeJalaliReservationPicker(reservationForm);
     const submitButton = reservationForm.querySelector('[data-reserve-submit]');
     const message = reservationForm.querySelector('[data-reserve-message]');
     const successPanel = reservationForm.querySelector('[data-reserve-success]');
