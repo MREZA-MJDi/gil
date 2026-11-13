@@ -292,3 +292,8 @@
     .public-site .page-home .headline-note { right:20px; bottom:7px; font-size:9px; }
     .public-site .reserve-image-caption { right:18px; bottom:70px; font-size:10px; }
 }
+
+
+.public-site .menu-intro { margin:0 0 3px; color:#8e2a3a; font-size:12px; font-weight:800; text-align:center; }
+.public-site.page-qr-menu .menu-intro { margin-bottom:0; }
+@media(max-width:600px) { .public-site .menu-intro { margin:0 0 5px; font-size:10px; } }
