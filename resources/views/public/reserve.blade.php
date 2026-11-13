@@ -15,7 +15,7 @@
     <main class="frame">
         <section class="form" aria-labelledby="reserve-title">
             <h1 id="reserve-title">رزرو میز</h1>
-            <p class="sub">میزتان را از قبل رزرو کنید تا فقط به لذت طعم‌ها فکر کنید. درخواست پس از بررسی ظرفیت توسط همکاران مجموعه تأیید می‌شود.</p>
+            <p class="sub">برای رزرو و برنامه‌ریزی قرار بعدی، زمان و تعداد نفرات را انتخاب کنید. درخواست پس از بررسی ظرفیت توسط همکاران مجموعه تأیید می‌شود.</p>
 
             <form method="POST" action="{{ route('public.reservations.store') }}" data-public-reservation>
                 @csrf
@@ -101,6 +101,16 @@
                     <a href="{{ route('home') }}">خانه</a>
                     <a href="{{ route('public.menu') }}">منو</a>
                     <a href="{{ route('public.reservations.create') }}" class="cta" aria-current="page">رزرو میز</a>
+                    @auth
+                        @if(auth()->user()->is_admin)
+                            <a href="{{ route('admin.dashboard') }}">پنل مدیریت</a>
+                            <form method="POST" action="{{ route('admin.logout') }}">@csrf<button type="submit">خروج</button></form>
+                        @else
+                            <a href="{{ route('admin.login') }}">ورود کارکنان</a>
+                        @endif
+                    @else
+                        <a href="{{ route('admin.login') }}">ورود کارکنان</a>
+                    @endauth
                 </nav>
             </header>
             <div class="headline">لحظه‌های خوب<br>از یک میز شروع می‌شوند.</div>
