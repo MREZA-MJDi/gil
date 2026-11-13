@@ -88,7 +88,11 @@ class CustomerFeedbackTest extends TestCase
         ]);
 
         $this->actingAs($this->admin)
-            ->getJson('/admin/api/feedback')
+            ->getJson('/admin/api/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.pending_feedback_count', 1);
+
+        $this->getJson('/admin/api/feedback')
             ->assertOk()
             ->assertJsonFragment(['message' => 'کیفیت سفارش عالی بود و بسته‌بندی هم مرتب بود.']);
 
@@ -97,6 +101,11 @@ class CustomerFeedbackTest extends TestCase
             'admin_response' => 'از اینکه تجربه‌ات را با ما در میان گذاشتی ممنونیم.',
         ])->assertOk()
             ->assertJsonPath('data.status', 'resolved');
+
+        $this->actingAs($this->admin)
+            ->getJson('/admin/api/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.pending_feedback_count', 0);
 
         $this->actingAs($this->customer)
             ->get('/account')
