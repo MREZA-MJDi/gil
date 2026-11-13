@@ -154,6 +154,7 @@ function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
     const popularProducts = dashboard?.popular_products || [];
     const lowStock = Number(dashboard?.low_stock_count || 0);
     const pendingOrders = Number(dashboard?.pending_orders_count || 0);
+    const pendingFeedback = Number(dashboard?.pending_feedback_count || 0);
     const pendingReservations = Number(dashboard?.pending_reservations_count || 0);
     const reservationsCount = Number(dashboard?.today_reservations_count || 0);
     const readyOrders = Number(dashboard?.orders_by_status?.ready || 0);
@@ -171,6 +172,7 @@ function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
     const alerts = [
         pendingReservations > 0 ? { tone: 'info', icon: '◷', label: 'درخواست رزرو', title: pendingReservations + ' رزرو در انتظار بررسی', detail: 'درخواست‌های تازه مشتریان را بررسی و در صورت امکان میز تخصیص بده.', action: 'بررسی رزروها', page: 'reservations', rank: 1 } : null,
         pendingOrders > 0 ? { tone: 'warning', icon: '▤', label: 'سفارش تازه', title: pendingOrders + ' سفارش جدید در انتظار تأیید', detail: 'سفارش‌های تازه را بازبینی کن و وضعیت آماده‌سازی را مشخص کن.', action: 'بررسی سفارش‌ها', page: 'orders', rank: 2 } : null,
+        pendingFeedback > 0 ? { tone: 'info', icon: '✉', label: 'بازخورد مشتری', title: pendingFeedback + ' بازخورد در انتظار رسیدگی', detail: 'پیشنهادها، شکایت‌ها و نظرهای تازه را بخوان و پاسخ مجموعه را ثبت کن.', action: 'بررسی بازخوردها', page: 'customers', rank: 3 } : null,
         lowStock > 0 ? { tone: 'danger', icon: '!', label: 'موجودی', title: lowStock + ' محصول به آستانه کمبود رسیده', detail: 'موجودی فعلی و آستانه هشدار را ببین و ورود کالا را ثبت کن.', action: 'بررسی انبار', page: 'inventory', rank: 3 } : null,
         readyOrders > 0 ? { tone: 'success', icon: '✓', label: 'آماده تحویل', title: readyOrders + ' سفارش آماده تحویل', detail: 'سفارش‌های آماده را بررسی کن تا تحویل معطل نماند.', action: 'رفتن به سفارش‌ها', page: 'orders', rank: 4 } : null,
         reservationsCount > 0 ? { tone: 'info', icon: '◷', label: 'مهمان‌ها', title: reservationsCount + ' رزرو برای امروز', detail: 'زمان رزروها و تخصیص میزها را پیش از مراجعه بررسی کن.', action: 'مدیریت رزروها', page: 'reservations', rank: 5 } : null,
