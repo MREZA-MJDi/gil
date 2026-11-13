@@ -149,9 +149,15 @@ function OverviewSkeleton() {
 
 function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
     const recent = dashboard?.recent_orders || [];
+    const recentReservations = dashboard?.recent_reservations || [];
+    const lowStockProducts = dashboard?.low_stock_products || [];
+    const popularProducts = dashboard?.popular_products || [];
     const lowStock = Number(dashboard?.low_stock_count || 0);
+    const pendingOrders = Number(dashboard?.pending_orders_count || 0);
+    const pendingReservations = Number(dashboard?.pending_reservations_count || 0);
     const reservationsCount = Number(dashboard?.today_reservations_count || 0);
     const readyOrders = Number(dashboard?.orders_by_status?.ready || 0);
+    const reservationLabels = { pending: 'در انتظار تأیید', confirmed: 'تأیید شده', arrived: 'مراجعه کرده', cancelled: 'لغو شده', no_show: 'عدم مراجعه' };
     const openInvoices = Number(dashboard?.open_invoice_amount || 0);
     const cashShiftOpen = Boolean(dashboard?.active_cash_shift);
 
@@ -163,12 +169,14 @@ function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
     ];
 
     const alerts = [
-        !cashShiftOpen ? { tone: 'warning', icon: '◷', label: 'نیاز به اقدام', title: 'شیفت صندوق بسته است', detail: 'برای ثبت دریافت و پرداخت نقدی، شیفت صندوق را باز کن.', action: 'مدیریت صندوق', page: 'pos', rank: 1 } : null,
-        lowStock > 0 ? { tone: 'danger', icon: '!', label: 'موجودی', title: lowStock + ' محصول کم‌موجودی', detail: 'محصول‌های رسیده به آستانه هشدار را بررسی و رسید خرید را ثبت کن.', action: 'بررسی انبار', page: 'inventory', rank: 2 } : null,
-        openInvoices > 0 ? { tone: 'warning', icon: '↗', label: 'پیگیری مالی', title: 'صورت‌حساب باز داری', detail: 'مانده‌های پرداخت‌نشده را بررسی کن؛ فروش با دریافتی یکی نیست.', action: 'مشاهده سفارش‌ها', page: 'orders', rank: 3 } : null,
-        reservationsCount > 0 ? { tone: 'info', icon: '◷', label: 'مهمان‌ها', title: reservationsCount + ' رزرو برای امروز', detail: 'زمان رزروها و تخصیص میزها را پیش از مراجعه بررسی کن.', action: 'مدیریت رزروها', page: 'reservations', rank: 4 } : null,
-        readyOrders > 0 ? { tone: 'success', icon: '✓', label: 'آماده تحویل', title: readyOrders + ' سفارش آماده تحویل', detail: 'سفارش‌های آماده را بررسی کن تا تحویل معطل نماند.', action: 'رفتن به سفارش‌ها', page: 'orders', rank: 5 } : null,
-    ].filter(Boolean).sort((a,b)=>a.rank-b.rank).slice(0,4);
+        pendingReservations > 0 ? { tone: 'info', icon: '◷', label: 'درخواست رزرو', title: pendingReservations + ' رزرو در انتظار بررسی', detail: 'درخواست‌های تازه مشتریان را بررسی و در صورت امکان میز تخصیص بده.', action: 'بررسی رزروها', page: 'reservations', rank: 1 } : null,
+        pendingOrders > 0 ? { tone: 'warning', icon: '▤', label: 'سفارش تازه', title: pendingOrders + ' سفارش جدید در انتظار تأیید', detail: 'سفارش‌های تازه را بازبینی کن و وضعیت آماده‌سازی را مشخص کن.', action: 'بررسی سفارش‌ها', page: 'orders', rank: 2 } : null,
+        lowStock > 0 ? { tone: 'danger', icon: '!', label: 'موجودی', title: lowStock + ' محصول به آستانه کمبود رسیده', detail: 'موجودی فعلی و آستانه هشدار را ببین و ورود کالا را ثبت کن.', action: 'بررسی انبار', page: 'inventory', rank: 3 } : null,
+        readyOrders > 0 ? { tone: 'success', icon: '✓', label: 'آماده تحویل', title: readyOrders + ' سفارش آماده تحویل', detail: 'سفارش‌های آماده را بررسی کن تا تحویل معطل نماند.', action: 'رفتن به سفارش‌ها', page: 'orders', rank: 4 } : null,
+        reservationsCount > 0 ? { tone: 'info', icon: '◷', label: 'مهمان‌ها', title: reservationsCount + ' رزرو برای امروز', detail: 'زمان رزروها و تخصیص میزها را پیش از مراجعه بررسی کن.', action: 'مدیریت رزروها', page: 'reservations', rank: 5 } : null,
+        openInvoices > 0 ? { tone: 'warning', icon: '↗', label: 'پیگیری مالی', title: 'صورت‌حساب باز داری', detail: 'مانده‌های پرداخت‌نشده را بررسی کن؛ فروش با دریافتی یکی نیست.', action: 'مشاهده سفارش‌ها', page: 'orders', rank: 6 } : null,
+        !cashShiftOpen ? { tone: 'warning', icon: '◷', label: 'نیاز به اقدام', title: 'شیفت صندوق بسته است', detail: 'برای ثبت دریافت و پرداخت نقدی، شیفت صندوق را باز کن.', action: 'مدیریت صندوق', page: 'pos', rank: 7 } : null,
+    ].filter(Boolean).sort((a,b)=>a.rank-b.rank).slice(0,6);
 
     const quickLinks = [
         { title: 'ثبت سفارش جدید', description: 'ثبت آیتم‌ها، تخفیف و میز', icon: '＋', tone: 'coral', run: onNewOrder },
@@ -245,6 +253,52 @@ function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
                     <span aria-hidden="true">←</span>
                 </button>
             </aside>
+        </section>
+
+        <div className="overview-section-heading overview-monitor-heading">
+            <div><span className="overview-section-kicker">03 / دید عملیاتی</span><h2>رزروها و وضعیت محصولات</h2><p>درخواست‌های مشتری و وضعیت فروش/موجودی با داده‌های ثبت‌شده به‌روز می‌شوند.</p></div>
+            <span className="overview-data-note"><i /> بروزرسانی خودکار هر ۱۵ ثانیه</span>
+        </div>
+        <section className="overview-monitor-grid">
+            <article className="panel overview-monitor-panel">
+                <div className="overview-panel-heading">
+                    <div><span className="overview-section-kicker">مهمان‌ها</span><h2>آخرین درخواست‌های رزرو</h2><p>{numberFa(pendingReservations)} درخواست در انتظار تأیید</p></div>
+                    <Button onClick={()=>onNavigate('reservations')}>همه رزروها</Button>
+                </div>
+                {recentReservations.length ? <div className="overview-monitor-list">
+                    {recentReservations.map(reservation=><button type="button" className="overview-monitor-row" key={reservation.id} onClick={()=>onNavigate('reservations')}>
+                        <span className="overview-monitor-main"><strong>{reservation.customer_name}</strong><small>{numberFa(reservation.party_size)} نفر · {reservation.table?.name || 'بدون تخصیص میز'} · {reservation.reference || 'رزرو'}</small></span>
+                        <span className="overview-monitor-meta"><b>{dateTime(reservation.starts_at)}</b><Pill value={reservation.status} dictionary={reservationLabels} /></span>
+                    </button>)}
+                </div> : <div className="overview-monitor-empty">هنوز درخواست رزروی ثبت نشده است.</div>}
+            </article>
+
+            <article className="panel overview-monitor-panel">
+                <div className="overview-panel-heading">
+                    <div><span className="overview-section-kicker">گردش فروش</span><h2>محصولات پرطرفدار</h2><p>بر اساس تعداد فروش در ۷ روز اخیر</p></div>
+                    <Button onClick={()=>onNavigate('reports')}>گزارش فروش</Button>
+                </div>
+                {popularProducts.length ? <div className="overview-monitor-list">
+                    {popularProducts.map((product,index)=><div className="overview-monitor-row overview-popular-row" key={(product.product_id || 'removed')+'-'+product.name}>
+                        <span className="overview-popular-rank">{numberFa(index+1)}</span>
+                        <span className="overview-monitor-main"><strong>{product.name}</strong><small>{money(product.gross_sales)} فروش ثبت‌شده</small></span>
+                        <span className="overview-popular-units">{numberFa(product.units_sold)} <small>عدد</small></span>
+                    </div>)}
+                </div> : <div className="overview-monitor-empty">در ۷ روز اخیر فروشی برای نمایش ثبت نشده است.</div>}
+            </article>
+
+            <article className="panel overview-monitor-panel overview-stock-panel">
+                <div className="overview-panel-heading">
+                    <div><span className="overview-section-kicker">انبار</span><h2>محصولات نزدیک به اتمام</h2><p>{numberFa(lowStock)} محصول به آستانه یا پایین‌تر از آن رسیده است.</p></div>
+                    <Button onClick={()=>onNavigate('inventory')}>مدیریت موجودی</Button>
+                </div>
+                {lowStockProducts.length ? <div className="overview-stock-list">
+                    {lowStockProducts.map(product=><button type="button" className="overview-stock-row" key={product.id} onClick={()=>onNavigate('inventory')}>
+                        <span><strong>{product.name}</strong><small>حد هشدار: {numberFa(product.low_stock_threshold)}</small></span>
+                        <b>{numberFa(product.stock_quantity)} <small>موجود</small></b>
+                    </button>)}
+                </div> : <div className="overview-monitor-empty">هیچ محصول فعالی به آستانه کمبود نرسیده است.</div>}
+            </article>
         </section>
     </div>;
 }
