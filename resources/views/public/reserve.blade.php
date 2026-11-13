@@ -94,6 +94,7 @@
             <h2 class="headline">لحظه‌ات را رزرو کن</h2><p class="reserve-image-caption">رزرو و برنامه‌ریزی قرار بعدی‌ات</p>
         </section>
     </main>
+    @include('public.partials.footer')
 </div>
 </body>
 </html>
