@@ -232,6 +232,7 @@ class PublicSiteRenderingTest extends TestCase
         $this->assertStringContainsString("next?.addEventListener('click', () => go(active + 1))", $carousel);
         $this->assertStringContainsString("previous?.addEventListener('click', () => go(active - 1))", $carousel);
         $this->assertStringContainsString("new URLSearchParams(window.location.search).get('product')", $menu);
+        $this->assertStringContainsString("window.location.hash.match(/^#category-([0-9]+)$/)", $menu);
         $this->assertStringContainsString('setSelectedProduct(initialPanel, requestedProductId)', $menu);
     }
 
