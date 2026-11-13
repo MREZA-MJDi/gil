@@ -135,6 +135,7 @@ class OrderService
 
             $order = Order::query()->create([
                 'number' => 'KG-'.now()->format('ymd').'-'.Str::upper(Str::random(6)),
+                'customer_id' => isset($input['customer_id']) ? (int) $input['customer_id'] : null,
                 'restaurant_table_id' => $table?->id,
                 'channel' => $input['channel'],
                 'payment_preference' => $input['payment_preference'] ?? 'at_counter',
