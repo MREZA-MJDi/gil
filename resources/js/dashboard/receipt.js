@@ -68,7 +68,7 @@ export function buildPrintHtml(order, type, settings = {}) {
     const isReceipt = type === 'receipt';
     const title = isKitchen ? 'فیش آشپزخانه' : isReceipt ? 'رسید مشتری' : 'فاکتور فروش';
     const orderNumber = order?.number || ('#' + (order?.id ?? '—'));
-    const currency = settings?.currency_label || document?.querySelector?.('meta[name="currency-label"]')?.content || 'تومان';
+    const currency = settings?.currency_label || 'تومان';
     const items = Array.isArray(order?.items) ? order.items : [];
     const payments = (Array.isArray(order?.payments) ? order.payments : [])
         .filter(payment => payment.status === 'succeeded');
