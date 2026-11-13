@@ -24,6 +24,8 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('پیشنهادهای')
             ->assertDontSee('طعم خوب')
             ->assertDontSee('حال خوب')
+            ->assertDontSee('خوش‌آمدی به')
+            ->assertDontSee('برای یک قهوه کوتاه')
             ->assertSee(route('public.menu'))
             ->assertSee('data-best-food-carousel', false);
     }
@@ -87,9 +89,9 @@ class PublicSiteRenderingTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('صبح دلنشین،')
-            ->assertSee('طعم تازه.')
-            ->assertSee('متن ویرایش‌شده از داشبورد')
+            ->assertDontSee('صبح دلنشین،')
+            ->assertDontSee('طعم تازه.')
+            ->assertDontSee('متن ویرایش‌شده از داشبورد')
             ->assertSee('انتخاب‌های تازه');
     }
 
