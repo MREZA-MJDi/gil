@@ -34,7 +34,13 @@ class RestaurantDemoSeeder extends Seeder
     public function run(): void
     {
         if (! app()->environment('local')) {
-            throw new RuntimeException('RestaurantDemoSeeder فقط در APP_ENV=local مجاز است؛ داده نمونه را در production وارد نکنید.');
+            $productionOptIn = filter_var(env('ALLOW_PRODUCTION_DEMO_SEED', false), FILTER_VALIDATE_BOOLEAN);
+
+            if (! app()->environment('production') || ! $productionOptIn) {
+                throw new RuntimeException(
+                    'داده نمونه فقط در local مجاز است. برای اجرای آگاهانه در production، ALLOW_PRODUCTION_DEMO_SEED=true را فقط برای همان فرمان تنظیم کنید.',
+                );
+            }
         }
 
         $manager = User::query()->where('is_admin', true)->orderBy('id')->first();
