@@ -30,6 +30,7 @@ class Order extends Model
     }
 
     public function table(): BelongsTo { return $this->belongsTo(RestaurantTable::class, 'restaurant_table_id'); }
+    public function customer(): BelongsTo { return $this->belongsTo(User::class, 'customer_id'); }
     public function customerFeedback(): HasMany { return $this->hasMany(CustomerFeedback::class, 'order_id'); }
     public function items(): HasMany { return $this->hasMany(OrderItem::class)->orderBy('id'); }
     public function payments(): HasMany { return $this->hasMany(Payment::class)->orderBy('paid_at')->orderBy('id'); }
