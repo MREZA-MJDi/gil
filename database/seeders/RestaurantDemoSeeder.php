@@ -458,19 +458,37 @@ class RestaurantDemoSeeder extends Seeder
         }
 
         foreach ([
-            ['title'=>'DEMO · خرید مواد اولیه هفتگی','category'=>'ingredients','amount'=>1850000 * $this->currencyMultiplier,'is_paid'=>true,'method'=>'cash','note'=>'هزینه نمونه برای تست گزارش'],
-            ['title'=>'DEMO · بسته‌بندی بیرون‌بر','category'=>'packaging','amount'=>420000 * $this->currencyMultiplier,'is_paid'=>true,'method'=>'card_terminal','note'=>'هزینه نمونه بسته‌بندی'],
-            ['title'=>'DEMO · سرویس دستگاه اسپرسو','category'=>'repairs','amount'=>950000 * $this->currencyMultiplier,'is_paid'=>false,'method'=>'other','note'=>'هزینه نمونه پرداخت‌نشده'],
-            ['title'=>'DEMO · خرید سبزی و میوه','category'=>'ingredients','amount'=>680000 * $this->currencyMultiplier,'is_paid'=>true,'method'=>'cash','note'=>'خرید نمونه روز'],
+            ['key'=>'ingredients-weekly','title'=>'DEMO · خرید مواد اولیه هفتگی','category'=>'ingredients','amount'=>1850000 * $this->currencyMultiplier,'is_paid'=>true,'method'=>'cash','note'=>'هزینه نمونه برای تست گزارش'],
+            ['key'=>'takeaway-packaging','title'=>'DEMO · بسته‌بندی بیرون‌بر','category'=>'packaging','amount'=>420000 * $this->currencyMultiplier,'is_paid'=>true,'method'=>'card_terminal','note'=>'هزینه نمونه بسته‌بندی'],
+            ['key'=>'espresso-maintenance','title'=>'DEMO · سرویس دستگاه اسپرسو','category'=>'repairs','amount'=>950000 * $this->currencyMultiplier,'is_paid'=>false,'method'=>'other','note'=>'هزینه نمونه پرداخت‌نشده'],
+            ['key'=>'fresh-produce','title'=>'DEMO · خرید سبزی و میوه','category'=>'ingredients','amount'=>680000 * $this->currencyMultiplier,'is_paid'=>true,'method'=>'cash','note'=>'خرید نمونه روز'],
         ] as $expense) {
-            $expenseRecord = Expense::query()->firstOrCreate(
-                ['title'=>$expense['title']],
-                [
-                    'cash_shift_id'=>$shift->id,'user_id'=>$manager->id,'category'=>$expense['category'],
-                    'amount'=>$expense['amount'],'payment_method'=>$expense['method'],'is_paid'=>$expense['is_paid'],
-                    'paid_at'=>$expense['is_paid'] ? now()->subHours(2) : null,'note'=>$expense['note'],
-                ],
-            );
+            $seedKey = 'demo-expense:'.$expense['key'];
+            $expenseRecord = Expense::query()->where('seed_key', $seedKey)->first();
+
+            if (! $expenseRecord) {
+                // Adopt rows created by earlier versions of this seeder before stable seed keys existed.
+                $expenseRecord = Expense::query()->where('title', $expense['title'])->first();
+            }
+
+            if ($expenseRecord) {
+                if (! $expenseRecord->seed_key) {
+                    $expenseRecord->forceFill(['seed_key' => $seedKey])->save();
+                }
+            } else {
+                $expenseRecord = Expense::query()->create([
+                    'seed_key' => $seedKey,
+                    'title' => $expense['title'],
+                    'cash_shift_id' => $shift->id,
+                    'user_id' => $manager->id,
+                    'category' => $expense['category'],
+                    'amount' => $expense['amount'],
+                    'payment_method' => $expense['method'],
+                    'is_paid' => $expense['is_paid'],
+                    'paid_at' => $expense['is_paid'] ? now()->subHours(2) : null,
+                    'note' => $expense['note'],
+                ]);
+            }
 
             // Keep demo cash expenses consistent with the cash ledger, including if a previous
             // seeding run created the expense before this reconciliation was added.
