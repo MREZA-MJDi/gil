@@ -75,14 +75,7 @@
             <small class="kg-home-address">{{ $settings->address }}</small>
         @endif
     </section>
-    <footer class="kg-public-footer">
-        <span>{{ $settings->name ?: 'خانه گیلاسی' }}</span>
-        <nav aria-label="پیوندهای پایین صفحه">
-            <a href="{{ route('home') }}">خانه</a>
-            <a href="{{ route('public.menu') }}">منو</a>
-            <a href="{{ route('public.reservations.create') }}">رزرو</a>
-        </nav>
-    </footer>
+    @include('public.partials.footer')
 </div>
 </body>
 </html>
