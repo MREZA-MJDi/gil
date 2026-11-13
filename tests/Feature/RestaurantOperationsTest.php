@@ -229,6 +229,23 @@ class RestaurantOperationsTest extends TestCase
             ->assertJsonPath('data.pending_reservations_count', 0);
     }
 
+    public function test_dashboard_overview_renders_reservation_order_and_product_attention_panels(): void
+    {
+        $dashboard = file_get_contents(resource_path('js/dashboard/DashboardApp.jsx'));
+        $this->assertIsString($dashboard);
+
+        foreach ([
+            'سفارش جدید در انتظار تأیید',
+            'آخرین درخواست‌های رزرو',
+            'محصولات نزدیک به اتمام',
+            'محصولات پرطرفدار',
+            'ثبت از سایت',
+            'overview-monitor-grid',
+        ] as $content) {
+            $this->assertStringContainsString($content, $dashboard);
+        }
+    }
+
     public function test_dashboard_exposes_recent_reservation_requests_low_stock_and_seven_day_top_sellers(): void
     {
         $this->actingAs($this->admin);
