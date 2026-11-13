@@ -151,6 +151,16 @@ if (reservationForm) {
             button.setAttribute('aria-pressed', selected ? 'true' : 'false');
         });
     });
+    reservationForm.addEventListener('reset', () => {
+        window.setTimeout(() => {
+            const selectedValue = Number(partySizeInput?.value || 2);
+            guestPicker?.querySelectorAll('[data-party-size]').forEach(button => {
+                const selected = Number(button.dataset.partySize) === selectedValue;
+                button.classList.toggle('is-active', selected);
+                button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+            });
+        }, 0);
+    });
     initializeJalaliReservationPicker(reservationForm);
     const submitButton = reservationForm.querySelector('[data-reserve-submit]');
     const message = reservationForm.querySelector('[data-reserve-message]');
