@@ -482,9 +482,34 @@ function ReportsPage({ report, onRefresh }) {
 
 function SettingsPage({ settings, onSave, onRefresh }) {
     const [form, setForm] = useState(null);
-    useEffect(() => { if (settings) setForm({ name: settings.name || '', phone: settings.phone || '', address: settings.address || '', currency_label: settings.currency_label || 'تومان', tax_basis_points: String(settings.tax_basis_points || 0), service_basis_points: String(settings.service_basis_points || 0), receipt_footer: settings.receipt_footer || '', paper_width: String(settings.paper_width || 80), customer_menu_enabled: Boolean(settings.customer_menu_enabled) }); }, [settings]);
-    const set = (key, value) => setForm(v => ({...v,[key]:value}));
-    if (!form) return <div className="page-content"><PageHeader title="تنظیمات مجموعه" subtitle="اطلاعات و مالیات خدمات، منوی QR و کاغذ فیش."/><Loading /></div>;
+    const defaults = {
+        hero_eyebrow: 'کافه و رستوران خانه گیلاسی',
+        hero_title_line1: 'طعم خوب،',
+        hero_title_line2: 'حال خوب.',
+        hero_description: 'برای یک قهوه کوتاه، یک وعده خوش‌طعم یا یک دورهمی دوست‌داشتنی؛ انتخاب و سفارش را ساده کرده‌ایم تا وقتت برای لذت‌بردن بماند.',
+        hero_primary_cta: 'دیدن منو و سفارش',
+        hero_secondary_cta: 'درخواست رزرو',
+        hero_badge_title: 'با عشق پخته‌شده',
+        hero_badge_description: 'از آشپزخانه تا میز تو',
+        showcase_eyebrow: 'انتخاب‌های خانه گیلاسی',
+        showcase_title: 'بهترین طعم‌ها برای تو',
+        showcase_description: 'محصولات فعال و تصاویر ثبت‌شده در منوی مجموعه؛ برای دیدن جزئیات و سفارش، انتخابشان کن.'
+    };
+    useEffect(() => {
+        if (settings) setForm({
+            name: settings.name || '', phone: settings.phone || '', address: settings.address || '',
+            currency_label: settings.currency_label || 'تومان',
+            tax_basis_points: String(settings.tax_basis_points || 0),
+            service_basis_points: String(settings.service_basis_points || 0),
+            receipt_footer: settings.receipt_footer || '',
+            paper_width: String(settings.paper_width || 80),
+            customer_menu_enabled: Boolean(settings.customer_menu_enabled),
+            homepage_content: { ...defaults, ...(settings.homepage_content || {}) }
+        });
+    }, [settings]);
+    const set = (key, value) => setForm(v => ({ ...v, [key]: value }));
+    const setHome = (key, value) => setForm(v => ({ ...v, homepage_content: { ...v.homepage_content, [key]: value } }));
+    if (!form) return <div className="page-content"><PageHeader title="تنظیمات مجموعه" subtitle="اطلاعات، محاسبات و محتوای صفحه اصلی."/><Loading /></div>;
     return <div className="page-content">
         <PageHeader title="تنظیمات مجموعه" subtitle="محاسبات سفارش از تنظیمات ذخیره‌شده سرور استفاده می‌کند." />
         <section className="panel op-card"><div className="panel-heading"><div><h2>اطلاعات و محاسبات فاکتور</h2><p>مالیات و سرویس به شکل basis point ذخیره می‌شوند؛ مثلاً ۹٪ برابر ۹۰۰ است.</p></div><Button onClick={onRefresh}>بازخوانی تنظیمات</Button></div>
@@ -500,6 +525,24 @@ function SettingsPage({ settings, onSave, onRefresh }) {
                 <Field label="منوی QR مشتری"><select value={form.customer_menu_enabled ? 'yes' : 'no'} onChange={e => set('customer_menu_enabled',e.target.value === 'yes')}><option value="yes">فعال</option><option value="no">غیرفعال</option></select></Field>
                 <div className="op-form-actions"><Button kind="primary" type="submit">ذخیره تنظیمات</Button></div>
             </form>
+        </section>
+        <section className="panel op-card">
+            <div className="panel-heading"><div><h2>محتوای هیرو و اسلایدر صفحه اصلی</h2><p>متن‌های این دو بخش از تنظیمات ذخیره می‌شوند. عکس‌ها از رسانه سایت و محصولات فعال خوانده می‌شوند.</p></div></div>
+            <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onSave({ ...form, tax_basis_points: Number(form.tax_basis_points), service_basis_points: Number(form.service_basis_points), paper_width: Number(form.paper_width) }); }}>
+                <Field label="برچسب بالای تیتر"><input value={form.homepage_content.hero_eyebrow} onChange={e => setHome('hero_eyebrow',e.target.value)} maxLength="100" required /></Field>
+                <Field label="خط اول تیتر"><input value={form.homepage_content.hero_title_line1} onChange={e => setHome('hero_title_line1',e.target.value)} maxLength="80" required /></Field>
+                <Field label="خط دوم تیتر"><input value={form.homepage_content.hero_title_line2} onChange={e => setHome('hero_title_line2',e.target.value)} maxLength="80" required /></Field>
+                <Field label="متن معرفی هیرو"><textarea rows="3" value={form.homepage_content.hero_description} onChange={e => setHome('hero_description',e.target.value)} maxLength="600" required /></Field>
+                <Field label="متن دکمه منو"><input value={form.homepage_content.hero_primary_cta} onChange={e => setHome('hero_primary_cta',e.target.value)} maxLength="60" required /></Field>
+                <Field label="متن دکمه رزرو"><input value={form.homepage_content.hero_secondary_cta} onChange={e => setHome('hero_secondary_cta',e.target.value)} maxLength="60" required /></Field>
+                <Field label="عنوان برچسب روی عکس"><input value={form.homepage_content.hero_badge_title} onChange={e => setHome('hero_badge_title',e.target.value)} maxLength="80" required /></Field>
+                <Field label="متن کوچک برچسب عکس"><input value={form.homepage_content.hero_badge_description} onChange={e => setHome('hero_badge_description',e.target.value)} maxLength="120" required /></Field>
+                <Field label="برچسب بخش اسلایدر"><input value={form.homepage_content.showcase_eyebrow} onChange={e => setHome('showcase_eyebrow',e.target.value)} maxLength="100" required /></Field>
+                <Field label="تیتر اسلایدر"><input value={form.homepage_content.showcase_title} onChange={e => setHome('showcase_title',e.target.value)} maxLength="100" required /></Field>
+                <Field label="توضیح اسلایدر"><textarea rows="3" value={form.homepage_content.showcase_description} onChange={e => setHome('showcase_description',e.target.value)} maxLength="500" required /></Field>
+                <div className="op-form-actions"><Button kind="primary" type="submit">ذخیره تنظیمات صفحه اصلی</Button></div>
+            </form>
+            <p className="op-note">تصویر اصلی را از «رسانه و تصاویر سایت ← تصویر اصلی صفحه خانه» عوض کن. ترتیب و تصویرهای اسلایدر از ترتیب و تصاویر محصولات فعال در «منو و محصولات» گرفته می‌شوند.</p>
         </section>
         <section className="panel op-card"><h2>چاپگر فیش</h2><p className="op-note">این تنظیم عرض صفحه چاپ را مشخص می‌کند، اما چاپ مستقیم و بی‌پنجره نیازمند نرم‌افزار واسط روی کامپیوتر صندوق است. راهنمای نصب در docs/receipt-printer-integration.md ثبت شده است.</p><Button onClick={() => window.print()}>آزمایش چاپ مرورگر</Button></section>
     </div>;

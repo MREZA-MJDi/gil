@@ -68,6 +68,50 @@ class RestaurantDemoSeederTest extends TestCase
         $this->assertSame($stockBefore, Ingredient::query()->orderBy('id')->firstOrFail()->stock_quantity);
     }
 
+
+    public function test_reseeding_preserves_dashboard_edits_to_catalog_ingredients_tables_and_settings(): void
+    {
+        $this->app->detectEnvironment(fn () => 'local');
+        config(['app.env' => 'local']);
+        User::query()->create([
+            'name' => 'Editable Demo Manager',
+            'email' => 'editable-demo@example.test',
+            'password' => 'demo-test-password-12345',
+            'is_admin' => true,
+        ]);
+
+        Artisan::call('db:seed', [
+            '--class' => \Database\Seeders\RestaurantDemoSeeder::class,
+            '--force' => true,
+        ]);
+
+        $product = Product::query()->where('seed_key', 'demo-product:latte')->firstOrFail();
+        $category = Category::query()->where('seed_key', 'demo-category:coffee')->firstOrFail();
+        $ingredient = Ingredient::query()->where('seed_key', 'demo-ingredient:coffee_beans')->firstOrFail();
+        $table = RestaurantTable::query()->where('seed_key', 'demo-table:1')->firstOrFail();
+
+        $product->update(['name' => 'لاته ویرایش‌شده', 'base_price' => 199000]);
+        $category->update(['name' => 'قهوه‌های منتخب']);
+        $ingredient->update(['name' => 'دانه قهوه ویژه', 'stock_quantity' => 321, 'cost_per_unit' => 987]);
+        $table->update(['name' => 'میز پنجره', 'description' => 'تغییر داده شده از پنل']);
+        RestaurantSetting::current()->update(['name' => 'خانه گیلاسی ویرایش‌شده']);
+
+        Artisan::call('db:seed', [
+            '--class' => \Database\Seeders\RestaurantDemoSeeder::class,
+            '--force' => true,
+        ]);
+
+        $this->assertSame('لاته ویرایش‌شده', $product->fresh()->name);
+        $this->assertSame(199000, (int) $product->fresh()->base_price);
+        $this->assertSame('قهوه‌های منتخب', $category->fresh()->name);
+        $this->assertSame('دانه قهوه ویژه', $ingredient->fresh()->name);
+        $this->assertSame(321.0, (float) $ingredient->fresh()->stock_quantity);
+        $this->assertSame(987, (int) $ingredient->fresh()->cost_per_unit);
+        $this->assertSame('میز پنجره', $table->fresh()->name);
+        $this->assertSame('تغییر داده شده از پنل', $table->fresh()->description);
+        $this->assertSame('خانه گیلاسی ویرایش‌شده', RestaurantSetting::current()->name);
+    }
+
     public function test_demo_seeder_respects_rial_as_the_chosen_currency_unit(): void
     {
         $this->app->detectEnvironment(fn () => 'local');

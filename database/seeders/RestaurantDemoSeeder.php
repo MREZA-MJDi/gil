@@ -49,12 +49,10 @@ class RestaurantDemoSeeder extends Seeder
             'name' => $settings->name ?: 'خانه گیلاسی',
             'phone' => $settings->phone ?: '021-12345678',
             'address' => $settings->address ?: 'تهران، خیابان نمونه، پلاک ۱۲',
-            'currency_label' => $settings->currency_label === 'ریال' ? 'ریال' : 'تومان',
-            'tax_basis_points' => 900,
-            'service_basis_points' => 500,
-            'receipt_footer' => 'از اینکه خانه گیلاسی را انتخاب کردید سپاسگزاریم.',
-            'paper_width' => 80,
-            'customer_menu_enabled' => true,
+            // Never reset currency, rates, receipt content or other operator settings on reruns.
+            'currency_label' => $settings->currency_label ?: ($this->currencyMultiplier === 10 ? 'ریال' : 'تومان'),
+            'receipt_footer' => $settings->receipt_footer ?: 'از اینکه خانه گیلاسی را انتخاب کردید سپاسگزاریم.',
+            'paper_width' => $settings->paper_width ?: 80,
         ])->save();
 
         $categories = $this->seedCategories();
@@ -79,8 +77,25 @@ class RestaurantDemoSeeder extends Seeder
         ];
         $result = [];
         foreach ($definitions as $key => $definition) {
-            $category = Category::query()->firstOrNew(['name' => $definition['name']]);
-            $category->fill(['sort_order' => $definition['sort_order'], 'is_active' => true])->save();
+            $seedKey = 'demo-category:'.$key;
+            $category = Category::query()->where('seed_key', $seedKey)->first();
+
+            if (! $category) {
+                $category = Category::query()->where('name', $definition['name'])->first();
+                if ($category) {
+                    if (! $category->seed_key) {
+                        $category->forceFill(['seed_key' => $seedKey])->save();
+                    }
+                } else {
+                    $category = Category::query()->create([
+                        'seed_key' => $seedKey,
+                        'name' => $definition['name'],
+                        'sort_order' => $definition['sort_order'],
+                        'is_active' => true,
+                    ]);
+                }
+            }
+
             $result[$key] = $category;
         }
         return $result;
@@ -116,9 +131,20 @@ class RestaurantDemoSeeder extends Seeder
 
         $result = [];
         foreach ($definitions as $definition) {
-            $product = Product::query()->firstOrNew(['name' => $definition['name']]);
-            $isNew = ! $product->exists;
-            $product->fill([
+            $seedKey = 'demo-product:'.$definition['key'];
+            $product = Product::query()->where('seed_key', $seedKey)->first();
+
+            if (! $product) {
+                $product = Product::query()->where('name', $definition['name'])->first();
+                if ($product) {
+                    if (! $product->seed_key) {
+                        $product->forceFill(['seed_key' => $seedKey])->save();
+                    }
+                } else {
+                    $product = new Product();
+                    $product->forceFill(['seed_key' => $seedKey]);
+                    $product->fill([
+                'name' => $definition['name'],
                 'category_id' => $categories[$definition['category']]->id,
                 'description' => $definition['description'],
                 'ingredients' => $definition['ingredients'],
@@ -131,9 +157,11 @@ class RestaurantDemoSeeder extends Seeder
                 'unit' => 'عدد',
                 'status' => 'active',
                 'sort_order' => count($result) + 1,
-                'stock_quantity' => $isNew ? $definition['stock'] : $product->stock_quantity,
-                'low_stock_threshold' => $product->low_stock_threshold ?? max(5, (int) floor($definition['stock'] * .15)),
-            ])->save();
+                'stock_quantity' => $definition['stock'],
+                'low_stock_threshold' => max(5, (int) floor($definition['stock'] * .15)),
+                    ])->save();
+                }
+            }
             $result[$definition['key']] = $product;
 
             $optionDefinitions = match ($definition['key']) {
@@ -152,7 +180,7 @@ class RestaurantDemoSeeder extends Seeder
                 default => [],
             };
             foreach ($optionDefinitions as $optionData) {
-                ProductOption::query()->updateOrCreate(
+                ProductOption::query()->firstOrCreate(
                     ['product_id' => $product->id, 'name' => $optionData['name']],
                     ['type'=>$optionData['type'],'price'=>$optionData['price'] * $this->currencyMultiplier,'is_active'=>true,'sort_order'=>$optionData['sort_order']],
                 );
@@ -204,15 +232,27 @@ class RestaurantDemoSeeder extends Seeder
 
         $result = [];
         foreach ($definitions as $key => [$name, $unit, $stock, $cost]) {
-            $ingredient = Ingredient::query()->firstOrNew(['name' => $name]);
-            $isNew = ! $ingredient->exists;
-            $ingredient->fill([
-                'unit'=>$unit,
-                'stock_quantity'=>$isNew ? $stock : $ingredient->stock_quantity,
-                'low_stock_threshold'=>$ingredient->low_stock_threshold ?? max(1, (int) floor($stock * .12)),
-                'cost_per_unit' => $cost * $this->currencyMultiplier,
-                'is_active'=>true,
-            ])->save();
+            $seedKey = 'demo-ingredient:'.$key;
+            $ingredient = Ingredient::query()->where('seed_key', $seedKey)->first();
+
+            if (! $ingredient) {
+                $ingredient = Ingredient::query()->where('name', $name)->first();
+                if ($ingredient) {
+                    if (! $ingredient->seed_key) {
+                        $ingredient->forceFill(['seed_key' => $seedKey])->save();
+                    }
+                } else {
+                    $ingredient = Ingredient::query()->create([
+                        'seed_key' => $seedKey,
+                        'name' => $name,
+                        'unit' => $unit,
+                        'stock_quantity' => $stock,
+                        'low_stock_threshold' => max(1, (int) floor($stock * .12)),
+                        'cost_per_unit' => $cost * $this->currencyMultiplier,
+                        'is_active' => true,
+                    ]);
+                }
+            }
             $result[$key] = $ingredient;
         }
         return $result;
@@ -247,6 +287,11 @@ class RestaurantDemoSeeder extends Seeder
         ];
 
         foreach ($recipes as $productKey => $lines) {
+            // The operator owns recipe edits after first creation; never sync them away on reruns.
+            if ($products[$productKey]->recipeIngredients()->exists()) {
+                continue;
+            }
+
             $sync = [];
             foreach ($lines as $ingredientKey => $quantity) {
                 $sync[$ingredients[$ingredientKey]->id] = ['quantity' => number_format($quantity, 3, '.', '')];
@@ -261,12 +306,26 @@ class RestaurantDemoSeeder extends Seeder
         $tables = [];
         for ($number = 1; $number <= 10; $number++) {
             $name = 'میز '.$number;
-            $table = RestaurantTable::query()->firstOrNew(['name' => $name]);
-            $table->fill([
-                'token' => $table->exists && $table->token ? $table->token : Str::random(64),
-                'is_active' => true,
-                'description' => 'میز نمونه برای تست QR و سفارش حضوری',
-            ])->save();
+            $seedKey = 'demo-table:'.$number;
+            $table = RestaurantTable::query()->where('seed_key', $seedKey)->first();
+
+            if (! $table) {
+                $table = RestaurantTable::query()->where('name', $name)->first();
+                if ($table) {
+                    if (! $table->seed_key) {
+                        $table->forceFill(['seed_key' => $seedKey])->save();
+                    }
+                } else {
+                    $table = RestaurantTable::query()->create([
+                        'seed_key' => $seedKey,
+                        'name' => $name,
+                        'token' => Str::random(64),
+                        'is_active' => true,
+                        'description' => 'میز نمونه برای تست QR و سفارش حضوری',
+                    ]);
+                }
+            }
+
             $tables[$number] = $table;
         }
         return $tables;
@@ -331,7 +390,6 @@ class RestaurantDemoSeeder extends Seeder
 
             $order = $orderService->create($input, $manager->id);
             if (! $order->wasRecentlyCreated) {
-                $this->stampDemoOrderDate($order, $index);
                 continue;
             }
 

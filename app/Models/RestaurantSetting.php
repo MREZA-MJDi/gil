@@ -9,7 +9,7 @@ class RestaurantSetting extends Model
     protected $fillable = [
         'singleton_key', 'name', 'phone', 'address', 'logo_path',
         'currency_label', 'tax_basis_points', 'service_basis_points',
-        'receipt_footer', 'paper_width', 'customer_menu_enabled',
+        'receipt_footer', 'paper_width', 'customer_menu_enabled', 'homepage_content',
     ];
 
     protected function casts(): array
@@ -19,6 +19,7 @@ class RestaurantSetting extends Model
             'service_basis_points' => 'integer',
             'paper_width' => 'integer',
             'customer_menu_enabled' => 'boolean',
+            'homepage_content' => 'array',
         ];
     }
 

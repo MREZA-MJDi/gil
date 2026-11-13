@@ -14,7 +14,7 @@ class Product extends Model
     protected $appends = ['image_url'];
 
     protected $fillable = [
-        'category_id', 'name', 'description', 'ingredients', 'allergens', 'dietary_tags', 'calories', 'preparation_time_minutes', 'image_path', 'base_price', 'unit',
+        'category_id', 'name', 'description', 'ingredients', 'allergens', 'dietary_tags', 'calories', 'preparation_time_minutes', 'image_path', 'base_price', 'unit', 'seed_key',
         'status', 'sort_order', 'stock_quantity', 'low_stock_threshold',
     ];
 
