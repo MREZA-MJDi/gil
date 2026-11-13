@@ -937,7 +937,7 @@ export default function DashboardApp() {
                 }
                 if(page==='pos'){
                     const [products,categories,tables,shift,settingsPayload]=await Promise.all([
-                        api('/products?per_page=100'),
+                        api('/products?per_page=100&available=1'),
                         api('/categories?per_page=100'),
                         api('/tables?per_page=100'),
                         api('/cash-shift'),
