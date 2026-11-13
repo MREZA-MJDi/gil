@@ -1,4 +1,4 @@
-import { toGregorian, toJalaali } from 'jalaali-js';
+import { toGregorian, toJalaali, jalaaliMonthLength as monthLength } from 'jalaali-js';
 
 const pad = value => String(value).padStart(2, '0');
 
@@ -61,4 +61,39 @@ export function currentJalaliDate() {
     }).formatToParts(now);
     const field = Object.fromEntries(parts.map(part => [part.type, part.value]));
     return String(field.year) + '/' + pad(field.month) + '/' + pad(field.day);
+}
+
+
+export const JALALI_MONTH_NAMES = [
+    'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+    'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند',
+];
+
+export const JALALI_WEEKDAYS = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
+
+export function jalaliMonthInfo(year, month) {
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+        throw new RangeError('Invalid Jalali month.');
+    }
+
+    const firstDay = jalaliDateToGregorian(String(year) + '/' + pad(month) + '/01');
+    if (!firstDay) throw new RangeError('Invalid Jalali month.');
+
+    const weekday = new Date(firstDay + 'T00:00:00Z').getUTCDay();
+    return {
+        year,
+        month,
+        monthName: JALALI_MONTH_NAMES[month - 1],
+        daysInMonth: monthLength(year, month),
+        // Jalaali weeks start on Saturday; JavaScript starts on Sunday.
+        startOffset: (weekday + 1) % 7,
+    };
+}
+
+export function shiftJalaliMonth(year, month, delta) {
+    const serial = year * 12 + (month - 1) + Number(delta || 0);
+    return {
+        year: Math.floor(serial / 12),
+        month: ((serial % 12) + 12) % 12 + 1,
+    };
 }
