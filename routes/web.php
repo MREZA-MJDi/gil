@@ -23,9 +23,23 @@ use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Admin\RestaurantTableController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Customer\MenuController as CustomerMenuController;
+use App\Http\Controllers\Customer\AuthController as CustomerAuthController;
+use App\Http\Controllers\Customer\AccountController as CustomerAccountController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicHomeController::class, 'home'])->name('home');
+
+Route::prefix('customer')->name('customer.')->middleware('guest')->group(function (): void {
+    Route::get('/login', [CustomerAuthController::class, 'login'])->name('login');
+    Route::post('/login', [CustomerAuthController::class, 'store'])->middleware('throttle:10,1')->name('login.store');
+    Route::get('/register', [CustomerAuthController::class, 'register'])->name('register');
+    Route::post('/register', [CustomerAuthController::class, 'registerStore'])->middleware('throttle:5,1')->name('register.store');
+});
+
+Route::middleware(['auth', 'can:access-customer'])->group(function (): void {
+    Route::get('/account', [CustomerAccountController::class, 'show'])->name('customer.dashboard');
+    Route::post('/customer/logout', [CustomerAuthController::class, 'destroy'])->name('customer.logout');
+            });
 Route::get('/menu', [PublicHomeController::class, 'menu'])->name('public.menu');
 Route::get('/reserve', [PublicReservationController::class, 'create'])->name('public.reservations.create');
 Route::post('/reserve', [PublicReservationController::class, 'store'])->middleware('throttle:5,1')->name('public.reservations.store');

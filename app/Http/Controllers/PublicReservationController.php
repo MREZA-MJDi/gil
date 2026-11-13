@@ -46,8 +46,12 @@ class PublicReservationController extends Controller
                 : redirect()->route('public.reservations.received');
         }
 
+        $customer = $request->user();
+        abort_unless($customer && ! $customer->is_admin, 403);
+
         $request->merge([
-            'phone' => PhoneNumber::normalize((string) $request->input('phone')),
+            'customer_name' => $customer->name,
+            'phone' => $customer->phone,
             'idempotency_key' => trim((string) $request->input('idempotency_key')),
             'purpose' => $request->input('purpose', 'table'),
         ]);
@@ -74,6 +78,7 @@ class PublicReservationController extends Controller
         $duration = (int) $data['duration_minutes'];
         $endsAt = $startsAt->copy()->addMinutes($duration);
         $canonical = [
+            'customer_id' => (int) $customer->id,
             'customer_name' => trim($data['customer_name']),
             'phone' => trim($data['phone']),
             'email' => isset($data['email']) ? trim($data['email']) : null,
@@ -85,9 +90,10 @@ class PublicReservationController extends Controller
             'estimated_budget' => isset($data['estimated_budget']) ? (int) $data['estimated_budget'] : null,
             'notes' => isset($data['notes']) ? trim($data['notes']) : null,
         ];
+        $canonical['customer_id'] = (int) $customer->id;
         $hash = hash('sha256', json_encode($canonical, JSON_THROW_ON_ERROR));
 
-        $result = DB::transaction(function () use ($data, $startsAt, $endsAt, $duration, $hash, $canonical, $request, $audit) {
+        $result = DB::transaction(function () use ($data, $startsAt, $endsAt, $duration, $hash, $canonical, $request, $audit, $customer) {
             $existing = Reservation::query()->where('idempotency_key', $data['idempotency_key'])->first();
             if ($existing) {
                 if (!hash_equals((string) $existing->idempotency_hash, $hash)) {
@@ -98,6 +104,7 @@ class PublicReservationController extends Controller
 
             $reservation = Reservation::query()->create([
                 'reference' => 'WEB-'.now()->format('ymd').'-'.Str::upper(Str::random(6)),
+                'customer_id' => $customer->id,
                 'customer_name' => $canonical['customer_name'],
                 'phone' => $canonical['phone'],
                 'email' => $canonical['email'],
@@ -119,7 +126,7 @@ class PublicReservationController extends Controller
             $audit->record('reservation.website_request_created', $reservation, [], [
                 'reference' => $reservation->reference, 'purpose' => $reservation->purpose,
                 'party_size' => $reservation->party_size, 'starts_at' => $reservation->starts_at,
-            ], null, null);
+            ], null, $customer->id);
 
             return ['reservation' => $reservation, 'created' => true];
         }, attempts: 3);
