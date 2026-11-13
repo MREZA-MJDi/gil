@@ -14,7 +14,9 @@ use App\Models\SiteMediaAsset;
 use App\Models\RestaurantTable;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class RestaurantOperationsTest extends TestCase
@@ -132,6 +134,29 @@ class RestaurantOperationsTest extends TestCase
         $this->assertStringContainsString('width:60px;height:60px;', $compactStyles);
         $this->assertStringContainsString('width:52px;height:52px;', $compactStyles);
         $this->assertStringContainsString('object-fit:contain', $compactStyles);
+    }
+
+    public function test_admin_can_upload_brand_logo_and_public_homepage_uses_the_saved_asset(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->admin)
+            ->post('/admin/api/media', [
+                'slot' => 'brand_logo',
+                'image' => UploadedFile::fake()->image('brand-logo.png', 320, 320),
+                'alt_text' => 'لوگوی اصلی خانه گیلاسی',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.slot', 'brand_logo')
+            ->assertJsonPath('data.alt_text', 'لوگوی اصلی خانه گیلاسی');
+
+        $asset = SiteMediaAsset::query()->where('slot', 'brand_logo')->firstOrFail();
+        Storage::disk('public')->assertExists($asset->path);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee($asset->url, false)
+            ->assertSee('لوگوی اصلی خانه گیلاسی');
     }
 
     public function test_local_admin_seeder_uses_mobile_and_strong_password_credentials(): void
