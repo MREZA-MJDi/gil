@@ -71,9 +71,12 @@ class RestaurantOperationsTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('طعم خوب')
+            ->assertSee('home-hero-signature', false)
+            ->assertSee('یک مکث خوش‌طعم.')
+            ->assertSee('data-best-food-carousel', false)
             ->assertSee('لاته تست')
-            ->assertSee('ورود کارکنان');
+            ->assertDontSee('طعم خوب')
+            ->assertDontSee('ورود کارکنان');
 
         $this->actingAs($this->admin)->get('/')
             ->assertOk()
