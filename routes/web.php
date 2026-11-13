@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Customer\MenuController as CustomerMenuController;
 use App\Http\Controllers\Customer\AuthController as CustomerAuthController;
 use App\Http\Controllers\Customer\AccountController as CustomerAccountController;
+use App\Http\Controllers\Customer\FeedbackController as CustomerFeedbackController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicHomeController::class, 'home'])->name('home');
@@ -38,6 +39,7 @@ Route::prefix('customer')->name('customer.')->middleware('guest')->group(functio
 
 Route::middleware(['auth', 'can:access-customer'])->group(function (): void {
     Route::get('/account', [CustomerAccountController::class, 'show'])->name('customer.dashboard');
+    Route::post('/account/feedback', [CustomerFeedbackController::class, 'store'])->middleware('throttle:5,1')->name('customer.feedback.store');
     Route::post('/customer/logout', [CustomerAuthController::class, 'destroy'])->name('customer.logout');
     Route::get('/reserve', [PublicReservationController::class, 'create'])->name('public.reservations.create');
     Route::post('/reserve', [PublicReservationController::class, 'store'])->middleware('throttle:5,1')->name('public.reservations.store');
