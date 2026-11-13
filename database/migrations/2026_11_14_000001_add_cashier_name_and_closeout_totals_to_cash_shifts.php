@@ -11,6 +11,9 @@ return new class extends Migration
         Schema::table('cash_shifts', function (Blueprint $table) {
             $table->string('cashier_name', 150)->nullable()->after('closed_by');
             $table->unsignedInteger('duration_minutes')->default(0);
+            $table->unsignedBigInteger('cash_in_total')->default(0);
+            $table->unsignedBigInteger('cash_out_total')->default(0);
+            $table->unsignedInteger('cash_movements_count')->default(0);
             $table->unsignedInteger('orders_count')->default(0);
             $table->unsignedInteger('cancelled_orders_count')->default(0);
             $table->unsignedBigInteger('gross_sales')->default(0);
@@ -29,6 +32,9 @@ return new class extends Migration
             $table->dropColumn([
                 'cashier_name',
                 'duration_minutes',
+                'cash_in_total',
+                'cash_out_total',
+                'cash_movements_count',
                 'orders_count',
                 'cancelled_orders_count',
                 'gross_sales',
