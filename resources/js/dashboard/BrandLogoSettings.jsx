@@ -16,7 +16,7 @@ export default function BrandLogoSettings({ restaurantName }) {
                 if (!active) return;
                 const current = unwrapList(payload).find(item => item.slot === 'brand_logo') || null;
                 setAsset(current);
-                setPreview(current?.url || '');
+                setPreview(previous => previous.startsWith('blob:') ? previous : (current?.url || ''));
             })
             .catch(exception => {
                 if (active) setError(exception?.message || 'بارگذاری لوگوی فعلی انجام نشد.');
