@@ -100,7 +100,10 @@ function ShiftPanel({ cashShift, currency, submitting, onOpenShift, onCloseShift
                 <div><small>مدت شیفت</small><b>{formatNumber(Math.floor(Number(cashShift.duration_minutes || 0) / 60))} ساعت و {formatNumber(Number(cashShift.duration_minutes || 0) % 60)} دقیقه</b></div>
                 <div><small>تعداد سفارش</small><b>{formatNumber(cashShift.orders_count)}</b></div>
                 <div><small>فروش ناخالص</small><b>{money(cashShift.gross_sales, currency)}</b></div>
-                <div><small>دریافت نقدی</small><b>{money(cashShift.cash_payments_total, currency)}</b></div>
+                <div><small>گردش ورودی صندوق</small><b>{money(cashShift.cash_in_total, currency)}</b></div>
+                <div><small>گردش خروجی صندوق</small><b>{money(cashShift.cash_out_total, currency)}</b></div>
+                <div><small>تعداد گردش‌ها</small><b>{formatNumber(cashShift.cash_movements_count)}</b></div>
+                <div><small>دریافت نقدی از سفارش</small><b>{money(cashShift.cash_payments_total, currency)}</b></div>
                 <div><small>دریافت کارت‌خوان</small><b>{money(cashShift.card_payments_total, currency)}</b></div>
                 <div><small>سایر دریافت‌ها</small><b>{money(cashShift.other_payments_total, currency)}</b></div>
                 <div><small>بازپرداخت</small><b>{money(cashShift.refunds_total, currency)}</b></div>
