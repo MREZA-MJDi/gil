@@ -63,7 +63,7 @@
                 @endif
                 <div class="tag"><i>←</i>رزرو میز</div>
             </a>
-            <a href="{{ !empty($settings->address) ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($settings->address) : route('public.menu') }}" class="slot tile" @if(!empty($settings->address)) target="_blank" rel="noopener noreferrer" @endif>
+            <a id="about" href="{{ !empty($settings->address) ? 'https://www.google.com/maps/search/?api=1&query='.urlencode($settings->address) : route('public.menu') }}" class="slot tile" @if(!empty($settings->address)) target="_blank" rel="noopener noreferrer" @endif>
                 @if(!empty($media['story_main']['url']))
                     <img src="{{ $media['story_main']['url'] }}" alt="{{ $media['story_main']['alt_text'] ?: 'رستوران خانه گیلاسی' }}" loading="lazy">
                 @elseif(!empty($media['gallery_3']['url']))
