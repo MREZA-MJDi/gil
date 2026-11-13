@@ -493,27 +493,56 @@ function CustomersPage({ feedback, pagination, onPageChange, onRespond, onRefres
     </div>;
 }
 
-function ExpensesPage({ expenses, pagination, onPageChange, onCreate, onRefresh }) {
+function ExpensesPage({ expenses, pagination, onPageChange, onCreate, onEdit, onDelete, onRefresh }) {
     const [form, setForm] = useState({ title: '', category: 'ingredients', amount: '', payment_method: 'cash', is_paid: true, note: '' });
     const set = (key, value) => setForm(v => ({...v,[key]:value}));
     return <div className="page-content">
-        <PageHeader title="هزینه‌های عملیاتی" subtitle="ثبت هزینه همراه روش پرداخت؛ هزینه نقدی پرداخت‌شده در دفتر صندوق نیز ثبت می‌شود." />
+        <PageHeader title="هزینه‌های عملیاتی" subtitle="هزینه‌ها از این بخش قابل ثبت و ویرایش هستند؛ حذف مستقیم فقط برای رکوردهای نمونه مجاز است." />
         <section className="panel op-card"><div className="panel-heading"><div><h2>ثبت هزینه</h2><p>برای هزینه نقدی، شیفت صندوق باید باز باشد.</p></div></div>
             <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onCreate({ ...form, amount: Number(form.amount) }); }}>
                 <Field label="عنوان هزینه"><input value={form.title} onChange={e => set('title',e.target.value)} maxLength="150" required placeholder="مثلاً خرید شیر" /></Field>
                 <Field label="دسته"><select value={form.category} onChange={e => set('category',e.target.value)}>{Object.entries(expenseCategoryLabel).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
                 <Field label={'مبلغ ('+currencyLabel()+')'}><input type="number" min="1" value={form.amount} onChange={e => set('amount',e.target.value)} required /></Field>
-                <Field label="روش پرداخت"><select value={form.payment_method} onChange={e => set('payment_method',e.target.value)}><option value="cash">نقدی</option><option value="card_terminal">کارت‌خوان (ثبت‌شده)</option><option value="other">سایر</option></select></Field>
+                <Field label="روش پرداخت"><select value={form.payment_method} onChange={e => set('payment_method',e.target.value)}><option value="cash">نقدی</option><option value="card_terminal">کارت‌خوان (ثبت‌شده)</option><option value="online">آنلاین</option><option value="other">سایر</option></select></Field>
                 <Field label="وضعیت پرداخت"><select value={form.is_paid ? 'paid' : 'unpaid'} onChange={e => set('is_paid',e.target.value === 'paid')}><option value="paid">پرداخت شده</option><option value="unpaid">پرداخت نشده</option></select></Field>
                 <Field label="یادداشت"><input value={form.note} onChange={e => set('note',e.target.value)} maxLength="1000" /></Field>
                 <div className="op-form-actions"><Button kind="primary" type="submit">ثبت هزینه</Button></div>
             </form>
         </section>
-        <section className="panel orders-panel"><div className="panel-heading"><div><h2>آخرین هزینه‌ها</h2><p>هزینه‌ی پرداخت‌نشده با خروج وجه صندوق یکی نیست.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
-            {expenses?.length ? <TableWrap><thead><tr><th>زمان</th><th>عنوان</th><th>دسته</th><th>مبلغ</th><th>پرداخت</th><th>روش</th><th>ثبت‌کننده</th></tr></thead><tbody>{expenses.map(ex => <tr key={ex.id}><td>{dateTime(ex.created_at)}</td><td>{ex.title}</td><td>{expenseCategoryLabel[ex.category] || ex.category}</td><td>{money(ex.amount)}</td><td><Pill value={ex.is_paid ? 'paid' : 'unpaid'} dictionary={{paid:'پرداخت شده',unpaid:'پرداخت نشده'}} /></td><td>{paymentMethodLabel[ex.payment_method] || ex.payment_method}</td><td>{ex.user?.name || '—'}</td></tr>)}</tbody></TableWrap> : <Empty>هزینه‌ای ثبت نشده است.</Empty>}
+        <section className="panel orders-panel"><div className="panel-heading"><div><h2>آخرین هزینه‌ها</h2><p>هزینه‌ی پرداخت‌نشده با خروج وجه صندوق یکی نیست. رکوردهای DEMO برای تست ساخته شده‌اند.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
+            {expenses?.length ? <TableWrap><thead><tr><th>زمان</th><th>عنوان</th><th>دسته</th><th>مبلغ</th><th>پرداخت</th><th>روش</th><th>ثبت‌کننده</th><th>عملیات</th></tr></thead><tbody>{expenses.map(ex => <tr key={ex.id}>
+                <td>{dateTime(ex.created_at)}</td><td>{ex.title}{String(ex.title||'').startsWith('DEMO ·')&&<small className="op-subtext">داده نمونه</small>}</td><td>{expenseCategoryLabel[ex.category] || ex.category}</td><td>{money(ex.amount)}</td>
+                <td><Pill value={ex.is_paid ? 'paid' : 'unpaid'} dictionary={{paid:'پرداخت شده',unpaid:'پرداخت نشده'}} /></td><td>{paymentMethodLabel[ex.payment_method] || ex.payment_method}</td><td>{ex.user?.name || '—'}</td>
+                <td><div className="op-actions"><Button onClick={()=>onEdit(ex)}>ویرایش</Button>{String(ex.title||'').startsWith('DEMO ·')&&<Button kind="danger" onClick={()=>onDelete(ex)}>حذف نمونه</Button>}</div></td>
+            </tr>)}</tbody></TableWrap> : <Empty>هزینه‌ای ثبت نشده است.</Empty>}
             <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
     </div>;
+}
+
+function ExpenseEditModal({ expense, onClose, onSubmit }) {
+    const [form, setForm] = useState({
+        title: expense.title || '',
+        category: expense.category || 'other',
+        amount: String(expense.amount || ''),
+        payment_method: expense.payment_method || 'other',
+        is_paid: Boolean(expense.is_paid),
+        note: expense.note || '',
+    });
+    const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
+    const isDemo = String(expense.title || '').startsWith('DEMO ·');
+    return <Modal title="ویرایش هزینه" eyebrow={isDemo ? 'SAMPLE EXPENSE' : 'EXPENSE DETAILS'} onClose={onClose}>
+        <form className="op-form" onSubmit={event => { event.preventDefault(); onSubmit({ ...form, title: form.title.trim(), amount: Number(form.amount), note: form.note.trim() || null }); }}>
+            <Field label="عنوان هزینه"><input value={form.title} onChange={event=>set('title',event.target.value)} maxLength="150" required /></Field>
+            <Field label="دسته"><select value={form.category} onChange={event=>set('category',event.target.value)}>{Object.entries(expenseCategoryLabel).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></Field>
+            <Field label={'مبلغ ('+currencyLabel()+')'}><input type="number" min="1" value={form.amount} onChange={event=>set('amount',event.target.value)} required /></Field>
+            <Field label="روش پرداخت"><select value={form.payment_method} onChange={event=>set('payment_method',event.target.value)}><option value="cash">نقدی</option><option value="card_terminal">کارت‌خوان</option><option value="online">آنلاین</option><option value="other">سایر</option></select></Field>
+            <Field label="وضعیت"><select value={form.is_paid?'paid':'unpaid'} onChange={event=>set('is_paid',event.target.value==='paid')}><option value="paid">پرداخت شده</option><option value="unpaid">پرداخت نشده</option></select></Field>
+            <Field label="یادداشت"><textarea value={form.note} onChange={event=>set('note',event.target.value)} maxLength="1000" rows="3" /></Field>
+            {expense.cash_shift_id&&<p className="op-note">این هزینه به دفتر صندوق متصل است؛ ویرایش مالی فقط تا زمانی مجاز است که شیفت مرتبط باز باشد.</p>}
+            <div className="op-form-actions"><Button onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ذخیره تغییرات</Button></div>
+        </form>
+    </Modal>;
 }
 
 function ReportsPage({ report, onRefresh }) {
