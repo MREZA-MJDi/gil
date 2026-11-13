@@ -317,3 +317,14 @@
 .public-site .kg-form-message { min-height: 18px; margin: 0; color: var(--kg-red); font-size: 10px; }
 .public-site .kg-checkout-locked { opacity: .75; }
 
+
+/* Dashboard-managed public menu cover */
+.public-site .kg-menu-cover { position:relative; min-height:clamp(230px,32vw,430px); display:grid; align-items:center; overflow:hidden; isolation:isolate; color:#fff; background:#211c1d; }
+.public-site .kg-menu-cover>img { position:absolute; z-index:-2; inset:0; width:100%; height:100%; object-fit:cover; }
+.public-site .kg-menu-cover-overlay { position:absolute; z-index:-1; inset:0; background:linear-gradient(90deg,rgba(18,15,16,.76),rgba(18,15,16,.28)); }
+.public-site .kg-menu-cover-copy { width:min(1200px,calc(100% - 48px)); margin:0 auto; padding:45px 0; }
+.public-site .kg-menu-cover-copy>span { color:#f2d7bc; font-size:11px; font-weight:850; }
+.public-site .kg-menu-cover-copy h1 { margin:12px 0 8px; color:#fff; font-size:clamp(28px,5vw,56px); line-height:1.45; font-weight:950; }
+.public-site .kg-menu-cover-copy h1 em { color:#f0c6a0; font-style:normal; }
+.public-site .kg-menu-cover-copy p { color:#f3e6dc; font-size:12px; line-height:2; }
+@media(max-width:560px){.public-site .kg-menu-cover{min-height:210px}.public-site .kg-menu-cover-copy{width:calc(100% - 32px);padding:28px 0}.public-site .kg-menu-cover-copy h1{font-size:31px}}
