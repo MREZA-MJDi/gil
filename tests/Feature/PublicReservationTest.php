@@ -14,6 +14,7 @@ class PublicReservationTest extends TestCase
 
     public function test_customer_can_submit_a_future_reservation_from_the_public_page(): void
     {
+        $customer = User::factory()->create(['name' => 'مشتری آزمایشی', 'phone' => '+989121234567', 'email' => null, 'is_admin' => false]);
         $startsAt = Carbon::now(config('app.timezone'))->addDays(3)->setTime(18, 30)->format('Y-m-d\TH:i');
 
         $response = $this->actingAs($customer)->withHeaders([
