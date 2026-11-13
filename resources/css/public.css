@@ -1,2 +1,6 @@
 @import './fonts.css';
-@import './public-site.css';
+@import './public-base.css';
+@import './public-menu.css';
+@import './public-reservation.css';
+@import './public-qr.css';
+@import './public-home.css';
