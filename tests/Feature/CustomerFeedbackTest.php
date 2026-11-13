@@ -151,6 +151,42 @@ class CustomerFeedbackTest extends TestCase
         $this->assertSame(1, CustomerFeedback::query()->count());
     }
 
+    public function test_guest_order_cannot_be_claimed_by_matching_phone_number_alone(): void
+    {
+        $response = $this->postJson('/online-orders', [
+            'items' => [[
+                'product_id' => $this->product->id,
+                'quantity' => 1,
+                'options' => [],
+            ]],
+            'customer_name' => $this->customer->name,
+            'customer_phone' => $this->customer->phone,
+            'payment_preference' => 'at_counter',
+        ], [
+            'Idempotency-Key' => 'guest-feedback-order-fixture-0001',
+        ])->assertCreated();
+
+        $order = Order::query()
+            ->where('number', $response->json('data.number'))
+            ->firstOrFail();
+
+        $this->assertNull($order->customer_id);
+        $order->forceFill(['status' => OrderStatus::Delivered])->save();
+
+        $this->actingAs($this->customer)
+            ->from(route('customer.dashboard'))
+            ->post(route('customer.feedback.store'), [
+                'order_id' => $order->id,
+                'kind' => 'praise',
+                'rating' => 5,
+                'message' => 'سفارش خوب بود و از کیفیت راضی بودم.',
+            ])
+            ->assertRedirect(route('customer.dashboard'))
+            ->assertSessionHasErrors('order_id');
+
+        $this->assertSame(0, CustomerFeedback::query()->count());
+    }
+
     private function createWebsiteOrderFor(User $customer): Order
     {
         $response = $this->actingAs($customer)->postJson('/online-orders', [
