@@ -38,6 +38,7 @@
                 <div class="menu-panels">
         @endif
         <section class="menu-panel" data-menu-category-panel="{{ $category->id }}" @if(!$loop->first) hidden @endif>
+            <span class="sr-only">{{ $category->products->count() }} محصول در دسته {{ $category->name }}</span>
             <div class="menu-featured-slot" data-menu-featured aria-live="polite"></div>
             <div class="menu-cards" aria-label="محصولات {{ $category->name }}">
                 @foreach($category->products as $product)
