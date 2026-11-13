@@ -1106,3 +1106,68 @@ img:not([src]),img[src=""]{display:none}
 @media(prefers-reduced-motion:reduce) {
     .page-menu .plate,#online-checkout-submit { transition:none; }
 }
+
+
+/* ---------- Customer feedback: submission, tracking and private replies ---------- */
+.customer-feedback-panel,
+.customer-feedback-history{margin-top:22px;border:1px solid #ece8e2;border-radius:16px;background:#fff;padding:20px;box-shadow:0 10px 28px rgba(0,0,0,.025)}
+.customer-feedback-panel .customer-section-heading,
+.customer-feedback-history .customer-section-heading{margin-bottom:16px}
+.customer-feedback-panel .customer-section-heading h2,
+.customer-feedback-history .customer-section-heading h2{font-size:26px}
+.customer-feedback-panel .customer-section-heading>small{color:#888;font-size:11px}
+.customer-feedback-form{display:grid;gap:16px}
+.customer-feedback-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.customer-feedback-field{display:grid;gap:7px;min-width:0}
+.customer-feedback-field>span,
+.customer-feedback-rating legend{font-size:12px;font-weight:700;color:#45413b}
+.customer-feedback-field>span small{font-size:10px;font-weight:500;color:#999}
+.customer-feedback-field select,
+.customer-feedback-field textarea{width:100%;border:1px solid #e5e0d9;border-radius:10px;background:#fff;padding:11px 12px;color:#333;font:inherit;font-size:12px;outline:none}
+.customer-feedback-field select:focus,
+.customer-feedback-field textarea:focus{border-color:#9c6a53;box-shadow:0 0 0 3px rgba(156,106,83,.1)}
+.customer-feedback-field>small{font-size:10px;line-height:1.8;color:#999}
+.customer-feedback-message textarea{resize:vertical;min-height:110px;line-height:1.9}
+.customer-feedback-rating{border:0;padding:0;margin:0;min-width:0}
+.customer-feedback-rating legend{margin-bottom:10px}
+.customer-feedback-rating>div{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.customer-feedback-rating label{display:grid;justify-items:center;gap:5px;border:1px solid #eee9e2;border-radius:10px;padding:9px 5px;cursor:pointer;transition:border-color .18s,background .18s}
+.customer-feedback-rating label:has(input:checked){border-color:#a66d52;background:#fff8f2}
+.customer-feedback-rating input{accent-color:#965b44}
+.customer-feedback-rating label span{font-size:13px;font-weight:800;color:#6a4b3c}
+.customer-feedback-rating label small{font-size:9px;color:#999}
+.customer-feedback-form-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid #f0ede8;padding-top:14px}
+.customer-feedback-form-footer p{max-width:620px;font-size:10px;line-height:1.8;color:#999}
+.customer-feedback-form-footer button{flex:0 0 auto;border:0;border-radius:9px;background:var(--ink);color:#fff;padding:11px 19px;font:700 12px Estedad,sans-serif;cursor:pointer}
+.customer-feedback-flash,
+.customer-feedback-error{margin-bottom:14px;padding:11px 13px;border-radius:9px;font-size:11px;line-height:1.8}
+.customer-feedback-flash{background:#edf8f0;color:#286641}
+.customer-feedback-error{background:#fff0f0;color:#9d3d46}
+.customer-feedback-list{display:grid;gap:12px}
+.customer-feedback-card{border:1px solid #eee9e3;border-radius:12px;padding:15px 16px;background:#fff}
+.customer-feedback-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:11px;border-bottom:1px solid #f0ede8}
+.customer-feedback-card-head>div{display:grid;gap:4px}
+.customer-feedback-card-head b{font-size:13px;color:#333}
+.customer-feedback-card-head small{font-size:10px;color:#999}
+.customer-feedback-status{display:inline-flex;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:700;background:#f4f0e9;color:#806344}
+.customer-feedback-status.status-resolved{background:#eaf6ee;color:#286641}
+.customer-feedback-status.status-in_progress{background:#fff5df;color:#8c641d}
+.customer-feedback-status.status-closed{background:#f1f1f1;color:#666}
+.customer-feedback-card-rating{margin:11px 0 6px;font-size:10px;font-weight:700;color:#906d37}
+.customer-feedback-card-message{white-space:pre-wrap;font-size:12px;line-height:1.9;color:#514c46}
+.customer-feedback-reply{margin-top:12px;border-right:3px solid #8ba98f;border-radius:8px;background:#f3f8f4;padding:11px 13px}
+.customer-feedback-reply b{font-size:11px;color:#286641}
+.customer-feedback-reply p{margin:5px 0;font-size:12px;line-height:1.9;color:#3e5747;white-space:pre-wrap}
+.customer-feedback-reply small{font-size:9px;color:#76907e}
+.customer-feedback-awaiting{margin-top:11px;border-radius:8px;background:#faf7f1;padding:9px 11px;font-size:10px;line-height:1.8;color:#92754b}
+.customer-feedback-empty{border:1px dashed #e3ded7;border-radius:10px;padding:22px;text-align:center;color:#999;font-size:11px}
+@media(max-width:700px){
+ .customer-feedback-panel,.customer-feedback-history{padding:15px 13px;margin-top:16px}
+ .customer-feedback-form-grid{grid-template-columns:1fr}
+ .customer-feedback-rating>div{gap:5px}
+ .customer-feedback-rating label{padding:8px 2px}
+ .customer-feedback-rating label small{font-size:8px}
+ .customer-feedback-form-footer{align-items:stretch;flex-direction:column}
+ .customer-feedback-form-footer button{width:100%}
+ .customer-feedback-card-head{align-items:flex-start;flex-direction:column}
+}
