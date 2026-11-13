@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#2a2722">
     <title>ثبت‌نام کارکنان | خانه گیلاسی</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/auth-entry.css'])
 </head>
 @php($loginBackground = \App\Models\SiteMediaAsset::urlFor('login_background', asset('images/login-background.webp')))
 <body class="admin-auth-body" style="--login-image: url('{{ $loginBackground }}')">

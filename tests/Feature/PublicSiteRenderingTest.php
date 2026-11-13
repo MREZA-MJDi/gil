@@ -211,6 +211,18 @@ class PublicSiteRenderingTest extends TestCase
         $this->assertStringContainsString("resources/js/app.jsx", $dashboard);
         $this->assertStringContainsString("resources/css/app.css", $dashboard);
 
+
+        foreach ([
+            resource_path('views/admin/login.blade.php'),
+            resource_path('views/admin/register.blade.php'),
+        ] as $authViewPath) {
+            $authSource = file_get_contents($authViewPath);
+            $this->assertIsString($authSource);
+            $this->assertStringContainsString("resources/css/auth-entry.css", $authSource);
+            $this->assertStringNotContainsString("resources/js/app.jsx", $authSource);
+            $this->assertStringNotContainsString("resources/js/app.js", $authSource);
+        }
+
         $publicEntry = file_get_contents(resource_path('js/public-site.js'));
         $this->assertIsString($publicEntry);
         $this->assertStringNotContainsString("react", strtolower($publicEntry));
