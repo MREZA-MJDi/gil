@@ -17,7 +17,7 @@ if (qrRoot) {
 
     function featureMarkup(product) {
         const image = product.image_url
-            ? '<img src="' + escapeHtml(product.image_url) + '" alt="' + escapeHtml(product.name) + '" loading="eager">'
+            ? '<img data-menu-image src="' + escapeHtml(product.image_url) + '" alt="' + escapeHtml(product.name) + '" loading="eager"><span data-menu-image-fallback hidden>🍒</span>'
             : '<span data-menu-image-fallback>🍒</span>';
         const options = (product.options || []).map(option => {
             const type = option.type?.value || option.type || 'addon';
