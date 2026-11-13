@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\RestaurantSetting;
+use App\Models\RestaurantTable;
+use Illuminate\Support\Str;
 use App\Models\SiteMediaAsset;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
@@ -18,8 +21,11 @@ class PublicSiteRenderingTest extends TestCase
     {
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('طعم خوب')
-            ->assertSee(route('public.menu'));
+            ->assertSee('پیشنهادهای')
+            ->assertDontSee('طعم خوب')
+            ->assertDontSee('حال خوب')
+            ->assertSee(route('public.menu'))
+            ->assertSee('data-best-food-carousel', false);
     }
 
 
@@ -53,6 +59,7 @@ class PublicSiteRenderingTest extends TestCase
             ->assertOk()
             ->assertSee('data-home-carousel', false)
             ->assertSee('data-home-carousel-card', false)
+            ->assertSee('data-best-food-slide', false)
             ->assertSee('غذای تصویر اول')
             ->assertSee('غذای تصویر دوم')
             ->assertSee(e($first->image_url), false)
@@ -127,7 +134,6 @@ class PublicSiteRenderingTest extends TestCase
         $assets = [
             'hero' => 'site-media/hero.webp',
             'brand_logo' => 'site-media/logo.png',
-            'home_showcase_background' => 'site-media/showcase.webp',
             'home_reservation_banner' => 'site-media/home-reservation.webp',
             'gallery_1' => 'site-media/gallery-one.webp',
             'menu_cover' => 'site-media/menu-cover.webp',
@@ -147,10 +153,10 @@ class PublicSiteRenderingTest extends TestCase
             ->assertOk()
             ->assertSee('site-media/hero.webp')
             ->assertSee('site-media/logo.png')
-            ->assertSee('site-media/showcase.webp')
             ->assertSee('site-media/home-reservation.webp')
             ->assertSee('site-media/gallery-one.webp')
-            ->assertSee('kg-photo-gallery', false);
+            ->assertSee('kg-photo-gallery', false)
+            ->assertSee('data-best-food-carousel', false);
 
         $this->get(route('public.menu'))
             ->assertOk()
@@ -290,6 +296,31 @@ class PublicSiteRenderingTest extends TestCase
         $this->assertStringContainsString("--kg-section-space", $base);
         $this->assertStringContainsString("public-base.css", $entry);
         $this->assertStringNotContainsString("dashboard.css", $entry);
+    }
+
+
+    public function test_qr_scan_opens_the_selected_tables_menu_and_has_an_order_success_panel(): void
+    {
+        RestaurantSetting::current()->forceFill(['customer_menu_enabled' => true])->save();
+
+        $table = RestaurantTable::query()->create([
+            'name' => 'میز QR تست',
+            'token' => Str::random(48),
+            'is_active' => true,
+        ]);
+
+        $this->get($table->menuUrl())
+            ->assertOk()
+            ->assertSee('میز QR تست')
+            ->assertSee('data-customer-qr-menu', false)
+            ->assertSee(route('customer.menu.data', ['token' => $table->token]))
+            ->assertSee(route('customer.menu.orders.store', ['token' => $table->token]));
+
+        $qrScript = file_get_contents(resource_path('js/public/customer-qr-menu.js'));
+        $this->assertIsString($qrScript);
+        $this->assertStringContainsString('kg-qr-success', $qrScript);
+        $this->assertStringContainsString('showQrSuccess', $qrScript);
+        $this->assertStringContainsString('پرداخت هنوز انجام نشده', $qrScript);
     }
 
 }

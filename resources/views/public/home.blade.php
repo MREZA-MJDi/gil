@@ -21,10 +21,20 @@
 
             @include('public.partials.reference-nav')
 
+            @php
+                $heroTitleLine1 = (string) ($homepageContent['hero_title_line1'] ?? 'خوش‌آمدی به');
+                $heroTitleLine2 = (string) ($homepageContent['hero_title_line2'] ?? $settings->name);
+                $legacyHeroCopy = str_contains($heroTitleLine1.' '.$heroTitleLine2, 'طعم خوب')
+                    || str_contains($heroTitleLine1.' '.$heroTitleLine2, 'حال خوب');
+                if ($legacyHeroCopy) {
+                    $heroTitleLine1 = 'خوش‌آمدی به';
+                    $heroTitleLine2 = $settings->name;
+                }
+            @endphp
             <span class="home-eyebrow">{{ $homepageContent['hero_eyebrow'] ?? 'کافه و رستوران' }}</span>
             <h1 class="headline">
-                {{ $homepageContent['hero_title_line1'] ?? 'طعم خوب،' }}
-                @if(!empty($homepageContent['hero_title_line2']))<br>{{ $homepageContent['hero_title_line2'] }}@endif
+                {{ $heroTitleLine1 }}
+                @if($heroTitleLine2 !== '')<br>{{ $heroTitleLine2 }}@endif
             </h1>
             <p class="home-hero-description">{{ $homepageContent['hero_description'] ?? 'برای یک قهوه کوتاه، یک وعده خوش‌طعم یا یک دورهمی دوست‌داشتنی؛ منتظرت هستیم.' }}</p>
             <div class="home-hero-actions">
@@ -62,23 +72,67 @@
         </div>
     </div>
 
-    <section class="home-showcase" id="about"
-        @if(!empty($media['home_showcase_background']['url'])) style="--showcase-bg:url('{{ $media['home_showcase_background']['url'] }}')" @endif>
-        <header>
-            <span>{{ $homepageContent['showcase_eyebrow'] ?? 'انتخاب‌های خانه گیلاسی' }}</span>
-            <h2>{{ $homepageContent['showcase_title'] ?? 'انتخاب‌های تازه' }}</h2>
-            <p>{{ $homepageContent['showcase_description'] ?? 'محصولات فعال و تصاویر واقعی ثبت‌شده در پنل مدیریت.' }}</p>
+    <section class="best-food" id="bestFood" data-best-food-carousel aria-labelledby="bestFoodTitle">
+        <header class="best-food__header">
+            <span class="best-food__eyebrow">{{ $homepageContent['showcase_eyebrow'] ?? 'از منوی فعال مجموعه' }}</span>
+            <h2 class="best-food__title" id="bestFoodTitle">
+                @if(($homepageContent['showcase_title'] ?? 'بهترین طعم‌ها برای تو') !== 'بهترین طعم‌ها برای تو')
+                    {{ $homepageContent['showcase_title'] }}
+                @else
+                    پیشنهادهای <span>خوشمزه</span> امروز
+                @endif
+            </h2>
+            <span class="best-food__line" aria-hidden="true"></span>
+            <p class="best-food__desc">{{ $homepageContent['showcase_description'] ?? 'غذاها و نوشیدنی‌هایی که همین حالا در منوی فعال آماده انتخاب‌اند؛ اسلایدها را ورق بزن و انتخابت را پیدا کن.' }}</p>
         </header>
+
         @if($featuredProducts->isNotEmpty())
-            <div class="home-showcase-products">
+            <div class="fc" data-best-food-track aria-roledescription="carousel" aria-label="محصولات منتخب منو" tabindex="0">
                 @foreach($featuredProducts as $product)
-                    <a href="{{ route('public.menu') }}#category-{{ $product->category_id }}" class="home-showcase-product">
-                        @if($product->image_url)<img src="{{ $product->image_url }}" alt="{{ $product->name }}" loading="lazy">@endif
-                        <span><b>{{ $product->name }}</b><strong>{{ number_format($product->base_price) }} {{ $settings->currency_label }}</strong></span>
-                    </a>
+                    <button
+                        class="fc__slide"
+                        type="button"
+                        data-best-food-slide
+                        data-index="{{ $loop->index }}"
+                        data-name="{{ $product->name }}"
+                        data-description="{{ $product->description ?: 'برای دیدن جزئیات و ثبت سفارش، محصول را در منوی کامل باز کن.' }}"
+                        data-url="{{ route('public.menu') }}#category-{{ $product->category_id }}"
+                        aria-label="نمایش {{ $product->name }}"
+                        aria-pressed="false"
+                    >
+                        <span class="fc__img">
+                            @if($product->image_url)
+                                <img src="{{ $product->image_url }}" alt="{{ $product->name }}" loading="{{ $loop->first ? 'eager' : 'lazy' }}">
+                            @else
+                                <span class="fc__image-fallback">تصویر این محصول ثبت نشده</span>
+                            @endif
+                        </span>
+                        <span class="fc__caption">
+                            <strong>{{ $product->name }}</strong>
+                            <small>{{ number_format($product->base_price) }} {{ $settings->currency_label }}</small>
+                        </span>
+                    </button>
                 @endforeach
             </div>
+
+            <div class="best-food__controls">
+                <button class="fc__arrow" type="button" data-best-food-prev aria-label="محصول قبلی">‹</button>
+                <div class="fc__dots" data-best-food-dots aria-label="انتخاب محصول">
+                    @foreach($featuredProducts as $product)
+                        <button class="fc__dot" type="button" data-best-food-dot="{{ $loop->index }}" aria-label="نمایش {{ $product->name }}" aria-pressed="false"></button>
+                    @endforeach
+                </div>
+                <button class="fc__arrow" type="button" data-best-food-next aria-label="محصول بعدی">›</button>
+            </div>
+
+            <div class="best-food__selected" aria-live="polite">
+                <p data-best-food-description>{{ $featuredProducts->first()->description ?: 'برای دیدن جزئیات و ثبت سفارش، محصول را در منوی کامل باز کن.' }}</p>
+                <a data-best-food-link href="{{ route('public.menu') }}#category-{{ $featuredProducts->first()->category_id }}">مشاهده در منوی کامل</a>
+            </div>
+        @else
+            <div class="best-food__empty">هنوز محصول فعالی در منو ثبت نشده است. پس از افزودن محصول از مدیریت، این بخش خودکار به‌روز می‌شود.</div>
         @endif
+
         @if($categories->isNotEmpty())
             <div class="home-category-counts">
                 @foreach($categories as $category)
@@ -113,19 +167,8 @@
     <footer class="home-access">
         <span>{{ $settings->name }}</span>
         <div>
-            <a href="{{ route('public.menu') }}">منو</a><a href="{{ route('public.reservations.create') }}">رزرو میز</a>
-            @guest
-                <a href="{{ route('customer.login') }}">ورود مشتری</a>
-                <a href="{{ route('admin.login') }}">ورود کارکنان</a>
-            @else
-                @can('access-customer')
-                    <a href="{{ route('customer.dashboard') }}">حساب من</a>
-                @endcan
-                @can('access-admin')
-                    <a href="{{ route('admin.dashboard') }}">پنل مدیریت</a>
-                    <form method="POST" action="{{ route('admin.logout') }}">@csrf<button type="submit">خروج</button></form>
-                @endcan
-            @endguest
+            <a href="{{ route('public.menu') }}">منو</a>
+            <a href="{{ route('public.reservations.create') }}">رزرو میز</a>
         </div>
     </footer>
 </div>

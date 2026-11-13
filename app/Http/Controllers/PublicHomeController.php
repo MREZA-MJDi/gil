@@ -28,8 +28,8 @@ class PublicHomeController extends Controller
         $media = $this->media();
         $homepageContent = array_replace([
             'hero_eyebrow' => 'کافه و رستوران خانه گیلاسی',
-            'hero_title_line1' => 'طعم خوب،',
-            'hero_title_line2' => 'حال خوب.',
+            'hero_title_line1' => 'خوش‌آمدی به',
+            'hero_title_line2' => $settings->name,
             'hero_description' => 'برای یک قهوه کوتاه، یک وعده خوش‌طعم یا یک دورهمی دوست‌داشتنی؛ انتخاب و سفارش را ساده کرده‌ایم تا وقتت برای لذت‌بردن بماند.',
             'hero_primary_cta' => 'دیدن منو و سفارش',
             'hero_secondary_cta' => 'درخواست رزرو',
