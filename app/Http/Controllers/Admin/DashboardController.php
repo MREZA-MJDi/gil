@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\OrderStatus;
+use App\Models\CustomerFeedback;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CashShift;
@@ -94,6 +95,10 @@ class DashboardController extends Controller
             ->where('status', 'pending')
             ->count();
 
+        $pendingFeedbackCount = CustomerFeedback::query()
+            ->whereIn('status', ['new', 'in_progress'])
+            ->count();
+
         $recentReservations = Reservation::query()
             ->with('table:id,name')
             ->whereIn('status', ['pending', 'confirmed'])
@@ -150,6 +155,7 @@ class DashboardController extends Controller
             'popular_products_period_days' => 7,
             'pending_orders_count' => $pendingOrdersCount,
             'pending_reservations_count' => $pendingReservationsCount,
+            'pending_feedback_count' => $pendingFeedbackCount,
             'recent_reservations' => $recentReservations,
             'today_reservations_count' => Reservation::query()
                 ->whereIn('status', ['pending', 'confirmed'])
