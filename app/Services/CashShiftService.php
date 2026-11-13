@@ -103,6 +103,7 @@ class CashShiftService
                 'difference' => $countedCash - $expected,
                 'closing_note' => $note,
                 'closed_at' => $closedAt,
+                'duration_minutes' => max(0, (int) $shift->opened_at->diffInMinutes($closedAt)),
                 'orders_count' => $ordersCount,
                 'cancelled_orders_count' => $cancelledOrders,
                 'gross_sales' => $grossSales,
