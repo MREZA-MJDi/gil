@@ -675,7 +675,7 @@ img:not([src]),img[src=""]{display:none}
 .fc__slide{
     position:absolute;left:50%;top:50%;
     width:clamp(165px,22vw,238px);height:clamp(165px,22vw,238px);
-    padding:0;border:0;background:transparent;color:inherit;
+    padding:0;border:0;background:transparent;color:inherit;text-decoration:none;
     transform:translate(-50%,-50%) translateX(calc(var(--o,0) * var(--fc-step))) scale(var(--s,1));
     opacity:var(--op,1);z-index:var(--z,1);
     transition:transform .6s cubic-bezier(.22,.8,.3,1),opacity .6s ease;
