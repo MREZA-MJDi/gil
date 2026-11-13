@@ -98,7 +98,7 @@
     @endif
 
     @if(collect(['gallery_1','gallery_2','gallery_3'])->contains(fn ($slot) => !empty($media[$slot]['url'])))
-        <section class="home-photo-gallery">
+        <section class="home-photo-gallery kg-photo-gallery">
             <header><span>نگاهی به خانه گیلاسی</span><h2>فضای ما، از نزدیک</h2></header>
             <div>
                 @foreach(['gallery_1'=>'فضای کافه','gallery_2'=>'غذا و نوشیدنی','gallery_3'=>'مناسبت‌ها و دورهمی'] as $slot=>$label)

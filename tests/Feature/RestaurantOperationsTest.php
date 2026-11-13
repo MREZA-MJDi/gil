@@ -107,7 +107,7 @@ class RestaurantOperationsTest extends TestCase
         $this->actingAs($customer)->get('/reserve')
             ->assertOk()
             ->assertSee('/storage/site-media/gallery_1/reservation.webp', false)
-            ->assertSee('رزرو و برنامه‌ریزی');
+            ->assertSee('رزرو میز');
     }
 
     public function test_local_admin_seeder_uses_mobile_and_strong_password_credentials(): void

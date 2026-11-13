@@ -12,7 +12,7 @@
     <div class="frame">
         <div class="form">
             <h2>رزرو میز</h2>
-            <p class="sub">میزتان را از قبل رزرو کنید تا فقط به لذت طعم‌ها فکر کنید. پس از بررسی ظرفیت، نتیجه در حساب مشتری نمایش داده می‌شود.</p>
+            <p class="sub">میزتان را از قبل رزرو کنید تا فقط به لذت طعم‌ها فکر کنید. درخواست پس از بررسی ظرفیت مجموعه تأیید می‌شود و نتیجه در حساب مشتری نمایش داده می‌شود.</p>
             <div class="reservation-account-strip">
                 <span>درخواست برای</span><b>{{ auth()->user()->name }}</b><small dir="ltr">{{ auth()->user()->phone }}</small>
                 <a href="{{ route('customer.dashboard') }}">پیگیری رزروها</a>
