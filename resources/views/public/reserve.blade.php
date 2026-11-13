@@ -7,9 +7,6 @@
     <meta name="theme-color" content="#0d0f11">
     <meta name="description" content="درخواست رزرو میز در {{ $settings->name }}.">
     <title>رزرو میز | {{ $settings->name }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site page-reserve">
