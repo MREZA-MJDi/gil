@@ -93,7 +93,28 @@ if (menuRoot) {
     }, true);
 
     if (categoryButtons.length) {
-        setCategory(categoryButtons[0].dataset.menuCategorySelect);
+        const requestedCategoryId = window.location.hash.match(/^#category-(\\d+)$/)?.[1] || null;
+        const requestedProductId = new URLSearchParams(window.location.search).get('product');
+        const requestedPanel = requestedCategoryId
+            ? categoryPanels.find(item => item.dataset.menuCategoryPanel === requestedCategoryId)
+            : null;
+        const initialPanel = requestedPanel || categoryPanels[0];
+        const initialCategoryId = initialPanel?.dataset.menuCategoryPanel || categoryButtons[0].dataset.menuCategorySelect;
+
+        setCategory(initialCategoryId);
+
+        if (requestedProductId && initialPanel) {
+            const products = [...initialPanel.querySelectorAll('[data-menu-product-select]')];
+            const productIndex = products.findIndex(button => button.dataset.menuProductId === requestedProductId);
+            if (productIndex >= 0) {
+                setPage(initialPanel, Math.floor(productIndex / pageSize));
+                setSelectedProduct(initialPanel, requestedProductId);
+            }
+        }
+
+        if (requestedPanel) {
+            window.requestAnimationFrame(() => requestedPanel.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+        }
     }
 }
 
