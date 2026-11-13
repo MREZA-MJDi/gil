@@ -332,8 +332,8 @@ class PublicSiteRenderingTest extends TestCase
 
         $styles = file_get_contents(resource_path('css/public-reference.css'));
         $this->assertIsString($styles);
-        $this->assertStringContainsString('translate(8px,-24px) rotate(2.2deg)', preg_replace('/\\s+/', '', $styles));
-        $this->assertStringContainsString('top:calc(50% - 18px)', preg_replace('/\\s+/', '', $styles));
+        $this->assertStringContainsString('translate(8px,-24px)rotate(2.2deg)', preg_replace('/\\s+/', '', $styles));
+        $this->assertStringContainsString('top:calc(50%-18px)', preg_replace('/\\s+/', '', $styles));
         $this->assertStringContainsString('#online-checkout-form', $styles);
         $this->assertStringContainsString('#online-checkout-submit:not(:disabled):hover', $styles);
     }
