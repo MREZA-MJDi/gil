@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import MediaManager from './MediaManager.jsx';
+import BrandLogoSettings from './BrandLogoSettings.jsx';
 import PosPage from './PosPage.jsx';
 import { MoneyInput } from '../shared/iranian-ui.jsx';
 import { api, idempotencyKey, unwrapData, unwrapList, unwrapPagination } from './api.js';
@@ -636,6 +637,7 @@ function SettingsPage({ settings, onSave, onRefresh }) {
     if (!form) return <div className="page-content"><PageHeader title="تنظیمات مجموعه" subtitle="اطلاعات، محاسبات و محتوای صفحه اصلی."/><Loading /></div>;
     return <div className="page-content">
         <PageHeader title="تنظیمات مجموعه" subtitle="محاسبات سفارش از تنظیمات ذخیره‌شده سرور استفاده می‌کند." />
+        <BrandLogoSettings restaurantName={form.name} />
         <section className="panel op-card"><div className="panel-heading"><div><h2>اطلاعات و محاسبات فاکتور</h2><p>مالیات و سرویس به شکل basis point ذخیره می‌شوند؛ مثلاً ۹٪ برابر ۹۰۰ است.</p></div><Button onClick={onRefresh}>بازخوانی تنظیمات</Button></div>
             <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onSave({ ...form, tax_basis_points: Number(form.tax_basis_points), service_basis_points: Number(form.service_basis_points), paper_width: Number(form.paper_width) }); }}>
                 <Field label="نام مجموعه"><input value={form.name} onChange={e => set('name',e.target.value)} maxLength="150" required /></Field>
