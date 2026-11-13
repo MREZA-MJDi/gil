@@ -232,7 +232,7 @@ class PublicSiteRenderingTest extends TestCase
 
         $this->actingAs($customer)->get(route('public.reservations.received'))
             ->assertOk()
-            ->assertSee('در انتظار تأیید');
+            ->assertSee('در انتظار بررسی');
     }
     public function test_customer_and_public_pages_use_framework_free_assets_while_dashboard_keeps_react(): void
     {
