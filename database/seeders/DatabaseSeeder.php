@@ -13,8 +13,14 @@ class DatabaseSeeder extends Seeder
             RestaurantFoundationSeeder::class,
         ]);
 
-        // Demo records are opt-in and strictly local; never seed orders into a deployed business database by accident.
-        if (app()->environment('local') && (bool) env('SEED_RESTAURANT_DEMO', false)) {
+        $seedLocalDemo = app()->environment('local')
+            && filter_var(env('SEED_RESTAURANT_DEMO', false), FILTER_VALIDATE_BOOLEAN);
+        $seedProductionDemo = app()->environment('production')
+            && filter_var(env('ALLOW_PRODUCTION_DEMO_SEED', false), FILTER_VALIDATE_BOOLEAN);
+
+        // Production demo data must be deliberately opted into for this one command.
+        // This creates sample orders, payments and expenses; it must never happen by default.
+        if ($seedLocalDemo || $seedProductionDemo) {
             $this->call(RestaurantDemoSeeder::class);
         }
     }
