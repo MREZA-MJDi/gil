@@ -7,7 +7,7 @@
 </head>
 <body class="page-reserve page-reservation-received" id="top">
 <div class="wrap">
-    <div class="logo">{{ $settings->name }}</div>
+    @include('public.partials.site-logo')
     <div class="frame">
         <div class="form received-form">
             <span class="received-check">✓</span><h2>درخواستت به دست ما رسید.</h2>
