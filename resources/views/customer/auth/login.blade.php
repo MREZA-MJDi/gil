@@ -9,7 +9,7 @@
 </head>
 <body class="page-reserve account-auth-page">
 <div class="wrap">
-    <div class="logo">{{ $settings->name }}</div>
+    @include('public.partials.site-logo')
     <section class="frame account-auth-frame">
         <div class="form account-auth-form">
             <span class="account-eyebrow">حساب کاربری</span>
