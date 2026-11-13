@@ -486,6 +486,7 @@ img:not([src]),img[src=""]{display:none}
         display:flex;align-items:center;justify-content:center;
         padding:7px 3px;font-size:10px;text-align:center;white-space:nowrap;
     }
+    .nav>.profile-link{display:inline-grid}
     .profile-link{width:32px;height:32px;flex-basis:32px}
     .profile-link svg{width:18px;height:18px}
 
