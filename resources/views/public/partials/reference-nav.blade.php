@@ -12,5 +12,12 @@
         <a href="{{ route('home') }}" @if(request()->routeIs('home')) aria-current="page" @endif>خانه</a>
         <a href="{{ route('public.menu') }}" @if(request()->routeIs('public.menu')) aria-current="page" @endif>منو</a>
         <a href="{{ route('public.reservations.create') }}" @if(request()->routeIs('public.reservations.create')) aria-current="page" @endif class="cta">رزرو میز</a>
+        @guest
+            <a href="{{ route('customer.login') }}">ورود مشتری</a>
+        @else
+            @can('access-customer')
+                <a href="{{ route('customer.dashboard') }}" @if(request()->routeIs('customer.dashboard')) aria-current="page" @endif>حساب من</a>
+            @endcan
+        @endguest
     </nav>
 </header>

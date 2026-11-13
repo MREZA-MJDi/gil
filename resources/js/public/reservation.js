@@ -140,6 +140,25 @@ function initializeJalaliReservationPicker(form) {
 const reservationForm = document.querySelector('[data-public-reservation]');
 if (reservationForm) {
     initializeJalaliReservationPicker(reservationForm);
+
+    reservationForm.querySelectorAll('[data-reservation-chip-group]').forEach(group => {
+        const fieldName = group.dataset.field;
+        const hidden = reservationForm.querySelector('[name="' + fieldName + '"]');
+        if (!hidden) return;
+
+        group.querySelectorAll('[data-reservation-chip]').forEach(button => {
+            button.setAttribute('aria-pressed', button.classList.contains('act') ? 'true' : 'false');
+            button.addEventListener('click', () => {
+                hidden.value = button.dataset.value || '';
+                group.querySelectorAll('[data-reservation-chip]').forEach(item => {
+                    const active = item === button;
+                    item.classList.toggle('act', active);
+                    item.setAttribute('aria-pressed', active ? 'true' : 'false');
+                });
+            });
+        });
+    });
+
     const submitButton = reservationForm.querySelector('[data-reserve-submit]');
     const message = reservationForm.querySelector('[data-reserve-message]');
     const successPanel = reservationForm.querySelector('[data-reserve-success]');
