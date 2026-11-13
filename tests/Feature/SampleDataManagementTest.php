@@ -76,7 +76,8 @@ class SampleDataManagementTest extends TestCase
         $demo = Expense::query()->create([
             'cash_shift_id' => CashShift::query()->where('status', 'open')->value('id'),
             'user_id' => $this->admin->id,
-            'title' => 'DEMO · هزینه قابل حذف',
+            'title' => 'هزینه‌ای که بعداً تغییر نام می‌گیرد',
+            'seed_key' => 'demo-expense:test-removable',
             'category' => 'ingredients',
             'amount' => 45000,
             'payment_method' => 'cash',
@@ -95,13 +96,22 @@ class SampleDataManagementTest extends TestCase
             'occurred_at' => now(),
         ]);
 
+        $this->patchJson('/admin/api/expenses/'.$demo->id, [
+            'title' => 'هزینه نمونه با عنوان جدید',
+            'category' => 'ingredients',
+            'amount' => 45000,
+            'payment_method' => 'cash',
+            'is_paid' => true,
+            'note' => 'شناسه نمونه باید مستقل از عنوان باقی بماند.',
+        ])->assertOk();
+
         $this->deleteJson('/admin/api/expenses/'.$demo->id)->assertOk();
         $this->assertDatabaseMissing('expenses', ['id' => $demo->id]);
         $this->assertDatabaseMissing('cash_movements', ['expense_id' => $demo->id]);
 
         $real = Expense::query()->create([
             'user_id' => $this->admin->id,
-            'title' => 'هزینه واقعی',
+            'title' => 'DEMO · فقط عنوان شبیه نمونه است',
             'category' => 'rent',
             'amount' => 200000,
             'payment_method' => 'other',
