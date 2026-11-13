@@ -9,9 +9,8 @@ import { currentJalaliDate, gregorianDateToJalali, jalaliDateToGregorian, jalali
 
 const navItems = [
     ['overview', 'نمای کلی', '◫'],
-    ['pos', 'صندوق فروش / ثبت سفارش', '◈'],
+    ['pos', 'صندوق فروش و شیفت', '◈'],
     ['orders', 'سفارش‌ها و تحویل', '▤'],
-    ['cashier', 'مدیریت صندوق و شیفت', '▣'],
     ['menu', 'منو و محصولات', '▦'],
     ['inventory', 'موجودی و انبار', '▧'],
     ['recipes', 'رسپی و مواد اولیه', '♨'],
@@ -157,13 +156,13 @@ function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
 
     const cards = [
         { label: 'فروش ثبت‌شده', value: money(dashboard?.registered_sales), hint: 'مجموع سفارش‌های غیرلغوشده', icon: '↗', tone: 'coral', destination: 'reports', action: 'مشاهده گزارش فروش' },
-        { label: 'دریافتی خالص', value: money(dashboard?.collections_net), hint: 'پس از کسر بازپرداخت‌ها', icon: '◈', tone: 'green', destination: 'cashier', action: 'رفتن به صندوق' },
+        { label: 'دریافتی خالص', value: money(dashboard?.collections_net), hint: 'پس از کسر بازپرداخت‌ها', icon: '◈', tone: 'green', destination: 'pos', action: 'رفتن به صندوق' },
         { label: 'سفارش‌های امروز', value: numberFa(dashboard?.orders_count), hint: 'همه وضعیت‌ها، شامل لغوشده', icon: '▤', tone: 'purple', destination: 'orders', action: 'پیگیری سفارش‌ها' },
         { label: 'مانده صورت‌حساب', value: money(dashboard?.open_invoice_amount), hint: 'سفارش‌های تسویه‌نشده', icon: '◷', tone: 'amber', destination: 'orders', action: 'بررسی مانده‌ها' },
     ];
 
     const alerts = [
-        !cashShiftOpen ? { tone: 'warning', icon: '◷', label: 'نیاز به اقدام', title: 'شیفت صندوق بسته است', detail: 'برای ثبت دریافت و پرداخت نقدی، شیفت صندوق را باز کن.', action: 'مدیریت صندوق', page: 'cashier', rank: 1 } : null,
+        !cashShiftOpen ? { tone: 'warning', icon: '◷', label: 'نیاز به اقدام', title: 'شیفت صندوق بسته است', detail: 'برای ثبت دریافت و پرداخت نقدی، شیفت صندوق را باز کن.', action: 'مدیریت صندوق', page: 'pos', rank: 1 } : null,
         lowStock > 0 ? { tone: 'danger', icon: '!', label: 'موجودی', title: lowStock + ' محصول کم‌موجودی', detail: 'محصول‌های رسیده به آستانه هشدار را بررسی و رسید خرید را ثبت کن.', action: 'بررسی انبار', page: 'inventory', rank: 2 } : null,
         openInvoices > 0 ? { tone: 'warning', icon: '↗', label: 'پیگیری مالی', title: 'صورت‌حساب باز داری', detail: 'مانده‌های پرداخت‌نشده را بررسی کن؛ فروش با دریافتی یکی نیست.', action: 'مشاهده سفارش‌ها', page: 'orders', rank: 3 } : null,
         reservationsCount > 0 ? { tone: 'info', icon: '◷', label: 'مهمان‌ها', title: reservationsCount + ' رزرو برای امروز', detail: 'زمان رزروها و تخصیص میزها را پیش از مراجعه بررسی کن.', action: 'مدیریت رزروها', page: 'reservations', rank: 4 } : null,
@@ -172,7 +171,7 @@ function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
 
     const quickLinks = [
         { title: 'ثبت سفارش جدید', description: 'ثبت آیتم‌ها، تخفیف و میز', icon: '＋', tone: 'coral', run: onNewOrder },
-        { title: 'صندوق و پرداخت', description: 'دریافت وجه، فیش و بازپرداخت', icon: '◈', tone: 'green', run: ()=>onNavigate('cashier') },
+        { title: 'صندوق و پرداخت', description: 'دریافت وجه، فیش و بازپرداخت', icon: '◈', tone: 'green', run: ()=>onNavigate('pos') },
         { title: 'منو و قیمت‌ها', description: 'مدیریت دسته‌ها و محصولات', icon: '▦', tone: 'amber', run: ()=>onNavigate('menu') },
         { title: 'انبار و موجودی', description: 'گردش موجودی و اصلاح شمارش', icon: '▧', tone: 'purple', run: ()=>onNavigate('inventory') },
     ];
@@ -239,7 +238,7 @@ function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
                         <span className={'overview-quick-icon tone-'+link.tone}>{link.icon}</span><span className="overview-quick-copy"><strong>{link.title}</strong><small>{link.description}</small></span><span className="overview-quick-arrow" aria-hidden="true">↙</span>
                     </button>)}
                 </div>
-                <button type="button" className="overview-cash-status" onClick={()=>onNavigate('cashier')}>
+                <button type="button" className="overview-cash-status" onClick={()=>onNavigate('pos')}>
                     <span className={'overview-cash-status-icon '+(cashShiftOpen?'is-open':'is-closed')}>{cashShiftOpen?'✓':'!'}</span>
                     <span><strong>{cashShiftOpen?'شیفت صندوق باز است':'شیفت صندوق بسته است'}</strong><small>{cashShiftOpen?('شروع: '+dateTime(dashboard?.active_cash_shift?.opened_at)):'برای عملیات نقدی، شیفت را باز کن.'}</small></span>
                     <span aria-hidden="true">←</span>
@@ -287,53 +286,6 @@ function nextStatusLabel(status) {
     return ({ new: 'تأیید', confirmed: 'شروع آماده‌سازی', preparing: 'آماده تحویل', ready: 'ثبت تحویل' })[status] || 'تغییر وضعیت';
 }
 
-function CashierPage({ cashShift, orders, pagination, onPageChange, onRefresh, onOpenShift, onCloseShift, onMovement, onPayment, onDetails, onPrint }) {
-    const [openingCash, setOpeningCash] = useState('0');
-    const [countedCash, setCountedCash] = useState('');
-    const [shiftNote, setShiftNote] = useState('');
-    const [movement, setMovement] = useState({ direction: 'out', amount: '', reason: '' });
-    const [movementKey, setMovementKey] = useState(() => idempotencyKey());
-    const movementPayload = cashShift?.movements;
-    const movements = Array.isArray(movementPayload) ? movementPayload : (movementPayload?.data || []);
-    const cashIn = Number(cashShift?.cash_in_total ?? movements.filter(item => item.direction === 'in').reduce((sum, item) => sum + Number(item.amount || 0), 0));
-    const cashOut = Number(cashShift?.cash_out_total ?? movements.filter(item => item.direction === 'out').reduce((sum, item) => sum + Number(item.amount || 0), 0));
-    const expectedCash = Number(cashShift?.expected_cash ?? (Number(cashShift?.opening_cash || 0) + cashIn - cashOut));
-    const closingDifference = countedCash === '' ? null : Number(countedCash) - expectedCash;
-    const payable = orders || [];
-    return <div className="page-content">
-        <PageHeader title="صندوق و پرداخت" subtitle="ابتدا شیفت را باز کن؛ دریافت نقدی، پرداخت کارت‌خوان و بازپرداخت را جداگانه ثبت کن و در پایان وجه واقعی را با مانده مورد انتظار تطبیق بده." />
-        <section className="op-grid op-grid-2">
-            <article className="panel op-card">
-                <div className="panel-heading"><div><h2>وضعیت شیفت صندوق</h2><p>هم‌زمان فقط یک شیفت باز قابل ثبت است.</p></div><Pill value={cashShift?.status || 'closed'} dictionary={{open:'باز',closed:'بسته'}} /></div>
-                {cashShift ? <><div className="op-kpi-grid"><div><small>وجه آغازین</small><b>{money(cashShift.opening_cash)}</b></div><div><small>موجودی مورد انتظار</small><b>{money(expectedCash)}</b></div><div><small>ورودی نقدی</small><b>{money(cashIn)}</b></div><div><small>خروجی نقدی</small><b>{money(cashOut)}</b></div></div><div className="op-cash-reconciliation"><b>مبنای بستن صندوق</b><span>وجه آغازین + ورودی نقدی − خروجی نقدی</span><strong>{money(expectedCash)}</strong><small>پرداخت کارت‌خوان و انتقال بانکی در موجودی نقدی صندوق شمرده نمی‌شود. هنگام بستن، فقط وجه نقد واقعی را وارد کن.</small></div>{movements.length > 0 && <div className="op-cash-movements"><b>آخرین گردش‌های ثبت‌شده</b>{movements.slice(0,6).map(item => <div key={item.id}><span className={item.direction === 'in' ? 'op-positive' : 'op-negative'}>{item.direction === 'in' ? 'ورودی' : 'خروجی'}</span><span>{item.reason || 'بدون شرح'}</span><strong>{money(item.amount)}</strong><small>{dateTime(item.occurred_at || item.created_at)}</small></div>)}</div>}</> :
-                    <form className="op-form" onSubmit={e => { e.preventDefault(); onOpenShift({ opening_cash: Number(openingCash), note: shiftNote }); }}>
-                        <Field label={"وجه نقد اولیه (" + currencyLabel() + ')'} hint="مبلغ پول نقد موجود در کشو در ابتدای شیفت را وارد کن."><input type="number" min="0" step="1" value={openingCash} onChange={e => setOpeningCash(e.target.value)} required /></Field>
-                        <Field label="یادداشت شروع"><input value={shiftNote} onChange={e => setShiftNote(e.target.value)} maxLength="500" placeholder="مثلاً صندوق شیفت صبح" /></Field><Button kind="primary" type="submit">باز کردن شیفت</Button>
-                    </form>}
-                {cashShift && <form className="op-form op-form-separated" onSubmit={e => { e.preventDefault(); onCloseShift(cashShift.id, { counted_cash: Number(countedCash), note: shiftNote }); }}>
-                    <Field label={"وجه نقد شمارش‌شده (" + currencyLabel() + ')'} hint={closingDifference === null ? 'پول داخل کشو را بشمار و مبلغ واقعی را وارد کن.' : (closingDifference === 0 ? 'صندوق دقیقاً با مبلغ مورد انتظار برابر است.' : (closingDifference > 0 ? 'مازاد صندوق: ' : 'کسری صندوق: ') + money(Math.abs(closingDifference)))}><input type="number" min="0" step="1" value={countedCash} onChange={e => setCountedCash(e.target.value)} required /></Field>
-                    <Field label="یادداشت بستن"><input value={shiftNote} onChange={e => setShiftNote(e.target.value)} maxLength="500" placeholder="توضیح اختلاف صندوق، در صورت وجود" /></Field>
-                    <Button kind="danger" type="submit">بستن شیفت و ثبت مغایرت</Button>
-                </form>}
-            </article>
-            <article className="panel op-card">
-                <div className="panel-heading"><div><h2>ورودی / خروجی دستی صندوق</h2><p>برای تنخواه، شارژ صندوق یا خروج وجه، علت را شفاف ثبت کن.</p></div></div>
-                {cashShift ? <form className="op-form" onSubmit={e => { e.preventDefault(); onMovement(cashShift.id, { ...movement, amount: Number(movement.amount), reason: movement.reason.trim(), idempotency_key: movementKey }).then(ok => { if (ok) { setMovement({ direction: 'out', amount: '', reason: '' }); setMovementKey(idempotencyKey()); } }); }}>
-                    <Field label="نوع حرکت"><select value={movement.direction} onChange={e => setMovement(v => ({...v, direction:e.target.value}))}><option value="in">ورودی وجه</option><option value="out">خروجی وجه</option></select></Field>
-                    <Field label={"مبلغ (" + currencyLabel() + ')'}><input type="number" min="1" step="1" value={movement.amount} onChange={e => setMovement(v => ({...v, amount:e.target.value}))} required /></Field>
-                    <Field label="علت / شرح"><input minLength="3" maxLength="500" value={movement.reason} onChange={e => setMovement(v => ({...v, reason:e.target.value}))} required placeholder="مثلاً تنخواه خرید یا پرداخت پیک" /></Field>
-                    <Button kind="primary" type="submit">ثبت حرکت صندوق</Button>
-                </form> : <Empty>برای ثبت حرکت دستی، ابتدا شیفت را باز کن.</Empty>}
-            </article>
-        </section>
-        <section className="panel orders-panel"><div className="panel-heading"><div><h2>مانده‌های قابل تسویه</h2><p>فقط سفارش‌های تسویه‌نشده نمایش داده می‌شوند؛ مبلغ باقی‌مانده در جزئیات سفارش محاسبه می‌شود.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
-            {payable.length ? <TableWrap><thead><tr><th>شماره</th><th>کانال</th><th>مبلغ کل</th><th>وضعیت پرداخت</th><th>اقدام</th></tr></thead><tbody>
-                {payable.map(order => <tr key={order.id}><td className="mono">{order.number}</td><td>{channelLabel(order)}</td><td>{money(order.total)}</td><td><Pill value={order.payment_status} dictionary={paymentStatusLabel} /></td><td><div className="op-actions"><Button kind="primary" onClick={() => onPayment(order)}>ثبت پرداخت</Button><Button onClick={() => onDetails(order.id)}>سوابق / بازپرداخت</Button><Button onClick={() => onPrint(order.id,'receipt')}>فیش مشتری</Button><Button onClick={() => onPrint(order.id,'kitchen')}>آشپزخانه</Button></div></td></tr>)}
-            </tbody></TableWrap> : <Empty>هیچ مانده‌ی قابل تسویه‌ای وجود ندارد.</Empty>}
-            <Pagination meta={pagination} onPageChange={onPageChange} />
-        </section>
-    </div>;
-}
 function MenuPage({ products, categories, filters, onFiltersChange, pagination, onPageChange, onRefresh, onProduct, onProductStatus, onProductDelete, onCategory, onCategoryDelete }) {
     const [queryDraft, setQueryDraft] = useState(filters?.query || '');
     const category = filters?.category || 'all';
@@ -959,10 +911,6 @@ export default function DashboardApp() {
                     const payload=await api('/orders'+queryString(params));
                     next.orders=unwrapList(payload);next.ordersPagination=unwrapPagination(payload);
                 }
-                if(page==='cashier'){
-                    const [shift,orders]=await Promise.all([api('/cash-shift'),api('/orders'+queryString({...listParams,unsettled:1,active:1,sort:'latest'}))]);
-                    next.cashShift=unwrapData(shift);next.orders=unwrapList(orders);next.cashierOrdersPagination=unwrapPagination(orders);
-                }
                 if(page==='menu'){
                     const params={...listParams};
                     const filters=listFilters.products;
@@ -1003,7 +951,7 @@ export default function DashboardApp() {
     },[page,reloadVersion,listPage,listFilters]);
 
     useEffect(() => {
-        if (!['overview', 'orders', 'cashier'].includes(page)) return undefined;
+        if (!['overview', 'orders', 'pos'].includes(page)) return undefined;
         const timer = window.setInterval(() => {
             if (!document.hidden) setReloadVersion(version => version + 1);
         }, 15000);
@@ -1182,9 +1130,8 @@ export default function DashboardApp() {
 
     const renderPage=()=>{
         if(page==='overview') return data.dashboard ? <OverviewPage dashboard={data.dashboard} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} /> : (loading ? <OverviewSkeleton /> : <OverviewPage dashboard={{}} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} />);
-        if(page==='pos') return <PosPage products={data.posProducts||[]} categories={data.posCategories||[]} tables={data.posTables||[]} cashShift={data.posCashShift} settings={data.settings||settings} submitting={busy} onSubmit={submitPosOrder} onOpenCashier={()=>navigate('cashier')} onPrint={printDocument} onViewOrders={()=>navigate('orders')} />;
+        if(page==='pos') return <PosPage products={data.posProducts||[]} categories={data.posCategories||[]} tables={data.posTables||[]} cashShift={data.posCashShift} settings={data.settings||settings} submitting={busy} onSubmit={submitPosOrder} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPrint={printDocument} onViewOrders={()=>navigate('orders')} />;
         if(page==='orders') return <OrdersPage orders={data.orders} filters={listFilters.orders} onFiltersChange={patch=>updateListFilters('orders',patch)} pagination={data.ordersPagination} onPageChange={setListPage} onRefresh={refresh} onDetails={orderDetails} onPrint={printDocument} onNewOrder={newOrder} onTransition={transition} onCancel={cancelOrder} />;
-        if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} pagination={data.cashierOrdersPagination} onPageChange={setListPage} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} onPrint={printDocument} />;
         if(page==='menu') return <MenuPage products={data.products} categories={data.categories} filters={listFilters.products} onFiltersChange={patch=>updateListFilters('products',patch)} pagination={data.productsPagination} onPageChange={setListPage} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onProductDelete={deleteProduct} onCategory={category=>setModal({type:'category',category})} onCategoryDelete={deleteCategory} />;
         if(page==='inventory') return <InventoryPage products={data.products} movements={data.movements} pagination={data.movementsPagination} onPageChange={setListPage} onRefresh={refresh} onAdjust={product=>setModal({type:'inventory',product})} />;
         if(page==='recipes') return <RecipesPage recipeData={data.recipes} onRefresh={refresh} onCreateIngredient={createIngredient} onUpdateIngredient={updateIngredient} onEditIngredient={ingredient=>setModal({type:'ingredient-edit',ingredient})} onDeleteIngredient={deleteIngredient} onAdjustIngredient={ingredient=>setModal({type:'ingredient-stock',ingredient})} onSaveRecipe={saveRecipe} />;
