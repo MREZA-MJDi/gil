@@ -17,9 +17,12 @@ class ProductController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Product::query()->with(['category:id,name', 'options' => fn ($q) => $q->orderBy('sort_order')])
+        $query = Product::query()->with(['category:id,name,is_active', 'options' => fn ($q) => $q->orderBy('sort_order')])
             ->when($request->filled('category_id'), fn ($q) => $q->where('category_id', (int) $request->input('category_id')))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->toString()))
+            ->when($request->boolean('available'), fn ($q) => $q
+                ->where('status', ProductStatus::Active->value)
+                ->whereHas('category', fn ($category) => $category->where('is_active', true)))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $needle = trim($request->string('q')->toString());
                 $q->where(fn ($inner) => $inner->where('name', 'like', '%'.$needle.'%')
