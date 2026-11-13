@@ -153,7 +153,7 @@ class CustomerFeedbackTest extends TestCase
 
     private function createWebsiteOrderFor(User $customer): Order
     {
-        $response = $this->postJson('/online-orders', [
+        $response = $this->actingAs($customer)->postJson('/online-orders', [
             'items' => [[
                 'product_id' => $this->product->id,
                 'quantity' => 1,
