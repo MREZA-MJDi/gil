@@ -531,7 +531,10 @@ class RestaurantOperationsTest extends TestCase
 
         $this->getJson('/admin/api/orders/'.$orderId.'/invoice')->assertOk()->assertJsonPath('type', 'invoice');
         $this->getJson('/admin/api/orders/'.$orderId.'/kitchen-slip')->assertOk()->assertJsonPath('type', 'kitchen');
-        $this->getJson('/admin/api/orders/'.$orderId.'/receipt')->assertUnprocessable();
+        $this->getJson('/admin/api/orders/'.$orderId.'/receipt')
+            ->assertOk()
+            ->assertJsonPath('type', 'receipt')
+            ->assertJsonPath('data.payment_status', 'unpaid');
 
         $firstPrint = $this->postJson('/admin/api/orders/'.$orderId.'/print-log', ['type' => 'invoice'])
             ->assertCreated()->assertJsonPath('data.is_reprint', false);
