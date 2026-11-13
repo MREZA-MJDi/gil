@@ -1244,7 +1244,7 @@ export default function DashboardApp() {
     </div>;
 }
 
-function RecipesPage({ recipeData, onRefresh, onCreateIngredient, onUpdateIngredient, onAdjustIngredient, onSaveRecipe }) {
+function RecipesPage({ recipeData, onRefresh, onCreateIngredient, onUpdateIngredient, onEditIngredient, onDeleteIngredient, onAdjustIngredient, onSaveRecipe }) {
     const ingredients = recipeData?.ingredients || [];
     const products = recipeData?.products || [];
     const [ingredientForm, setIngredientForm] = useState({ name: '', unit: 'g', stock_quantity: '0', low_stock_threshold: '', cost_per_unit: '0' });
@@ -1318,7 +1318,7 @@ function RecipesPage({ recipeData, onRefresh, onCreateIngredient, onUpdateIngred
         <section className="panel">
             <div className="panel-heading"><div><h2>مواد اولیه ثبت‌شده</h2><p>{numberFa(ingredients.length)} ماده · هزینه بر اساس واحد پایه ثبت‌شده</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
             {ingredients.length ? <TableWrap><thead><tr><th>ماده</th><th>واحد پایه</th><th>موجودی فعلی</th><th>هشدار کمبود</th><th>هزینه واحد</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>
-                {ingredients.map(item=><tr key={item.id}><td><b>{item.name}</b></td><td>{({g:'گرم',ml:'میلی‌لیتر',pcs:'عدد'})[item.unit]||item.unit}</td><td>{numberFa(item.stock_quantity)}</td><td>{item.low_stock_threshold===null?'تعریف نشده':numberFa(item.low_stock_threshold)}</td><td>{money(item.cost_per_unit)}</td><td><Pill value={item.is_active?'active':'inactive'} dictionary={{active:'فعال',inactive:'غیرفعال'}} /></td><td><div className="op-actions"><Button onClick={()=>onAdjustIngredient(item)}>ورود / خروج</Button><Button onClick={()=>toggleIngredient(item)}>{item.is_active?'غیرفعال‌کردن':'فعال‌کردن'}</Button></div></td></tr>)}
+                {ingredients.map(item=><tr key={item.id}><td><b>{item.name}</b>{String(item.seed_key||'').startsWith('demo-ingredient:')&&<small className="op-subtext">داده نمونه</small>}</td><td>{({g:'گرم',ml:'میلی‌لیتر',pcs:'عدد'})[item.unit]||item.unit}</td><td>{numberFa(item.stock_quantity)}</td><td>{item.low_stock_threshold===null?'تعریف نشده':numberFa(item.low_stock_threshold)}</td><td>{money(item.cost_per_unit)}</td><td><Pill value={item.is_active?'active':'inactive'} dictionary={{active:'فعال',inactive:'غیرفعال'}} /></td><td><div className="op-actions"><Button onClick={()=>onAdjustIngredient(item)}>ورود / خروج</Button><Button onClick={()=>onEditIngredient(item)}>ویرایش</Button><Button onClick={()=>toggleIngredient(item)}>{item.is_active?'غیرفعال‌کردن':'فعال‌کردن'}</Button>{String(item.seed_key||'').startsWith('demo-ingredient:')&&<Button kind="danger" disabled={Number(item.products_count||0)>0||Number(item.movements_count||0)>0} onClick={()=>onDeleteIngredient(item)}>حذف</Button>}</div></td></tr>)}
             </tbody></TableWrap> : <Empty>هنوز ماده‌ای ثبت نشده است. مواد را از فرم بالا اضافه کن.</Empty>}
         </section>
         <section className="panel recipe-editor-panel">
@@ -1345,6 +1345,37 @@ function RecipesPage({ recipeData, onRefresh, onCreateIngredient, onUpdateIngred
             </>}
         </section>
     </div>;
+}
+
+function IngredientEditModal({ ingredient, onClose, onSubmit }) {
+    const [form, setForm] = useState({
+        name: ingredient.name || '',
+        unit: ingredient.unit || 'g',
+        low_stock_threshold: ingredient.low_stock_threshold == null ? '' : String(ingredient.low_stock_threshold),
+        cost_per_unit: String(ingredient.cost_per_unit || 0),
+        is_active: Boolean(ingredient.is_active),
+    });
+    const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
+    const hasHistory = Number(ingredient.products_count || 0) > 0 || Number(ingredient.movements_count || 0) > 0;
+    return <Modal title={'ویرایش ماده اولیه · '+ingredient.name} eyebrow="INGREDIENT DETAILS" onClose={onClose}>
+        <form className="op-form" onSubmit={event => {
+            event.preventDefault();
+            onSubmit({
+                ...form,
+                name: form.name.trim(),
+                low_stock_threshold: form.low_stock_threshold === '' ? null : Number(form.low_stock_threshold),
+                cost_per_unit: Number(form.cost_per_unit),
+            });
+        }}>
+            <Field label="نام ماده"><input value={form.name} onChange={event=>set('name',event.target.value)} maxLength="150" required /></Field>
+            <Field label="واحد پایه"><select value={form.unit} onChange={event=>set('unit',event.target.value)}><option value="g">گرم (g)</option><option value="ml">میلی‌لیتر (ml)</option><option value="pcs">عدد (pcs)</option></select></Field>
+            <Field label="هشدار کمبود"><input type="number" min="0" step="0.001" value={form.low_stock_threshold} onChange={event=>set('low_stock_threshold',event.target.value)} /></Field>
+            <Field label={'هزینه هر واحد ('+currencyLabel()+')'}><input type="number" min="0" max="1000000000" value={form.cost_per_unit} onChange={event=>set('cost_per_unit',event.target.value)} required /></Field>
+            <Field label="وضعیت"><select value={form.is_active?'active':'inactive'} onChange={event=>set('is_active',event.target.value==='active')}><option value="active">فعال</option><option value="inactive">غیرفعال</option></select></Field>
+            <p className="op-note">موجودی فقط از مسیر ورود و خروج اصلاح می‌شود. {hasHistory?'این ماده سابقه رسپی یا گردش انبار دارد؛ حذف آن برای حفظ تاریخچه غیرفعال است.':'این ماده در حال حاضر سابقه وابسته‌ای ندارد و در صورت نیاز قابل حذف است.'}</p>
+            <div className="op-form-actions"><Button onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ذخیره تغییرات</Button></div>
+        </form>
+    </Modal>;
 }
 
 function IngredientStockModal({ ingredient, onClose, onSubmit }) {
