@@ -14,9 +14,27 @@
     --kg-shadow: 0 18px 45px rgba(70, 39, 28, .10);
     color: var(--kg-ink);
     background: var(--kg-cream);
-    font-family: 'Estedad', Tahoma, sans-serif;
-    font-size: 14px;
-    line-height: 1.9;
+    --kg-font-family: 'Estedad', Tahoma, sans-serif;
+    --kg-fs-xs: clamp(.72rem, .69rem + .12vw, .8rem);
+    --kg-fs-sm: clamp(.8rem, .76rem + .16vw, .9rem);
+    --kg-fs-body: clamp(.9rem, .86rem + .2vw, 1rem);
+    --kg-fs-lead: clamp(1rem, .95rem + .28vw, 1.12rem);
+    --kg-fs-h3: clamp(1.15rem, 1.05rem + .42vw, 1.4rem);
+    --kg-fs-h2: clamp(1.45rem, 1.25rem + .85vw, 2rem);
+    --kg-fs-h1: clamp(1.8rem, 1.42rem + 1.55vw, 2.75rem);
+    --kg-fs-display: clamp(2.15rem, 1.65rem + 2.1vw, 3.65rem);
+    --kg-leading-tight: 1.28;
+    --kg-leading-normal: 1.82;
+    --kg-leading-relaxed: 2.05;
+    --kg-gutter: clamp(1rem, 3vw, 2rem);
+    --kg-container: 1200px;
+    --kg-section-space: clamp(3.25rem, 6.8vw, 5.5rem);
+    --kg-grid-gap: clamp(.85rem, 1.8vw, 1.4rem);
+    --kg-radius-card: clamp(14px, 1.5vw, 22px);
+    font-family: var(--kg-font-family);
+    font-size: var(--kg-fs-body);
+    line-height: var(--kg-leading-normal);
+    font-synthesis: none;
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -875,4 +893,40 @@
 }
 @media (prefers-reduced-motion:reduce) {
     .public-site .kg-home-carousel-card,.public-site .kg-hero-spark { transition:none;animation:none; }
+}
+
+/* Shared typography and spacing scale: local Estedad, consistent rhythm across public pages. */
+.public-site h1 { font-size: var(--kg-fs-display); line-height: var(--kg-leading-tight); }
+.public-site h2 { line-height: var(--kg-leading-tight); }
+.public-site h3 { line-height: 1.4; }
+.public-site p { text-wrap: pretty; }
+.public-site .kg-section { padding-block: var(--kg-section-space); }
+.public-site .kg-section-heading h2,
+.public-site .kg-story-copy h2,
+.public-site .kg-reserve-banner h2,
+.public-site .kg-shop-category-heading h2,
+.public-site .kg-cart-heading h2,
+.public-site .kg-reserve-form-intro h2 { font-size: var(--kg-fs-h2); line-height: 1.35; }
+.public-site .kg-eyebrow { font-size: var(--kg-fs-xs); letter-spacing: 0; }
+.public-site .kg-hero-copy > p,
+.public-site .kg-story-copy > p,
+.public-site .kg-shop-intro > div > p,
+.public-site .kg-reserve-intro-copy > p,
+.public-site .kg-cart-heading > p,
+.public-site .kg-reserve-form-intro > p { font-size: var(--kg-fs-lead); line-height: var(--kg-leading-relaxed); }
+.public-site .kg-category-grid,
+.public-site .kg-product-grid,
+.public-site .kg-shop-items,
+.public-site .kg-cart-layout,
+.public-site .kg-reserve-fields { gap: var(--kg-grid-gap); }
+.public-site .kg-category-card,
+.public-site .kg-product-card,
+.public-site .kg-checkout-card,
+.public-site .kg-cart-items-panel,
+.public-site .kg-reserve-form { border-radius: var(--kg-radius-card); }
+@media (max-width: 700px) {
+    .public-site { --kg-section-space: 2.7rem; --kg-grid-gap: .8rem; }
+    .public-site .kg-section { width: calc(100% - 28px); }
+    .public-site .kg-section-heading { align-items: flex-start; flex-direction: column; gap: .65rem; }
+    .public-site .kg-footer-main { gap: 1.7rem; }
 }
