@@ -64,6 +64,7 @@ class CashShiftService
             $closedAt = now();
             $in = (int) $shift->movements()->where('direction', 'in')->sum('amount');
             $out = (int) $shift->movements()->where('direction', 'out')->sum('amount');
+            $movementCount = (int) $shift->movements()->count();
             $expected = (int) $shift->opening_cash + $in - $out;
 
             $orders = Order::query()->whereBetween('created_at', [$shift->opened_at, $closedAt]);
@@ -104,6 +105,9 @@ class CashShiftService
                 'closing_note' => $note,
                 'closed_at' => $closedAt,
                 'duration_minutes' => max(0, (int) $shift->opened_at->diffInMinutes($closedAt)),
+                'cash_in_total' => $in,
+                'cash_out_total' => $out,
+                'cash_movements_count' => $movementCount,
                 'orders_count' => $ordersCount,
                 'cancelled_orders_count' => $cancelledOrders,
                 'gross_sales' => $grossSales,
