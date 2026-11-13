@@ -48,8 +48,7 @@ class FeedbackController extends Controller
                 if (
                     ! $order
                     || $order->status !== OrderStatus::Delivered
-                    || $phone === null
-                    || PhoneNumber::normalize((string) $order->customer_phone) !== $phone
+                    || (int) $order->customer_id !== (int) $customer->id
                 ) {
                     throw ValidationException::withMessages([
                         'order_id' => 'فقط برای سفارش تحویل‌شده‌ای که با شماره موبایل حساب تو ثبت شده می‌توان بازخورد فرستاد.',
