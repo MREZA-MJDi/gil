@@ -43,6 +43,19 @@ const money = value => new Intl.NumberFormat('fa-IR-u-nu-arabext', { maximumFrac
 const numberFa = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0));
 const dateTime = value => value ? new Intl.DateTimeFormat('fa-IR-u-ca-persian-nu-arabext', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Tehran' }).format(new Date(value)) : '—';
 const localDateTime = value => value ? String(value).replace('T', ' ') + ':00' : '';
+const tehranDateTimeInput = value => {
+    if (!value) return '';
+    const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Tehran',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(new Date(value)).reduce((result, part) => ({
+        ...result, [part.type]: part.value,
+    }), {});
+    return parts.year && parts.month && parts.day
+        ? parts.year + '-' + parts.month + '-' + parts.day + 'T' + parts.hour + ':' + parts.minute
+        : '';
+};
 const channelLabel = order => {
     if (order?.table?.name) return order.table.name;
     if (order?.source === 'snappfood') return 'اسنپ‌فود';
@@ -430,7 +443,7 @@ function ReservationEditModal({ reservation, tables, onClose, onSubmit }) {
         phone: reservation.phone || '',
         email: reservation.email || '',
         party_size: String(reservation.party_size || 2),
-        starts_at: String(reservation.starts_at || '').replace(' ', 'T').slice(0, 16),
+        starts_at: tehranDateTimeInput(reservation.starts_at),
         duration_minutes: String(reservation.duration_minutes || 90),
         purpose: reservation.purpose || 'table',
         occasion_name: reservation.occasion_name || '',
