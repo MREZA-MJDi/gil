@@ -239,6 +239,34 @@ class RestaurantOperationsTest extends TestCase
         $this->assertSame(1, Order::query()->count());
     }
 
+    public function test_order_and_cashier_lists_put_the_newest_order_first(): void
+    {
+        $this->actingAs($this->admin);
+
+        $createdIds = [];
+        foreach (['pos-list-order-0001', 'pos-list-order-0002', 'pos-list-order-0003'] as $key) {
+            $response = $this->postJson('/admin/api/orders', $this->orderPayload(1), [
+                'Idempotency-Key' => $key,
+            ])->assertCreated();
+
+            $createdIds[] = $response->json('data.id');
+        }
+
+        $expectedNewestFirst = array_reverse($createdIds);
+
+        $this->getJson('/admin/api/orders?sort=latest&per_page=25')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $expectedNewestFirst[0])
+            ->assertJsonPath('data.1.id', $expectedNewestFirst[1])
+            ->assertJsonPath('data.2.id', $expectedNewestFirst[2]);
+
+        $this->getJson('/admin/api/orders?sort=latest&unsettled=1&active=1&per_page=25')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $expectedNewestFirst[0])
+            ->assertJsonPath('data.1.id', $expectedNewestFirst[1])
+            ->assertJsonPath('data.2.id', $expectedNewestFirst[2]);
+    }
+
     public function test_order_rejects_more_than_one_size_option_for_a_product_line(): void
     {
         $this->actingAs($this->admin);
