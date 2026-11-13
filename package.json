@@ -5,7 +5,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "test:js": "node --test resources/js/dashboard/api.test.js resources/js/date-utils.test.js"
+    "test:js": "node --test resources/js/dashboard/api.test.js resources/js/dashboard/receipt.test.js resources/js/date-utils.test.js"
   },
   "dependencies": {
     "react": "^19.1.0",
