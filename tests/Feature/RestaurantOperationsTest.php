@@ -216,6 +216,7 @@ class RestaurantOperationsTest extends TestCase
                     'popular_products',
                     'pending_orders_count',
                     'pending_reservations_count',
+                    'pending_feedback_count',
                     'recent_reservations',
                     'today_reservations_count',
                     'active_cash_shift',
@@ -226,7 +227,8 @@ class RestaurantOperationsTest extends TestCase
             ->assertJsonPath('data.low_stock_count', 1)
             ->assertJsonPath('data.low_stock_products.0.id', $this->product->id)
             ->assertJsonPath('data.pending_orders_count', 0)
-            ->assertJsonPath('data.pending_reservations_count', 0);
+            ->assertJsonPath('data.pending_reservations_count', 0)
+            ->assertJsonPath('data.pending_feedback_count', 0);
     }
 
     public function test_dashboard_overview_renders_reservation_order_and_product_attention_panels(): void
@@ -236,6 +238,8 @@ class RestaurantOperationsTest extends TestCase
 
         foreach ([
             'سفارش جدید در انتظار تأیید',
+            'بازخورد در انتظار رسیدگی',
+            'بررسی بازخوردها',
             'آخرین درخواست‌های رزرو',
             'محصولات نزدیک به اتمام',
             'محصولات پرطرفدار',
