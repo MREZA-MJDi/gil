@@ -627,6 +627,14 @@ img:not([src]),img[src=""]{display:none}
 .page-home .home-hero-description{font-size:clamp(12px,1.1vw,15px);max-width:min(540px,68%);line-height:2}
 .page-home .home-hero-actions a{padding:11px 17px;border-radius:11px;font-size:12px;transition:transform .2s,background .2s}
 .page-home .home-hero-actions a:hover{transform:translateY(-2px)}
+.page-home .home-hero-signature{
+    position:absolute;z-index:3;right:clamp(22px,3.4vw,44px);bottom:clamp(24px,3.8vw,42px);
+    display:grid;gap:4px;max-width:min(320px,54%);padding:3px 14px 3px 0;
+    border-right:2px solid rgba(232,177,125,.92);text-align:right;
+    color:#f5eadb;text-shadow:0 2px 16px rgba(0,0,0,.5);pointer-events:none;
+}
+.page-home .home-hero-signature span{color:#e8c6a5;font-size:10px;font-weight:600;letter-spacing:.04em}
+.page-home .home-hero-signature strong{font-size:clamp(15px,1.65vw,20px);font-weight:700;line-height:1.6}
 .page-home .side{padding:0}
 .page-home .tile{border-radius:14px;isolation:isolate}
 .page-home .tile>img{transition:transform .55s ease}
@@ -771,6 +779,9 @@ img:not([src]),img[src=""]{display:none}
     .page-home .kg-reference-hero{min-height:clamp(450px,65svh,620px)}
     .page-home .headline{font-size:clamp(30px,6vw,50px);max-width:82%}
     .page-home .home-hero-description{max-width:75%}
+    .page-home .home-hero-signature{right:clamp(14px,3vw,24px);bottom:66px;max-width:58%;padding-right:10px}
+    .page-home .home-hero-signature span{font-size:9px}
+    .page-home .home-hero-signature strong{font-size:15px}
     .best-food{--fc-step:clamp(105px,30vw,160px);padding:28px 12px}
     .fc{height:250px;margin-top:22px}
     .fc__slide{width:clamp(140px,34vw,190px);height:clamp(140px,34vw,190px)}
@@ -789,6 +800,9 @@ img:not([src]),img[src=""]{display:none}
     .page-home .kg-reference-hero{min-height:clamp(400px,62svh,500px);grid-template-columns:minmax(0,1fr) minmax(78px,.34fr)}
     .page-home .headline{font-size:clamp(25px,7vw,34px);bottom:62px}
     .page-home .home-hero-description{max-width:78%;font-size:9px}
+    .page-home .home-hero-signature{right:13px;bottom:62px;max-width:55%;padding-right:8px;gap:2px}
+    .page-home .home-hero-signature span{font-size:8px}
+    .page-home .home-hero-signature strong{font-size:13px}
     .best-food{--fc-step:clamp(82px,29vw,116px);padding:24px 8px}
     .best-food__title{font-size:25px}
     .best-food__desc{font-size:10px}
