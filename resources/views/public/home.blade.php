@@ -21,7 +21,7 @@
                 <img src="{{ $featuredProducts->first()->image_url }}" alt="{{ $featuredProducts->first()->name }}" fetchpriority="high">
             @endif
 
-            @include('public.partials.nav')
+            @include('public.partials.reference-nav')
 
             <div class="hero-copy">
                 <span class="hero-eyebrow">{{ $homepageContent['hero_eyebrow'] ?? 'کافه و رستوران' }}</span>

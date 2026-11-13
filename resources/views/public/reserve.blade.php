@@ -109,7 +109,7 @@
             @elseif(!empty($media['story_small']['url']))
                 <img src="{{ $media['story_small']['url'] }}" alt="{{ $media['story_small']['alt_text'] ?: 'فضای کافه' }}" fetchpriority="high">
             @endif
-            @include('public.partials.nav')
+            @include('public.partials.reference-nav')
             <div class="reserve-art-copy">
                 <span>تولد · دورهمی · قرار دوستانه</span>
                 <h2>یک میز خوب،<br><em>کنار بگذار.</em></h2>

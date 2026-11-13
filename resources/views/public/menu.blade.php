@@ -14,7 +14,7 @@
 <body class="page-menu" id="top">
 <div class="m" data-public-ordering data-menu-showcase data-order-endpoint="{{ route('public.orders.store') }}">
     <div class="top">
-        @include('public.partials.nav')
+        @include('public.partials.reference-nav')
     </div>
 
     @if(!empty($media['menu_cover']['url']))
