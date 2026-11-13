@@ -3,8 +3,8 @@
         <div class="kg-footer-brand">
             <a class="kg-brand kg-brand-footer" href="{{ route('home') }}">
                 <span class="kg-brand-mark" aria-hidden="true">
-                    @if(!empty($media['brand_logo']['url']))
-                        <img class="kg-brand-logo" src="{{ $media['brand_logo']['url'] }}" alt="">
+                    @if(!empty(data_get($media ?? [], 'brand_logo.url')))
+                        <img class="kg-brand-logo" src="{{ data_get($media, 'brand_logo.url') }}" alt="">
                     @else
                         🍒
                     @endif
