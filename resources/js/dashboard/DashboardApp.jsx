@@ -255,6 +255,7 @@ function OrdersPage({ orders, filters, onFiltersChange, pagination, onPageChange
                         <Button onClick={() => onDetails(order.id)}>جزئیات</Button>
                         {nextStatus(order.status) && <Button kind="primary" onClick={() => onTransition(order, nextStatus(order.status))}>{nextStatusLabel(order.status)}</Button>}
                         {!['delivered','cancelled'].includes(order.status) && !['paid','partial','partially_refunded'].includes(order.payment_status) && <Button kind="danger" onClick={() => onCancel(order)}>لغو</Button>}
+                        <Button onClick={() => onPrint(order.id, 'receipt')}>فیش مشتری</Button>
                         <Button onClick={() => onPrint(order.id, 'kitchen')}>فیش آشپزخانه</Button>
                     </div></td>
                 </tr>)}
@@ -851,7 +852,7 @@ function OrderDetailsModal({ order, onClose, onPrint, onRefund }) {
             <div className="op-detail-totals"><span>جمع اقلام: <b>{money(subtotal)}</b></span><span>تخفیف: <b>{money(order.discount)}</b></span><span>مالیات: <b>{money(order.tax)}</b></span><span>سرویس: <b>{money(order.service)}</b></span><span>دریافت ناخالص: <b>{money(paid)}</b></span><span>بازپرداخت: <b>{money(refunded)}</b></span><span>مانده: <b>{money(Math.max(0,Number(order.total)-paid+refunded))}</b></span></div>
             <div className="panel-heading"><div><h3>سوابق پرداخت</h3><p>پرداخت‌ها تغییرناپذیرند؛ اصلاح از مسیر بازپرداخت ثبت می‌شود.</p></div></div>
             {payments.length ? <TableWrap><thead><tr><th>زمان</th><th>روش</th><th>مبلغ</th><th>وضعیت</th><th>پیگیری</th><th>بازپرداخت</th></tr></thead><tbody>{payments.map(p=>{const refundable=Math.max(0,Number(p.amount)-(p.refunds||[]).reduce((sum,r)=>sum+Number(r.amount||0),0));return <tr key={p.id}><td>{dateTime(p.paid_at)}</td><td>{paymentMethodLabel[p.method]||p.method}</td><td>{money(p.amount)}</td><td>{p.status}</td><td>{p.reference||'—'}</td><td>{refundable>0&&p.status==='succeeded'?<Button kind="danger" onClick={()=>onRefund(p,order.id)}>بازپرداخت تا {money(refundable)}</Button>:'—'}</td></tr>;})}</tbody></TableWrap> : <Empty>برای این سفارش هنوز پرداختی ثبت نشده است.</Empty>}
-            <div className="op-form-actions"><Button onClick={()=>onPrint(order.id,'invoice')}>چاپ فاکتور</Button><Button onClick={()=>onPrint(order.id,'kitchen')}>فیش آشپزخانه</Button><Button kind="primary" onClick={()=>onPrint(order.id,'receipt')}>چاپ رسید پرداخت</Button><Button onClick={onClose}>بستن</Button></div>
+            <div className="op-form-actions"><Button onClick={()=>onPrint(order.id,'invoice')}>چاپ فاکتور</Button><Button onClick={()=>onPrint(order.id,'kitchen')}>فیش آشپزخانه</Button><Button kind="primary" onClick={()=>onPrint(order.id,'receipt')}>فیش مشتری / رسید</Button><Button onClick={onClose}>بستن</Button></div>
         </>}
     </Modal>;
 }
@@ -862,11 +863,11 @@ function escapeHtml(value) {
 function printHtml(order, type, settings) {
     const width=Number(settings?.paper_width) === 58 ? 58 : 80;
     const kitchen=type==='kitchen';
-    const title=kitchen?'فیش آشپزخانه':type==='receipt'?'رسید پرداخت':'فاکتور فروش';
+    const title=kitchen?'فیش آشپزخانه':type==='receipt'?'فیش مشتری':'فاکتور فروش';
     const itemRows=(order.items||[]).map(item=>'<tr><td>'+escapeHtml(item.name)+(item.options?.length?'<small>'+escapeHtml(item.options.map(o=>o.name).join('، '))+'</small>':'')+'</td><td>'+numberFa(item.quantity)+'</td><td>'+money(item.line_total)+'</td></tr>').join('');
     const paymentRows=(order.payments||[]).filter(p=>p.status==='succeeded').map(p=>'<p class="row"><span>'+escapeHtml(paymentMethodLabel[p.method]||p.method)+'</span><b>'+money(p.amount)+'</b></p>').join('');
     const totals=kitchen?'':('<hr/><p class="row"><span>جمع اقلام</span><b>'+money(order.subtotal)+'</b></p><p class="row"><span>تخفیف</span><b>'+money(order.discount)+'</b></p><p class="row"><span>مالیات</span><b>'+money(order.tax)+'</b></p><p class="row"><span>سرویس</span><b>'+money(order.service)+'</b></p><p class="row total"><span>مبلغ نهایی</span><b>'+money(order.total)+'</b></p>');
-    return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+title+'</title><style>@page{size:'+width+'mm auto;margin:3mm}*{box-sizing:border-box}body{width:'+(width-6)+'mm;margin:0 auto;font:12px Tahoma,Arial,sans-serif;color:#111}h1{text-align:center;font-size:18px;margin:0 0 6px}h2{text-align:center;font-size:13px;margin:0 0 10px}p{margin:4px 0}.muted{text-align:center;color:#555;font-size:10px}.row{display:flex;justify-content:space-between;gap:6px}hr{border:0;border-top:1px dashed #777;margin:8px 0}table{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}th,td{text-align:right;padding:5px 1px;border-bottom:1px dashed #aaa;vertical-align:top}td small{display:block;font-size:9px;margin-top:2px}.total{font-size:14px;font-weight:bold;border-top:1px solid #222;padding-top:7px}.foot{text-align:center;margin-top:15px;font-size:10px;white-space:pre-wrap}@media screen{body{margin:12px auto}}</style></head><body><h1>'+escapeHtml(settings?.name||'خانه گیلاسی')+'</h1><h2>'+title+'</h2><p class="muted">'+escapeHtml(settings?.phone||'')+'</p><p class="row"><span>شماره</span><b>'+escapeHtml(order.number||order.id)+'</b></p><p class="row"><span>زمان</span><b>'+escapeHtml(dateTime(order.created_at))+'</b></p><p class="row"><span>کانال</span><b>'+escapeHtml(channelLabel(order))+'</b></p>'+(order.customer_name?'<p class="row"><span>مشتری</span><b>'+escapeHtml(order.customer_name)+'</b></p>':'')+(order.customer_note?'<p>یادداشت: '+escapeHtml(order.customer_note)+'</p>':'')+'<hr/><table><thead><tr><th>شرح</th><th>تعداد</th><th>مبلغ</th></tr></thead><tbody>'+itemRows+'</tbody></table>'+totals+(type==='receipt'?'<hr/><b>پرداخت‌های ثبت‌شده</b>'+paymentRows:'')+'<div class="foot">'+escapeHtml(settings?.receipt_footer||'با تشکر از انتخاب شما')+'</div><script>window.addEventListener("load",function(){window.focus();setTimeout(function(){window.print();},250);});</script></body></html>';
+    return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+title+'</title><style>@page{size:'+width+'mm auto;margin:3mm}*{box-sizing:border-box}body{width:'+(width-6)+'mm;margin:0 auto;font:12px Tahoma,Arial,sans-serif;color:#111}h1{text-align:center;font-size:18px;margin:0 0 6px}h2{text-align:center;font-size:13px;margin:0 0 10px}p{margin:4px 0}.muted{text-align:center;color:#555;font-size:10px}.row{display:flex;justify-content:space-between;gap:6px}hr{border:0;border-top:1px dashed #777;margin:8px 0}table{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}th,td{text-align:right;padding:5px 1px;border-bottom:1px dashed #aaa;vertical-align:top}td small{display:block;font-size:9px;margin-top:2px}.total{font-size:14px;font-weight:bold;border-top:1px solid #222;padding-top:7px}.foot{text-align:center;margin-top:15px;font-size:10px;white-space:pre-wrap}@media screen{body{margin:12px auto}}</style></head><body><h1>'+escapeHtml(settings?.name||'خانه گیلاسی')+'</h1><h2>'+title+'</h2><p class="muted">'+escapeHtml(settings?.phone||'')+'</p><p class="row"><span>شماره</span><b>'+escapeHtml(order.number||order.id)+'</b></p><p class="row"><span>زمان</span><b>'+escapeHtml(dateTime(order.created_at))+'</b></p><p class="row"><span>کانال</span><b>'+escapeHtml(channelLabel(order))+'</b></p>'+(order.customer_name?'<p class="row"><span>مشتری</span><b>'+escapeHtml(order.customer_name)+'</b></p>':'')+(order.customer_phone?'<p class="row"><span>تلفن</span><b>'+escapeHtml(order.customer_phone)+'</b></p>':'')+(order.customer_note?'<p>یادداشت: '+escapeHtml(order.customer_note)+'</p>':'')+'<hr/><table><thead><tr><th>شرح</th><th>تعداد</th><th>مبلغ</th></tr></thead><tbody>'+itemRows+'</tbody></table>'+totals+(type==='receipt'?'<hr/><b>پرداخت‌های ثبت‌شده</b>'+paymentRows:'')+'<div class="foot">'+escapeHtml(settings?.receipt_footer||'با تشکر از انتخاب شما')+'</div></body></html>';
 }
 
 export default function DashboardApp() {
@@ -1011,14 +1012,45 @@ export default function DashboardApp() {
     const submitRefund=(payload,paymentId,orderId)=>action(()=>api('/payments/'+paymentId+'/refunds',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'بازپرداخت ثبت شد. اگر روش وجه نقد باشد، حرکت خروجی صندوق هم ثبت می‌شود.',{close:true});
     const printDocument=async(id,type)=>{
         const popup=window.open('about:blank','_blank','width=460,height=800');
-        if(!popup){notify('مرورگر پنجره چاپ را مسدود کرد؛ اجازه Pop-up را برای این سایت فعال کن.');return;}
         try{
             const [payload,settingPayload]=await Promise.all([api('/orders/'+id+'/'+(type==='kitchen'?'kitchen-slip':type==='receipt'?'receipt':'invoice')),settings?Promise.resolve({data:settings}):api('/settings')]);
-            const order=unwrapData(payload);const config=unwrapData(settingPayload);
+            const order=unwrapData(payload);
+            const printerKey=type==='kitchen'?'gil-qz-kitchen-printer':'gil-qz-cashier-printer';
+            let targetPrinter='';
+            try{targetPrinter=window.localStorage.getItem(printerKey)||'';}catch{}
+            const qz=window.qz;
+            let sentToLocalPrinter=false;
+
+            if(targetPrinter && qz?.websocket && qz?.printers && qz?.configs && qz?.print){
+                try{
+                    if(!qz.websocket.isActive || !qz.websocket.isActive()) await qz.websocket.connect({retries:2,delay:1});
+                    const printerConfig=qz.configs.create(targetPrinter);
+                    await qz.print(printerConfig,[{type:'pixel',format:'html',flavor:'plain',data:printHtml(order,type,unwrapData(settingPayload))}]);
+                    sentToLocalPrinter=true;
+                    notify('درخواست '+(type==='kitchen'?'فیش آشپزخانه':'فیش مشتری')+' به چاپگر «'+targetPrinter+'» ارسال شد. خروج واقعی کاغذ را بررسی کن.');
+                }catch(localError){
+                    notify('چاپ مستقیم در دسترس نبود؛ پنجره چاپ مرورگر باز می‌شود. '+(localError?.message||''));
+                }
+            }
+
+            if(!sentToLocalPrinter){
+                if(!popup){notify('چاپگر محلی متصل نیست و مرورگر نیز پنجره چاپ را مسدود کرده است.');return;}
+                popup.document.open();
+                popup.document.write(printHtml(order,type,unwrapData(settingPayload)));
+                popup.document.close();
+                popup.focus();
+                window.setTimeout(()=>{try{popup.focus();popup.print();}catch{}},400);
+            }else if(popup && !popup.closed){
+                popup.close();
+            }
+
             const printType=type==='kitchen'?'kitchen':type;
-            try{await api('/orders/'+id+'/print-log',{method:'POST',body:{type:printType,payment_id:type==='receipt'?(order.payments||[]).find(p=>p.status==='succeeded')?.id||null:null,is_reprint:false}});}catch(e){notify('چاپ ادامه پیدا می‌کند، اما ثبت گزارش چاپ ناموفق بود: '+e.message);}
-            popup.document.open();popup.document.write(printHtml(order,type,config));popup.document.close();popup.focus();
-        }catch(e){popup.close();notify(e?.message||'دریافت اطلاعات برای چاپ ناموفق بود.');}
+            try{await api('/orders/'+id+'/print-log',{method:'POST',body:{type:printType,payment_id:type==='receipt'?(order.payments||[]).find(p=>p.status==='succeeded')?.id||null:null,is_reprint:false}});}
+            catch(e){notify('درخواست چاپ ارسال شد، اما ثبت گزارش چاپ ناموفق بود: '+e.message);}
+        }catch(e){
+            if(popup && !popup.closed) popup.close();
+            notify(e?.message||'دریافت اطلاعات برای چاپ ناموفق بود.');
+        }
     };
     const createProduct=(payload,id)=>action(()=>{
         if (typeof File !== 'undefined' && payload.image instanceof File) {
