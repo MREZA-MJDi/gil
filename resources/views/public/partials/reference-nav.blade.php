@@ -10,7 +10,13 @@
         <a href="{{ route('home') }}#about">درباره ما</a>
         <a href="{{ route('public.reservations.create') }}" class="cta">رزرو میز</a>
         @auth
-            @if(auth()->user()->is_admin)<a href="{{ route('admin.dashboard') }}">پنل مدیریت</a>@endif
+            @if(auth()->user()->is_admin)
+                <a href="{{ route('admin.dashboard') }}">پنل مدیریت</a>
+                <form class="reference-nav-logout" method="POST" action="{{ route('admin.logout') }}">
+                    @csrf
+                    <button type="submit">خروج</button>
+                </form>
+            @endif
         @else
             <a href="{{ route('admin.login') }}">ورود کارکنان</a>
         @endauth
