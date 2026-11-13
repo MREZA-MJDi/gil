@@ -26,6 +26,8 @@ class PublicSiteRenderingTest extends TestCase
             ->assertDontSee('حال خوب')
             ->assertDontSee('خوش‌آمدی به')
             ->assertDontSee('برای یک قهوه کوتاه')
+            ->assertSee('home-hero-signature', false)
+            ->assertSee('یک مکث خوش‌طعم.')
             ->assertSee(route('public.menu'))
             ->assertSee('data-best-food-carousel', false);
     }
