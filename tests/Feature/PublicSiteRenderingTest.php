@@ -226,6 +226,9 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('data-menu-product-select', false)
             ->assertSee('data-menu-product-template="'.$product->id.'"', false)
             ->assertSee('data-add-online-product', false)
+            ->assertSee('data-product-card', false)
+            ->assertSee('value="card_terminal"', false)
+            ->assertDontSee('value="online"', false)
             ->assertSee('غذای ویژه تست');
     }
 
