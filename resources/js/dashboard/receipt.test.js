@@ -13,8 +13,8 @@ const sampleOrder = {
     customer_name: 'مشتری نمونه',
     customer_phone: '09120000000',
     customer_note: 'بدون شکر',
-    subtotal: 250000,
-    discount: 10000,
+    subtotal: 320000,
+    discount: 80000,
     tax: 0,
     service: 0,
     total: 240000,
@@ -23,8 +23,8 @@ const sampleOrder = {
         name: 'لاته کلاسیک',
         quantity: 2,
         unit_price: 125000,
-        options_total: 0,
-        line_total: 250000,
+        options_total: 35000,
+        line_total: 320000,
         options: [{ name: 'شیر جو دوسر' }],
         note: 'یک عدد بدون یخ',
     }],
@@ -48,6 +48,7 @@ test('customer receipt prints explicit order number, order type, items and finan
     assert.match(html, /سفارش آنلاین سایت · بیرون‌بر/);
     assert.match(html, /لاته کلاسیک/);
     assert.match(html, /۲ × ۱۲۵٬۰۰۰ تومان/);
+    assert.match(html, /افزودنی‌ها: ۷۰٬۰۰۰ تومان/);
     assert.match(html, /۲۴۰٬۰۰۰ تومان/);
     assert.match(html, /جزئیات پرداخت/);
     assert.match(html, /POS-123/);
