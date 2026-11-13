@@ -239,3 +239,53 @@
     .pos-page .pos-shift-reconcile strong { margin:0; }
     .pos-page .pos-shift-close-form>button { width:100%; }
 }
+
+
+/* Readable type scale for everyday counter staff */
+.pos-page { font-family:'Estedad',Tahoma,sans-serif; }
+.pos-page .pos-eyebrow,.pos-page .pos-section-kicker { font-family:'Estedad',Tahoma,sans-serif; font-size:11px; letter-spacing:0; }
+.pos-page .pos-page-heading p { font-size:13px; }
+.pos-page .pos-shift-state,.pos-page .pos-secondary-button { font-size:12px; }
+.pos-page .pos-catalog-heading p,.pos-page .pos-checkout-heading p { font-size:11px; }
+.pos-page .pos-search input { font-size:13px; }
+.pos-page .pos-category-tabs button { font-size:12px; }
+.pos-page .pos-category-tabs button small { font-family:'Estedad',Tahoma,sans-serif; font-size:10px; }
+.pos-page .pos-builder-heading small { font-size:11px; }
+.pos-page .pos-builder-heading h3 { font-size:17px; }
+.pos-page .pos-builder-description { font-size:12px; }
+.pos-page .pos-option-grid label { font-size:11px; }
+.pos-page .pos-option-grid label b { font-size:10px; }
+.pos-page .pos-quantity-field,.pos-page .pos-line-note { font-size:10px; }
+.pos-page .pos-quantity-field input,.pos-page .pos-line-note input { font-size:12px; }
+.pos-page .pos-add-button { font-size:11px; }
+.pos-page .pos-product-copy>b { font-size:13px; }
+.pos-page .pos-product-copy>strong { font-size:12px; }
+.pos-page .pos-stock { font-size:10px; }
+.pos-page .pos-empty-catalog b { font-size:14px; }
+.pos-page .pos-empty-catalog p { font-size:11px; }
+.pos-page .pos-channel-select button { font-size:10px; }
+.pos-page .pos-field { font-size:11px; }
+.pos-page .pos-field input,.pos-page .pos-field select { min-height:40px; font-size:12px; }
+.pos-page .pos-cart-line-main>b { font-size:12px; }
+.pos-page .pos-cart-line-main>small { font-size:10px; }
+.pos-page .pos-cart-line-main>strong { font-size:11px; }
+.pos-page .pos-cart-line-actions>span { font-size:11px; }
+.pos-page .pos-empty-cart b { font-size:12px; }
+.pos-page .pos-empty-cart small { font-size:10px; }
+.pos-page .pos-discount-row { font-size:11px; }
+.pos-page .pos-discount-row input { font-size:12px; }
+.pos-page .pos-totals>div,.pos-page .pos-totals>div b { font-size:11px; }
+.pos-page .pos-totals>small { font-size:9px; }
+.pos-page .pos-payment-section>b { font-size:11px; }
+.pos-page .pos-payment-options button { font-size:10px; }
+.pos-page .pos-pay-later-note,.pos-page .pos-card-note { font-size:10px; }
+.pos-page .pos-feedback { font-size:11px; }
+.pos-page .pos-checkout-submit { font-size:12px; }
+@media(max-width:620px) {
+    .pos-page .pos-product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .pos-page .pos-product-photo { height:100px; }
+    .pos-page .pos-catalog,.pos-page .pos-checkout { padding:13px; }
+    .pos-page .pos-builder-footer { grid-template-columns:74px minmax(0,1fr); }
+    .pos-page .pos-builder-footer .pos-add-button { grid-column:1/-1; min-height:42px; }
+    .pos-page .pos-product-copy>b { font-size:12px; }
+}
