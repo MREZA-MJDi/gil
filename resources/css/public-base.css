@@ -207,3 +207,6 @@
 .public-site .kg-footer-bottom { display: flex; justify-content: space-between; gap: 15px; padding-top: 16px; border-top: 1px solid var(--kg-line); color: var(--kg-muted); font-size: 10px; }
 .public-site .kg-footer-bottom a { color: var(--kg-red); font-weight: 800; }
 
+
+/* Brand logo uploaded through the media library */
+.public-site .kg-brand-mark img.kg-brand-logo { display:block; width:100%; height:100%; object-fit:contain; border-radius:inherit; }
