@@ -6,14 +6,10 @@
     <meta name="theme-color" content="#0d0f11">
     <meta name="description" content="{{ $settings->name }}؛ منو و رزرو میز کافه رستوران خانه گیلاسی.">
     <title>{{ $settings->name ?: 'خانه گیلاسی' }} | کافه رستوران</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site page-home">
 <div class="wrap">
-    <div class="logo">{{ $settings->name ?: 'خانه گیلاسی' }}</div>
     <main class="frame" aria-label="خانه خانه گیلاسی">
         @if(!empty($media['home_showcase_background']['url']))
             <div class="home-wallpaper" aria-hidden="true"><img src="{{ $media['home_showcase_background']['url'] }}" alt=""></div>
@@ -24,31 +20,69 @@
             @include('public.partials.reference-nav')
             <span class="headline-kicker">{{ data_get($homepageContent, 'hero_eyebrow', 'کافه و رستوران خانه گیلاسی') }}</span>
             <h1 class="headline">{{ data_get($homepageContent, 'hero_title_line1', 'طعمی') }} {{ data_get($homepageContent, 'hero_title_line2', 'مثل گیلاس') }}</h1>
-            @if($featuredProducts->first())
-                <p class="headline-note">پیشنهاد امروز: {{ $featuredProducts->first()->name }}</p>
-            @endif
-            <p class="sr-only">{{ data_get($homepageContent, 'hero_description', '') }}</p>
-            <div class="socials">
-                @if($settings->phone)<a href="tel:{{ preg_replace('/[^0-9+]/', '', $settings->phone) }}" aria-label="تماس با خانه گیلاسی">☎</a>@endif
-                <a href="{{ route('public.menu') }}" aria-label="مشاهده منو"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></a>
+            <p class="headline-note">{{ data_get($homepageContent, 'hero_description', 'برای یک قهوه کوتاه، یک وعده خوش‌طعم یا یک دورهمی دوست‌داشتنی؛ اینجا منتظر تو هستیم.') }}</p>
+            <div class="home-hero-actions">
+                <a href="{{ route('public.menu') }}">{{ data_get($homepageContent, 'hero_primary_cta', 'دیدن منو و سفارش') }}</a>
+                <a href="{{ route('public.reservations.create') }}">{{ data_get($homepageContent, 'hero_secondary_cta', 'رزرو میز') }}</a>
             </div>
         </section>
-        <aside class="side" aria-label="دسترسی سریع">
-            <a href="{{ route('public.menu') }}" class="slot tile">
-                @if(!empty($media['menu_cover']['url']))<img src="{{ $media['menu_cover']['url'] }}" alt="منوی خانه گیلاسی" loading="lazy">@elseif($featuredProducts->first()?->image_url)<img src="{{ $featuredProducts->first()->image_url }}" alt="محصول منتخب" loading="lazy">@endif
-                <span class="tag"><i>←</i>{{ data_get($homepageContent, 'hero_primary_cta', 'منو') }}</span>
-            </a>
-            <a href="{{ route('public.reservations.create') }}" class="slot tile">
-                @if(!empty($media['home_reservation_banner']['url']))<img src="{{ $media['home_reservation_banner']['url'] }}" alt="{{ $media['home_reservation_banner']['alt_text'] ?: 'رزرو میز' }}" loading="lazy">@elseif(!empty($media['reservation_cover']['url']))<img src="{{ $media['reservation_cover']['url'] }}" alt="رزرو میز" loading="lazy">@elseif(!empty($media['gallery_1']['url']))<img src="{{ $media['gallery_1']['url'] }}" alt="فضای رستوران" loading="lazy">@endif
-                <span class="tag"><i>←</i>{{ data_get($homepageContent, 'hero_secondary_cta', 'رزرو میز') }}</span>
-            </a>
-            <a href="#about" class="slot tile">
-                @if(!empty($media['gallery_1']['url']))<img src="{{ $media['gallery_1']['url'] }}" alt="{{ $media['gallery_1']['alt_text'] ?: 'فضای خانه گیلاسی' }}" loading="lazy">@elseif(!empty($media['story_main']['url']))<img src="{{ $media['story_main']['url'] }}" alt="رستوران خانه گیلاسی" loading="lazy">@elseif(!empty($media['gallery_2']['url']))<img src="{{ $media['gallery_2']['url'] }}" alt="رستوران خانه گیلاسی" loading="lazy">@endif
-                <span class="tag"><i>←</i>رستوران ما</span>
-            </a>
+        <aside class="side" aria-label="محصولات منتخب خانه گیلاسی">
+            @forelse($featuredProducts->take(3) as $product)
+                <a href="{{ route('public.menu') }}" class="slot tile kg-home-product-card">
+                    @if($product->image_url)
+                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}" loading="lazy">
+                    @else
+                        <span class="kg-home-product-placeholder">🍒</span>
+                    @endif
+                    <span class="kg-home-product-copy">
+                        <small>پیشنهاد خانه گیلاسی</small>
+                        <b>{{ $product->name }}</b>
+                        <strong>{{ number_format($product->base_price) }} <small>{{ $settings->currency_label }}</small></strong>
+                    </span>
+                    <span class="kg-home-product-arrow" aria-hidden="true">←</span>
+                </a>
+            @empty
+                <a href="{{ route('public.menu') }}" class="slot tile kg-home-product-card">
+                    @if(!empty($media['menu_cover']['url']))<img src="{{ $media['menu_cover']['url'] }}" alt="منوی خانه گیلاسی" loading="lazy">@endif
+                    <span class="kg-home-product-copy"><small>انتخاب اول</small><b>منوی خانه گیلاسی</b><strong>دیدن محصولات</strong></span>
+                </a>
+                <a href="{{ route('public.reservations.create') }}" class="slot tile kg-home-product-card">
+                    @if(!empty($media['reservation_cover']['url']))<img src="{{ $media['reservation_cover']['url'] }}" alt="رزرو میز" loading="lazy">@endif
+                    <span class="kg-home-product-copy"><small>برای دورهمی</small><b>رزرو میز</b><strong>ثبت درخواست</strong></span>
+                </a>
+                <a href="{{ route('public.menu') }}" class="slot tile kg-home-product-card">
+                    @if(!empty($media['gallery_1']['url']))<img src="{{ $media['gallery_1']['url'] }}" alt="فضای خانه گیلاسی" loading="lazy">@endif
+                    <span class="kg-home-product-copy"><small>تجربه خانه گیلاسی</small><b>طعم و حال خوب</b><strong>آشنایی با منو</strong></span>
+                </a>
+            @endforelse
         </aside>
     </main>
-    <span id="about" class="sr-only">خانه گیلاسی؛ {{ $settings->address }}</span>
+
+    <section class="kg-home-about" id="about">
+        <div class="kg-home-about-copy">
+            <span class="kg-section-kicker">خانه گیلاسی</span>
+            <h2>برای لحظه‌هایی که ارزش مکث کردن دارند</h2>
+            <p>{{ data_get($homepageContent, 'hero_description', 'از یک قهوه روزانه تا دورهمی‌های دوست‌داشتنی؛ منو را ببین، سفارش بده یا میزت را از قبل رزرو کن.') }}</p>
+        </div>
+        <div class="kg-home-about-actions">
+            <a href="{{ route('public.menu') }}">مشاهده منو و سفارش</a>
+            <a href="{{ route('public.reservations.create') }}">درخواست رزرو میز</a>
+            @if($settings->phone)
+                <a href="tel:{{ preg_replace('/[^0-9+]/', '', $settings->phone) }}">تماس با ما · {{ $settings->phone }}</a>
+            @endif
+        </div>
+        @if($settings->address)
+            <small class="kg-home-address">{{ $settings->address }}</small>
+        @endif
+    </section>
+    <footer class="kg-public-footer">
+        <span>{{ $settings->name ?: 'خانه گیلاسی' }}</span>
+        <nav aria-label="پیوندهای پایین صفحه">
+            <a href="{{ route('home') }}">خانه</a>
+            <a href="{{ route('public.menu') }}">منو</a>
+            <a href="{{ route('public.reservations.create') }}">رزرو</a>
+        </nav>
+    </footer>
 </div>
 </body>
 </html>
