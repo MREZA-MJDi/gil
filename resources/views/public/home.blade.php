@@ -10,7 +10,7 @@
 </head>
 <body class="page-home" id="top">
 <div class="wrap">
-    <div class="logo">{{ $settings->name }}</div>
+    @include('public.partials.site-logo')
     <div class="frame kg-reference-hero" data-home-carousel>
         <div class="slot hero">
             @if(!empty($media['hero']['url']))
