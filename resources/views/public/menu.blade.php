@@ -14,6 +14,9 @@
 </head>
 <body class="public-site page-menu">
 <div class="menu-shell" data-public-ordering data-menu-showcase data-order-endpoint="{{ route('public.orders.store') }}">
+    @if(!empty($media['menu_cover']['url']))
+        <div class="menu-cover-background kg-menu-cover" aria-hidden="true"><img src="{{ $media['menu_cover']['url'] }}" alt=""></div>
+    @endif
     <header class="menu-top" data-kg-header>
         <button type="button" class="burger2" data-kg-menu-toggle aria-expanded="false" aria-controls="kg-menu-nav" aria-label="باز کردن منو"><i></i><i></i></button>
         <a class="brand" href="{{ route('home') }}">{{ $settings->name ?: 'خانه گیلاسی' }}</a>
@@ -94,7 +97,7 @@
     <section class="menu-cart" id="online-cart" aria-live="polite">
         <h2>سبد سفارش</h2>
         <div class="menu-cart-layout">
-            <div><div id="online-cart-empty" class="menu-empty">هنوز محصولی انتخاب نکرده‌ای.</div><div id="online-cart-items" class="menu-cart-lines"></div></div>
+            <div><div id="online-cart-empty" class="menu-empty">هنوز محصولی به سبد اضافه نکرده‌ای.</div><div id="online-cart-items" class="menu-cart-lines"></div></div>
             <form id="online-checkout-form" action="{{ route('public.orders.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::random(40) }}">
