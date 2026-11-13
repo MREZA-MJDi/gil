@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0d0f11">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="درخواست رزرو میز و مناسبت‌ها در {{ $settings->name }}.">
-    <!-- The separate legacy public.css entry remains for QR Menu and reservation receipt pages. -->
+    <!-- Legacy resource entry resources/css/public.css is retained for independent QR Menu and reservation receipt pages; this page loads public-reference.css only. -->
     <title>رزرو میز | {{ $settings->name }}</title>
     @vite(['resources/css/public-reference.css', 'resources/js/public-site.js'])
 </head>

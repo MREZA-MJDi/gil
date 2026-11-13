@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0d0f11">
     <meta name="description" content="{{ $settings->name }}؛ منو، سفارش بیرون‌بر و درخواست رزرو میز.">
-    <!-- The separate legacy public.css entry remains for QR Menu and reservation receipt pages. -->
+    <!-- Legacy resource entry resources/css/public.css is retained for independent QR Menu and reservation receipt pages; this page loads public-reference.css only. -->
     <title>{{ $settings->name }} | کافه و رستوران</title>
     @vite(['resources/css/public-reference.css', 'resources/js/public-site.js'])
 </head>

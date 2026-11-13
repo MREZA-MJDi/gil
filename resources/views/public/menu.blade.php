@@ -7,12 +7,21 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="currency-label" content="{{ $settings->currency_label }}">
     <meta name="description" content="منوی به‌روز {{ $settings->name }}؛ محصولات، قیمت‌ها و افزودنی‌های فعال.">
-    <!-- The separate legacy public.css entry remains for QR Menu and reservation receipt pages. -->
+    <!-- Legacy resource entry resources/css/public.css is retained for independent QR Menu and reservation receipt pages; this page loads public-reference.css only. -->
     <title>منو و سفارش | {{ $settings->name }}</title>
     @vite(['resources/css/public-reference.css', 'resources/js/public-site.js'])
 </head>
 <body class="page-menu" id="top">
 <div class="m" data-public-ordering data-menu-showcase data-order-endpoint="{{ route('public.orders.store') }}">
+    @php
+        $categories = $categories->map(function ($category) {
+            $availableProducts = $category->products
+                ->filter(fn ($product) => $product->stock_quantity === null || $product->stock_quantity > 0)
+                ->values();
+            $category->setRelation('products', $availableProducts);
+            return $category;
+        })->filter(fn ($category) => $category->products->isNotEmpty())->values();
+    @endphp
     <div class="top">
         @include('public.partials.nav')
     </div>
