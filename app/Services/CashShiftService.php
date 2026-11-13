@@ -116,7 +116,7 @@ class CashShiftService
                 'card_payments_total' => $cardReceived,
                 'other_payments_total' => $otherReceived,
                 'refunds_total' => $refundsTotal,
-                'net_collections_total' => max(0, $paymentsTotal - $refundsTotal),
+                'net_collections_total' => $paymentsTotal - $refundsTotal,
             ])->save();
 
             $this->audit->record('cash_shift.closed', $shift, [], [
