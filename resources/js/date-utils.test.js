@@ -39,7 +39,7 @@ test('builds Jalali calendar months with Saturday as the first weekday', () => {
     const farvardin = jalaliMonthInfo(1403, 1);
     assert.equal(farvardin.daysInMonth, 31);
     assert.equal(farvardin.startOffset, 4); // 1403/01/01 was Wednesday.
-    assert.equal(jalaliMonthInfo(1403, 12).daysInMonth, 29);
+    assert.equal(jalaliMonthInfo(1403, 12).daysInMonth, 30);
     assert.deepEqual(shiftJalaliMonth(1403, 1, -1), { year: 1402, month: 12 });
     assert.deepEqual(shiftJalaliMonth(1403, 12, 1), { year: 1404, month: 1 });
 });
