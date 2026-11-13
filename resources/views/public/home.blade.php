@@ -21,6 +21,10 @@
 
             @include('public.partials.reference-nav')
 
+            <div class="home-hero-signature" aria-label="کافه و رستوران خانه گیلاسی">
+                <span>کافه و رستوران</span>
+                <strong>یک مکث خوش‌طعم.</strong>
+            </div>
             <div class="home-hero-actions">
                 <a href="{{ route('public.menu') }}">دیدن منو </a>
                 <a href="{{ route('public.reservations.create') }}">رزرو میز </a>
