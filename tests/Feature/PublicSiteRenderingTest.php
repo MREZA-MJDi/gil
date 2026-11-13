@@ -22,7 +22,7 @@ class PublicSiteRenderingTest extends TestCase
     }
 
 
-    public function test_homepage_uses_database_media_and_a_single_featured_product_in_the_landing(): void
+    public function test_homepage_uses_database_media_and_displays_three_featured_products(): void
     {
         $category = Category::query()->create([
             'name' => 'غذاهای خانه',
@@ -47,20 +47,35 @@ class PublicSiteRenderingTest extends TestCase
             'status' => 'active',
             'sort_order' => 2,
         ]);
+        $third = Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'غذای تصویر سوم',
+            'image_path' => 'menu/third.webp',
+            'base_price' => 165000,
+            'status' => 'active',
+            'sort_order' => 3,
+        ]);
 
-        $this->get(route('home'))
+        $response = $this->get(route('home'))
             ->assertOk()
             ->assertSee('kg-reference-hero', false)
             ->assertSee('aria-label="خانه خانه گیلاسی"', false)
             ->assertSee(e($first->image_url), false)
+            ->assertSee(e($second->image_url), false)
+            ->assertSee(e($third->image_url), false)
             ->assertSee('غذای تصویر اول')
-            ->assertDontSee('غذای تصویر دوم');
+            ->assertSee('غذای تصویر دوم')
+            ->assertSee('غذای تصویر سوم')
+            ->assertSee(route('public.menu'), false)
+            ->assertSee(route('public.reservations.create'), false);
+
+        $this->assertSame(3, substr_count($response->getContent(), 'kg-home-product-card'));
 
         $this->get(route('public.menu'))
             ->assertOk()
             ->assertSee('غذای تصویر اول')
             ->assertSee('غذای تصویر دوم')
-            ->assertSee(e($second->image_url), false);
+            ->assertSee('غذای تصویر سوم');
     }
 
     public function test_homepage_copy_is_read_from_dashboard_managed_settings(): void
@@ -157,10 +172,8 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('site-media/hero.webp')
             ->assertSee('site-media/logo.png')
             ->assertSee('site-media/showcase.webp')
-            ->assertSee('site-media/home-reservation.webp')
-            ->assertSee('site-media/gallery-one.webp')
             ->assertSee('kg-reference-hero', false)
-            ->assertSee('class="slot tile"', false);
+            ->assertSee('kg-home-product-card', false);
 
         $this->get(route('public.menu'))
             ->assertOk()
