@@ -14,8 +14,7 @@
 <div class="m" data-public-ordering data-menu-showcase data-order-endpoint="{{ route('public.orders.store') }}">
     <div class="top menu-top" data-kg-header>
         <button type="button" class="burger2" data-kg-menu-toggle aria-expanded="false" aria-controls="kg-menu-nav" aria-label="باز کردن منو"><i></i><i></i></button>
-        <a class="brand" href="{{ route('home') }}">
-            @if(!empty($media['brand_logo']['url']))<img class="menu-brand-logo" src="{{ $media['brand_logo']['url'] }}" alt="{{ $media['brand_logo']['alt_text'] ?: $settings->name }}">@endif
+        <a class="brand" href="{{ route('home') }}" aria-label="صفحه اصلی {{ $settings->name }}">
             <span>{{ $settings->name }}</span>
         </a>
         <nav class="menu-nav" id="kg-menu-nav" data-kg-nav aria-label="ناوبری اصلی">
@@ -127,13 +126,24 @@
         </section>
         <form id="online-checkout-form" action="{{ route('public.orders.store') }}" method="POST">
             @csrf
-            <div class="cart-fields">
-                <label>نام و نام خانوادگی<input name="customer_name" maxlength="150" autocomplete="name" required></label>
-                <label>شماره تماس<input name="customer_phone" inputmode="tel" autocomplete="tel" maxlength="30" required></label>
-                <label class="cart-field-wide">توضیحات سفارش<textarea name="customer_note" rows="2" maxlength="1000"></textarea></label>
-                <label>روش پرداخت<select name="payment_preference"><option value="at_counter">پرداخت هنگام دریافت</option><option value="cash">نقدی هنگام دریافت</option><option value="card_terminal">کارت‌خوان هنگام دریافت</option></select></label>
+            <div class="checkout-heading">
+                <span>مرحله پایانی</span>
+                <h3>اطلاعات تماس و دریافت سفارش</h3>
+                <p>شماره تماس را درست وارد کن تا در صورت نیاز برای هماهنگی سفارش با تو تماس بگیریم.</p>
             </div>
-            <button type="submit" id="online-checkout-submit" disabled>ثبت سفارش بیرون‌بر </button>
+            <div class="cart-fields">
+                <label>نام و نام خانوادگی<input name="customer_name" maxlength="150" autocomplete="name" placeholder="مثلاً علی رضایی" required></label>
+                <label>شماره تماس<input name="customer_phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" maxlength="30" placeholder="0912 123 4567" required></label>
+                <label class="cart-field-wide">توضیحات سفارش<textarea name="customer_note" rows="3" maxlength="1000" placeholder="مثلاً زمان مناسب دریافت یا نکته‌ای درباره سفارش…"></textarea></label>
+                <label class="cart-field-wide">روش پرداخت
+                    <select name="payment_preference">
+                        <option value="at_counter">پرداخت هنگام دریافت</option>
+                        <option value="cash">نقدی هنگام دریافت</option>
+                        <option value="card_terminal">کارت‌خوان هنگام دریافت</option>
+                    </select>
+                </label>
+            </div>
+            <button type="submit" id="online-checkout-submit" disabled>ثبت سفارش بیرون‌بر</button>
             <p id="online-checkout-message" role="status" aria-live="polite"></p>
         </form>
     </section>
