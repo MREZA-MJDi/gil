@@ -45,3 +45,7 @@
 .public-site .kg-received-main > p { max-width: 610px; margin: auto; color: var(--kg-muted); font-size: 12px; line-height: 2.2; }
 .public-site .kg-received-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
 
+
+/* Preserve the reservation artwork crop for user-selected covers */
+.public-site .kg-reserve-art { overflow:hidden; }
+.public-site .kg-reserve-art img { object-fit:cover; }
