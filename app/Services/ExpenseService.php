@@ -118,7 +118,7 @@ class ExpenseService
     {
         DB::transaction(function () use ($expenseId, $userId) {
             $expense = Expense::query()->whereKey($expenseId)->lockForUpdate()->firstOrFail();
-            if (! str_starts_with($expense->title, 'DEMO ·')) {
+            if (! str_starts_with((string) $expense->seed_key, 'demo-expense:')) {
                 throw ValidationException::withMessages(['expense' => 'فقط هزینه‌های مشخص‌شده به‌عنوان داده نمونه قابل حذف هستند.']);
             }
 
