@@ -12,7 +12,7 @@ class CashShift extends Model
         'opened_by', 'closed_by', 'cashier_name', 'status', 'open_lock',
         'opening_cash', 'expected_cash', 'counted_cash', 'difference',
         'opening_note', 'closing_note', 'opened_at', 'closed_at',
-        'orders_count', 'cancelled_orders_count', 'gross_sales', 'payments_total',
+        'duration_minutes', 'orders_count', 'cancelled_orders_count', 'gross_sales', 'payments_total',
         'cash_payments_total', 'card_payments_total', 'other_payments_total',
         'refunds_total', 'net_collections_total',
     ];
@@ -25,6 +25,7 @@ class CashShift extends Model
             'expected_cash' => 'integer',
             'counted_cash' => 'integer',
             'difference' => 'integer',
+            'duration_minutes' => 'integer',
             'orders_count' => 'integer',
             'cancelled_orders_count' => 'integer',
             'gross_sales' => 'integer',
