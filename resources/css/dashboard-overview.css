@@ -197,3 +197,63 @@
     .overview-clear-card { align-items: flex-start; flex-wrap: wrap; }
     .overview-clear-card b { margin-inline-start: 46px; }
 }
+
+
+/* ---------- Operational signals: reservations, top sellers and low stock ---------- */
+.overview-monitor-heading { margin-top: 4px; }
+.overview-monitor-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+    align-items:start;
+}
+.overview-monitor-panel { min-width:0;padding:18px; }
+.overview-monitor-panel .overview-panel-heading { align-items:flex-start; }
+.overview-monitor-panel .overview-panel-heading h2 { font-size:13px; }
+.overview-monitor-panel .overview-panel-heading p { margin-top:3px; }
+.overview-monitor-list,.overview-stock-list { display:grid;gap:7px; }
+.overview-monitor-row,.overview-stock-row {
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    width:100%;min-width:0;padding:11px 12px;
+    border:1px solid #eee8e1;border-radius:10px;
+    color:#403a33;text-align:right;background:#fff;
+    transition:border-color .16s,background .16s;
+}
+button.overview-monitor-row:hover,button.overview-stock-row:hover {
+    border-color:#dfcbbd;background:#fdfaf7;
+}
+.overview-monitor-main { display:grid;gap:4px;min-width:0; }
+.overview-monitor-main strong,.overview-stock-row strong { overflow:hidden;color:#3e3831;font-size:10px;text-overflow:ellipsis;white-space:nowrap; }
+.overview-monitor-main small,.overview-stock-row small { color:#968d82;font-size:8px;line-height:1.7; }
+.overview-monitor-meta { display:grid;justify-items:end;gap:5px;flex:0 0 auto; }
+.overview-monitor-meta>b { color:#6f665c;font-size:9px;white-space:nowrap; }
+.overview-monitor-meta .status-pill { font-size:8px; }
+.overview-popular-row { justify-content:flex-start; }
+.overview-popular-rank {
+    display:grid;place-items:center;width:26px;height:26px;flex:0 0 26px;
+    border-radius:8px;color:#98613d;background:#f8eee7;font-size:9px;font-weight:800;
+}
+.overview-popular-units { margin-inline-start:auto;color:#347b59;font-size:12px;font-weight:900;white-space:nowrap; }
+.overview-popular-units small { color:#92877b;font-size:8px;font-weight:500; }
+.overview-stock-panel { grid-column:1/-1; }
+.overview-stock-list { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.overview-stock-row>span { display:grid;gap:4px;min-width:0; }
+.overview-stock-row>b { color:#ad463f;font-size:12px;white-space:nowrap; }
+.overview-stock-row>b small { color:#9a9187;font-size:8px;font-weight:500; }
+.overview-monitor-empty {
+    padding:18px 13px;border:1px dashed #e9e1d8;border-radius:10px;
+    color:#948a7f;background:#fcfaf7;font-size:9px;line-height:1.9;text-align:center;
+}
+@media(max-width:900px) {
+    .overview-monitor-grid { grid-template-columns:1fr; }
+    .overview-stock-panel { grid-column:auto; }
+}
+@media(max-width:560px) {
+    .overview-monitor-panel { padding:13px; }
+    .overview-monitor-panel .overview-panel-heading { flex-direction:row;align-items:center; }
+    .overview-monitor-panel .overview-panel-heading .secondary-button { padding:7px 9px;font-size:8px; }
+    .overview-monitor-row,.overview-stock-row { gap:8px;padding:9px; }
+    .overview-monitor-main strong,.overview-stock-row strong { font-size:9px; }
+    .overview-monitor-meta>b { font-size:8px; }
+    .overview-stock-list { grid-template-columns:1fr; }
+}
