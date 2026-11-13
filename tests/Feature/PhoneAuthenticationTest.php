@@ -34,67 +34,81 @@ class PhoneAuthenticationTest extends TestCase
         ]);
     }
 
-    public function test_shared_admin_can_sign_in_with_configured_username_and_password(): void
+    public function test_all_reviewers_can_use_the_same_configured_mobile_username_and_password(): void
     {
         $admin = $this->createConfiguredAdmin();
 
         $this->get(route('admin.login'))
             ->assertOk()
-            ->assertSee('name="identity"', false)
+            ->assertSee('name="username"', false)
             ->assertSee('name="password"', false)
-            ->assertDontSee('admin.register');
+            ->assertSee('شماره موبایل مدیر');
 
         $this->post(route('admin.login.store'), [
-            'identity' => self::ADMIN_EMAIL,
+            'username' => '09120832179',
             'password' => self::ADMIN_PASSWORD,
         ])->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticatedAs($admin);
     }
 
-    public function test_same_shared_admin_can_also_sign_in_with_configured_mobile_alias(): void
+    public function test_persian_digits_and_international_phone_formats_are_normalized(): void
     {
         $admin = $this->createConfiguredAdmin();
 
         $this->post(route('admin.login.store'), [
-            'identity' => '۰۹۱۲۰۸۳۲۱۷۹',
+            'username' => '۰۹۱۲۰۸۳۲۱۷۹',
+            'password' => self::ADMIN_PASSWORD,
+        ])->assertRedirect(route('admin.dashboard'));
+
+        $this->assertAuthenticatedAs($admin);
+
+        auth()->logout();
+
+        $this->post(route('admin.login.store'), [
+            'username' => '+989120832179',
             'password' => self::ADMIN_PASSWORD,
         ])->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticatedAs($admin);
     }
 
-    public function test_wrong_username_or_password_is_rejected_without_authenticating(): void
+    public function test_wrong_username_or_password_is_rejected(): void
     {
         $this->createConfiguredAdmin();
 
         $this->from(route('admin.login'))->post(route('admin.login.store'), [
-            'identity' => self::ADMIN_EMAIL,
+            'username' => '09120000000',
+            'password' => self::ADMIN_PASSWORD,
+        ])->assertRedirect(route('admin.login'))
+          ->assertSessionHasErrors('username');
+
+        $this->assertGuest();
+
+        $this->from(route('admin.login'))->post(route('admin.login.store'), [
+            'username' => '09120832179',
             'password' => 'wrong-password-value',
         ])->assertRedirect(route('admin.login'))
-          ->assertSessionHasErrors('identity');
+          ->assertSessionHasErrors('username');
 
         $this->assertGuest();
     }
 
-    public function test_non_admin_user_cannot_use_the_admin_login(): void
+    public function test_non_admin_account_cannot_use_the_shared_admin_login(): void
     {
-        config([
-            'admin.email' => self::ADMIN_EMAIL,
-            'admin.phone' => self::ADMIN_PHONE,
-        ]);
+        config(['admin.phone' => self::ADMIN_PHONE]);
 
         User::factory()->create([
-            'email' => self::ADMIN_EMAIL,
+            'email' => null,
             'phone' => self::ADMIN_PHONE,
             'password' => self::ADMIN_PASSWORD,
             'is_admin' => false,
         ]);
 
         $this->post(route('admin.login.store'), [
-            'identity' => self::ADMIN_EMAIL,
+            'username' => self::ADMIN_PHONE,
             'password' => self::ADMIN_PASSWORD,
-        ])->assertSessionHasErrors('identity');
+        ])->assertSessionHasErrors('username');
 
         $this->assertGuest();
     }
@@ -113,14 +127,14 @@ class PhoneAuthenticationTest extends TestCase
 
         $this->assertDatabaseCount('users', 1);
 
-        $admin = User::query()->where('email', self::ADMIN_EMAIL)->firstOrFail();
+        $admin = User::query()->where('phone', self::ADMIN_PHONE)->firstOrFail();
 
-        $this->assertSame(self::ADMIN_PHONE, $admin->phone);
+        $this->assertSame(self::ADMIN_EMAIL, $admin->email);
         $this->assertTrue($admin->is_admin);
         $this->assertTrue(Hash::check(self::ADMIN_PASSWORD, $admin->password));
     }
 
-    public function test_logout_clears_the_current_admin_session_and_protected_route_redirects_to_login(): void
+    public function test_logout_clears_current_device_session_and_protected_route_redirects_to_login(): void
     {
         $admin = $this->createConfiguredAdmin();
 
@@ -134,7 +148,7 @@ class PhoneAuthenticationTest extends TestCase
             ->assertRedirect(route('admin.login'));
     }
 
-    public function test_public_admin_registration_is_disabled_for_the_shared_account_flow(): void
+    public function test_admin_registration_is_disabled_for_the_shared_account_flow(): void
     {
         $this->get('/admin/register')->assertNotFound();
         $this->post('/admin/register', [])->assertNotFound();

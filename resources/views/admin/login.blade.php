@@ -14,16 +14,16 @@
             <header class="auth-form-heading">
                 <span class="eyebrow">دسترسی مدیریت</span>
                 <h1 id="login-title">خوش برگشتی</h1>
-                <p>برای ورود به پنل، نام کاربری و رمز عبور مشترک مجموعه را وارد کن.</p>
+                <p>برای ورود، شماره موبایل مدیر و رمز عبور مشترک مجموعه را وارد کن.</p>
             </header>
             @if ($errors->any()) <div class="auth-error" role="alert">{{ $errors->first() }}</div> @endif
             <form method="POST" action="{{ route('admin.login.store') }}" class="auth-form">
                 @csrf
-                <label class="auth-label" for="identity">نام کاربری</label>
+                <label class="auth-label" for="username">نام کاربری (شماره موبایل)</label>
                 <div class="auth-input-wrap">
-                    <input class="auth-input" id="identity" type="text" name="identity" value="{{ old('identity') }}"
-                        autocomplete="username" inputmode="email" dir="ltr"
-                        placeholder="ایمیل مدیر تنظیم‌شده در سرور" maxlength="190" required autofocus>
+                    <input class="auth-input" id="username" type="tel" name="username" value="{{ old('username') }}"
+                        autocomplete="username" inputmode="tel" dir="ltr"
+                        placeholder="شماره موبایل مدیر" maxlength="30" required autofocus>
                 </div>
                 <label class="auth-label" for="password">رمز عبور</label>
                 <input class="auth-input" id="password" type="password" name="password" autocomplete="current-password"
@@ -31,7 +31,7 @@
                 <label class="auth-check-line"><input type="checkbox" name="remember" value="1"> مرا به خاطر بسپار</label>
                 <button class="auth-submit" type="submit">ورود امن به داشبورد <span aria-hidden="true">←</span></button>
             </form>
-            <footer class="auth-legal">این حساب بین افراد مجاز مجموعه مشترک است؛ اطلاعات ورود را فقط با اعضای مورد اعتماد به اشتراک بگذارید.</footer>
+            <footer class="auth-legal">همه افراد مجاز از همین حساب مشترک استفاده می‌کنند؛ نشست هر مرورگر و دستگاه جداگانه است.</footer>
         </section>
         <aside class="auth-brand-panel" aria-label="خانه گیلاسی">
             <div class="auth-brand-top"><span class="auth-mark">خ</span><span><b>خانه گیلاسی</b><small>کافه و رستوران</small></span></div>
@@ -40,7 +40,7 @@
                 <h2>از سفارش تا صندوق، همه‌چیز مرتب.</h2>
                 <p>یک پنل یکپارچه برای پیگیری سفارش‌ها، پرداخت‌ها، موجودی، رزروها و گزارش‌های روزانه.</p>
             </div>
-            <div class="auth-brand-foot"><i></i><span>دسترسی مدیر · نشست مستقل برای هر مرورگر</span></div>
+            <div class="auth-brand-foot"><i></i><span>ورود مشترک · نشست مستقل برای هر دستگاه</span></div>
         </aside>
     </main>
 </body>

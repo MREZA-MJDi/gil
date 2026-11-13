@@ -11,33 +11,36 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $email = strtolower(trim((string) config('admin.email')));
         $phone = PhoneNumber::normalize((string) config('admin.phone'));
+        $email = strtolower(trim((string) config('admin.email')));
         $password = (string) config('admin.password');
         $name = trim((string) config('admin.name', 'مدیر خانه گیلاسی'));
 
-        if (! filter_var($email, FILTER_VALIDATE_EMAIL)
-            || ! $phone
-            || ! PhoneNumber::isValid($phone)
-            || strlen($password) < 14) {
+        if (! $phone || ! PhoneNumber::isValid($phone) || strlen($password) < 14) {
             throw new RuntimeException(
-                'ADMIN_EMAIL معتبر، ADMIN_PHONE معتبر و ADMIN_PASSWORD با حداقل ۱۴ نویسه را در محیط امن تنظیم کنید.'
+                'ADMIN_PHONE معتبر و ADMIN_PASSWORD با حداقل ۱۴ نویسه را در محیط امن تنظیم کنید.'
             );
         }
 
-        $emailUser = User::query()->where('email', $email)->first();
+        if ($email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new RuntimeException('ADMIN_EMAIL باید یک ایمیل معتبر باشد یا خالی بماند.');
+        }
+
         $phoneUser = User::query()->where('phone', $phone)->first();
+        $emailUser = $email !== ''
+            ? User::query()->where('email', $email)->first()
+            : null;
 
-        if ($emailUser && $phoneUser && $emailUser->getKey() !== $phoneUser->getKey()) {
+        if ($phoneUser && $emailUser && $phoneUser->getKey() !== $emailUser->getKey()) {
             throw new RuntimeException(
-                'ADMIN_EMAIL و ADMIN_PHONE به دو حساب متفاوت تعلق دارند؛ پیش از همگام‌سازی حساب مدیر، تداخل را برطرف کنید.'
+                'ADMIN_PHONE و ADMIN_EMAIL به دو حساب متفاوت تعلق دارند؛ ابتدا تداخل حساب‌ها را برطرف کنید.'
             );
         }
 
-        $user = $emailUser ?: $phoneUser;
+        $user = $phoneUser ?: $emailUser;
         $attributes = [
             'name' => $name !== '' ? $name : 'مدیر خانه گیلاسی',
-            'email' => $email,
+            'email' => $email !== '' ? $email : null,
             'phone' => $phone,
             'password' => $password,
             'is_admin' => true,

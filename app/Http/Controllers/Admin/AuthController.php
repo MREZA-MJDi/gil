@@ -9,7 +9,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -21,48 +20,37 @@ class AuthController extends Controller
     }
 
     /**
-     * Authenticate the one shared administrator account configured in .env.
-     * The configured email is the canonical username; the configured phone is
-     * accepted as an optional alias for the same account.
+     * All authorized reviewers use the same administrator username/password.
+     * The username is ADMIN_PHONE, normalized to an international number.
+     * Every browser/device receives its own Laravel session after login.
      */
     public function store(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'identity' => ['required', 'string', 'max:190'],
+            'username' => ['required', 'string', 'max:30'],
             'password' => ['required', 'string', 'max:200'],
             'remember' => ['sometimes', 'boolean'],
         ]);
 
-        $identity = trim($credentials['identity']);
-        $adminEmail = Str::lower(trim((string) config('admin.email')));
-        $adminPhone = PhoneNumber::normalize((string) config('admin.phone'));
+        $configuredPhone = PhoneNumber::normalize((string) config('admin.phone'));
+        $submittedPhone = PhoneNumber::normalize($credentials['username']);
 
-        $matchesConfiguredIdentity = false;
-
-        if (filter_var($identity, FILTER_VALIDATE_EMAIL)) {
-            $matchesConfiguredIdentity = $adminEmail !== ''
-                && hash_equals($adminEmail, Str::lower($identity));
-        } else {
-            $submittedPhone = PhoneNumber::normalize($identity);
-            $matchesConfiguredIdentity = $submittedPhone !== null
-                && $adminPhone !== null
-                && hash_equals($adminPhone, $submittedPhone);
-        }
-
-        $admin = $matchesConfiguredIdentity
-            ? User::query()
-                ->where('email', $adminEmail)
-                ->where('is_admin', true)
-                ->first()
-            : null;
+        $admin = $configuredPhone !== null
+            && $submittedPhone !== null
+            && hash_equals($configuredPhone, $submittedPhone)
+                ? User::query()
+                    ->where('phone', $configuredPhone)
+                    ->where('is_admin', true)
+                    ->first()
+                : null;
 
         if (! $admin || ! Hash::check($credentials['password'], (string) $admin->password)) {
             throw ValidationException::withMessages([
-                'identity' => 'نام کاربری یا رمز عبور صحیح نیست.',
+                'username' => 'نام کاربری یا رمز عبور صحیح نیست.',
             ]);
         }
 
-        Auth::login($admin, $request->boolean('remember'));
+        Auth::guard('web')->login($admin, $request->boolean('remember'));
         $request->session()->regenerate();
 
         return redirect()->intended(route('admin.dashboard'));
@@ -70,7 +58,7 @@ class AuthController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
