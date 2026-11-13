@@ -81,6 +81,8 @@
                     <img src="{{ $media['story_main']['url'] }}" alt="{{ $media['story_main']['alt_text'] ?: 'رستوران خانه گیلاسی' }}" loading="lazy">
                 @elseif(!empty($media['gallery_3']['url']))
                     <img src="{{ $media['gallery_3']['url'] }}" alt="{{ $media['gallery_3']['alt_text'] ?: 'رستوران خانه گیلاسی' }}" loading="lazy">
+                @elseif(!empty($media['gallery_1']['url']))
+                    <img src="{{ $media['gallery_1']['url'] }}" alt="{{ $media['gallery_1']['alt_text'] ?: 'رستوران خانه گیلاسی' }}" loading="lazy">
                 @elseif($featuredProducts->get(2)?->image_url)
                     <img src="{{ $featuredProducts->get(2)->image_url }}" alt="{{ $featuredProducts->get(2)->name }}" loading="lazy">
                 @endif
