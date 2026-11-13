@@ -32,7 +32,7 @@ function loadImage(url) {
 }
 
 async function cropImage(file, aspect, zoom, offsetX, offsetY) {
-    const sourceUrl = trackUrl(URL.createObjectURL(file));
+    const sourceUrl = URL.createObjectURL(file);
     try {
         const image = await loadImage(sourceUrl);
         const baseWidth = Math.min(image.naturalWidth, image.naturalHeight * aspect);
@@ -182,7 +182,7 @@ export default function MediaManager({ onNavigate }) {
             setError('حجم تصویر نباید بیشتر از ۸ مگابایت باشد.');
             return;
         }
-        const sourceUrl = URL.createObjectURL(file);
+        const sourceUrl = trackUrl(URL.createObjectURL(file));
         setCropCandidate({ slot, file, sourceUrl });
         setError('');
         setNotice('');
