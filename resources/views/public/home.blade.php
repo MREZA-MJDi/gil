@@ -65,7 +65,7 @@
             <span class="kg-hero-decoration kg-hero-decoration-two" aria-hidden="true">✦</span>
         </section>
 
-        <section class="kg-home-showcase" id="home-showcase" data-home-carousel aria-labelledby="kg-showcase-title">
+        <section class="kg-home-showcase {{ !empty($media['home_showcase_background']['url']) ? 'has-custom-background' : '' }}" id="home-showcase" data-home-carousel aria-labelledby="kg-showcase-title" @if(!empty($media['home_showcase_background']['url'])) style="--kg-showcase-image: url('{{ $media['home_showcase_background']['url'] }}')" @endif>
             <div class="kg-home-showcase-inner">
                 <header class="kg-home-showcase-heading">
                     <span class="kg-home-showcase-eyebrow">{{ $homepageContent['showcase_eyebrow'] }}</span>
@@ -166,8 +166,31 @@
             </div>
         </section>
 
+
+        @if(collect(['gallery_1', 'gallery_2', 'gallery_3'])->contains(fn ($slot) => !empty($media[$slot]['url'])))
+            <section class="kg-photo-gallery" aria-labelledby="kg-photo-gallery-title">
+                <header class="kg-photo-gallery-heading">
+                    <span class="kg-eyebrow">نگاهی به خانه گیلاسی</span>
+                    <h2 id="kg-photo-gallery-title">فضای ما، <em>از نزدیک</em></h2>
+                    <p>تصویرهای مجموعه از بخش رسانه داشبورد مدیریت می‌شوند.</p>
+                </header>
+                <div class="kg-photo-gallery-grid">
+                    @foreach(['gallery_1' => 'فضای کافه', 'gallery_2' => 'غذا و نوشیدنی', 'gallery_3' => 'مناسبت‌ها و دورهمی'] as $slot => $label)
+                        @if(!empty($media[$slot]['url']))
+                            <figure class="kg-photo-gallery-card">
+                                <img src="{{ $media[$slot]['url'] }}" alt="{{ $media[$slot]['alt_text'] ?: $label }}" loading="lazy">
+                                <figcaption>{{ $label }}</figcaption>
+                            </figure>
+                        @endif
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
         <section class="kg-reserve-banner">
-            @if(!empty($media['gallery_3']['url']))
+            @if(!empty($media['home_reservation_banner']['url']))
+                <img src="{{ $media['home_reservation_banner']['url'] }}" alt="{{ $media['home_reservation_banner']['alt_text'] ?: 'بنر رزرو خانه گیلاسی' }}" loading="lazy">
+            @elseif(!empty($media['gallery_3']['url']))
                 <img src="{{ $media['gallery_3']['url'] }}" alt="{{ $media['gallery_3']['alt_text'] ?: 'چیدمان میز' }}" loading="lazy">
             @elseif($featuredProducts->last()?->image_url)
                 <img src="{{ $featuredProducts->last()->image_url }}" alt="{{ $featuredProducts->last()->name }}" loading="lazy">
