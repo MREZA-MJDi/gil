@@ -111,6 +111,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:access-admin'])
         Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
         Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
         Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+        Route::patch('/reservations/{reservation}', [ReservationController::class, 'update'])->name('reservations.update');
+        Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
         Route::patch('/reservations/{reservation}/status', [ReservationController::class, 'transition'])->name('reservations.transition');
         Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
         Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
