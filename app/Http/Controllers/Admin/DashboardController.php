@@ -77,7 +77,8 @@ class DashboardController extends Controller
         $recent = Order::query()
             ->with('table:id,name')
             ->withCount('items')
-            ->latest('id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit(8)
             ->get([
                 'id', 'number', 'restaurant_table_id', 'channel', 'source',

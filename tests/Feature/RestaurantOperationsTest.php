@@ -84,6 +84,47 @@ class RestaurantOperationsTest extends TestCase
         $this->get('/menu')->assertOk()->assertSee('طعم دلخواهت')->assertSee('لاته تست');
     }
 
+    public function test_landing_page_renders_three_featured_product_photo_cards(): void
+    {
+        $this->product->forceFill([
+            'name' => 'اسپرسو تصویری',
+            'image_path' => 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04',
+            'sort_order' => 1,
+        ])->save();
+
+        Product::query()->create([
+            'category_id' => $this->category->id,
+            'name' => 'لاته تصویری',
+            'image_path' => 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735',
+            'base_price' => 145000,
+            'status' => 'active',
+            'sort_order' => 2,
+            'stock_quantity' => 5,
+            'low_stock_threshold' => 1,
+        ]);
+
+        Product::query()->create([
+            'category_id' => $this->category->id,
+            'name' => 'کیک تصویری',
+            'image_path' => 'https://images.unsplash.com/photo-1578985545062-69928b1d9587',
+            'base_price' => 165000,
+            'status' => 'active',
+            'sort_order' => 3,
+            'stock_quantity' => 5,
+            'low_stock_threshold' => 1,
+        ]);
+
+        $response = $this->get('/')->assertOk()
+            ->assertSee('اسپرسو تصویری')
+            ->assertSee('لاته تصویری')
+            ->assertSee('کیک تصویری')
+            ->assertSee('kg-home-product-card', false)
+            ->assertSee(route('public.menu'), false)
+            ->assertSee(route('public.reservations.create'), false);
+
+        $this->assertSame(3, substr_count($response->getContent(), 'kg-home-product-card'));
+    }
+
     public function test_public_home_and_reservation_use_dashboard_managed_media_assets(): void
     {
         SiteMediaAsset::query()->create([
@@ -224,6 +265,38 @@ class RestaurantOperationsTest extends TestCase
         ]);
     }
 
+    public function test_pos_catalog_excludes_inactive_products_and_inactive_categories(): void
+    {
+        $inactiveCategory = Category::query()->create([
+            'name' => 'دسته غیرفعال',
+            'sort_order' => 2,
+            'is_active' => false,
+        ]);
+        $inactiveCategoryProduct = Product::query()->create([
+            'category_id' => $inactiveCategory->id,
+            'name' => 'محصول دسته غیرفعال',
+            'base_price' => 90000,
+            'status' => 'active',
+            'sort_order' => 1,
+        ]);
+        $inactiveProduct = Product::query()->create([
+            'category_id' => $this->category->id,
+            'name' => 'محصول غیرفعال',
+            'base_price' => 80000,
+            'status' => 'inactive',
+            'sort_order' => 2,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->getJson('/admin/api/products?available=1&per_page=100')
+            ->assertOk();
+
+        $returnedIds = collect($response->json('data'))->pluck('id')->all();
+        $this->assertContains($this->product->id, $returnedIds);
+        $this->assertNotContains($inactiveCategoryProduct->id, $returnedIds);
+        $this->assertNotContains($inactiveProduct->id, $returnedIds);
+    }
+
     public function test_order_creation_is_idempotent_and_consumes_stock_once(): void
     {
         $this->actingAs($this->admin);
@@ -237,6 +310,34 @@ class RestaurantOperationsTest extends TestCase
         $this->assertSame(3, $this->product->fresh()->stock_quantity);
         $this->assertSame(1, InventoryMovement::query()->where('movement_type', 'order')->count());
         $this->assertSame(1, Order::query()->count());
+    }
+
+    public function test_order_and_cashier_lists_put_the_newest_order_first(): void
+    {
+        $this->actingAs($this->admin);
+
+        $createdIds = [];
+        foreach (['pos-list-order-0001', 'pos-list-order-0002', 'pos-list-order-0003'] as $key) {
+            $response = $this->postJson('/admin/api/orders', $this->orderPayload(1), [
+                'Idempotency-Key' => $key,
+            ])->assertCreated();
+
+            $createdIds[] = $response->json('data.id');
+        }
+
+        $expectedNewestFirst = array_reverse($createdIds);
+
+        $this->getJson('/admin/api/orders?sort=latest&per_page=25')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $expectedNewestFirst[0])
+            ->assertJsonPath('data.1.id', $expectedNewestFirst[1])
+            ->assertJsonPath('data.2.id', $expectedNewestFirst[2]);
+
+        $this->getJson('/admin/api/orders?sort=latest&unsettled=1&active=1&per_page=25')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $expectedNewestFirst[0])
+            ->assertJsonPath('data.1.id', $expectedNewestFirst[1])
+            ->assertJsonPath('data.2.id', $expectedNewestFirst[2]);
     }
 
     public function test_order_rejects_more_than_one_size_option_for_a_product_line(): void
@@ -598,6 +699,93 @@ class RestaurantOperationsTest extends TestCase
         ])->assertUnprocessable()->assertJsonValidationErrors(['restaurant_table_id']);
 
         $this->assertSame(1, \App\Models\Reservation::query()->count());
+    }
+
+    public function test_cashier_name_and_shift_closeout_summary_are_persisted_and_returned(): void
+    {
+        $this->actingAs($this->admin);
+
+        $opened = $this->postJson('/admin/api/cash-shift/open', [
+            'cashier_name' => 'مسئول شیفت آزمایشی',
+            'opening_cash' => 10000,
+            'note' => 'شروع شیفت صبح',
+        ])->assertCreated()
+            ->assertJsonPath('data.cashier_name', 'مسئول شیفت آزمایشی');
+
+        $shiftId = $opened->json('data.id');
+
+        $this->getJson('/admin/api/cash-shift')
+            ->assertOk()
+            ->assertJsonPath('data.status', 'open')
+            ->assertJsonPath('data.cashier_name', 'مسئول شیفت آزمایشی')
+            ->assertJsonPath('data.opener.name', $this->admin->name);
+
+        $order = $this->postJson('/admin/api/orders', $this->orderPayload(1), [
+            'Idempotency-Key' => 'cashier-closeout-order-0001',
+        ])->assertCreated();
+
+        $orderId = $order->json('data.id');
+        $total = (int) $order->json('data.total');
+        $this->assertGreaterThanOrEqual(65000, $total);
+
+        $cashPayment = $this->postJson('/admin/api/orders/'.$orderId.'/payments', [
+            'amount' => 50000,
+            'method' => 'cash',
+        ], ['Idempotency-Key' => 'cashier-closeout-cash-payment-01'])->assertCreated();
+
+        $cardPayment = $this->postJson('/admin/api/orders/'.$orderId.'/payments', [
+            'amount' => 15000,
+            'method' => 'card_terminal',
+        ], ['Idempotency-Key' => 'cashier-closeout-card-payment-01'])->assertCreated();
+
+        $this->postJson('/admin/api/payments/'.$cardPayment->json('data.id').'/refunds', [
+            'amount' => 5000,
+            'reason' => 'بازپرداخت آزمایشی کارت‌خوان',
+        ], ['Idempotency-Key' => 'cashier-closeout-refund-01'])->assertCreated();
+
+        $this->postJson('/admin/api/cash-shift/'.$shiftId.'/close', [
+            'counted_cash' => 60000,
+            'note' => 'تحویل کامل صندوق',
+        ])->assertOk()
+            ->assertJsonPath('data.status', 'closed')
+            ->assertJsonPath('data.cashier_name', 'مسئول شیفت آزمایشی')
+            ->assertJsonPath('data.orders_count', 1)
+            ->assertJsonPath('data.cancelled_orders_count', 0)
+            ->assertJsonPath('data.gross_sales', $total)
+            ->assertJsonPath('data.payments_total', 65000)
+            ->assertJsonPath('data.cash_payments_total', 50000)
+            ->assertJsonPath('data.card_payments_total', 15000)
+            ->assertJsonPath('data.cash_in_total', 50000)
+            ->assertJsonPath('data.cash_out_total', 0)
+            ->assertJsonPath('data.cash_movements_count', 1)
+            ->assertJsonPath('data.refunds_total', 5000)
+            ->assertJsonPath('data.net_collections_total', 60000)
+            ->assertJsonPath('data.expected_cash', 60000)
+            ->assertJsonPath('data.counted_cash', 60000)
+            ->assertJsonPath('data.difference', 0);
+
+        $this->assertDatabaseHas('cash_shifts', [
+            'id' => $shiftId,
+            'cashier_name' => 'مسئول شیفت آزمایشی',
+            'orders_count' => 1,
+            'gross_sales' => $total,
+            'cash_payments_total' => 50000,
+            'card_payments_total' => 15000,
+            'cash_in_total' => 50000,
+            'cash_out_total' => 0,
+            'cash_movements_count' => 1,
+            'refunds_total' => 5000,
+            'net_collections_total' => 60000,
+            'counted_cash' => 60000,
+            'difference' => 0,
+        ]);
+
+        $this->getJson('/admin/api/cash-shift')
+            ->assertOk()
+            ->assertJsonPath('data.id', $shiftId)
+            ->assertJsonPath('data.status', 'closed')
+            ->assertJsonPath('data.cashier_name', 'مسئول شیفت آزمایشی')
+            ->assertJsonPath('data.net_collections_total', 60000);
     }
 
     public function test_cash_shift_close_reconciles_opening_balance_and_movements(): void

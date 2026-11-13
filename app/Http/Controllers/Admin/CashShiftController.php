@@ -14,9 +14,21 @@ class CashShiftController extends Controller
 {
     public function current(): JsonResponse
     {
-        $shift = CashShift::query()->where('status', 'open')->where('open_lock', true)->first();
+        $shift = CashShift::query()
+            ->with(['opener:id,name', 'closer:id,name'])
+            ->where('status', 'open')
+            ->where('open_lock', true)
+            ->first();
 
-        if ($shift) {
+        if (! $shift) {
+            $shift = CashShift::query()
+                ->with(['opener:id,name', 'closer:id,name'])
+                ->where('status', 'closed')
+                ->latest('closed_at')
+                ->first();
+        }
+
+        if ($shift && $shift->status === 'open') {
             $shift->setAttribute('cash_in_total', (int) $shift->movements()->where('direction', 'in')->sum('amount'));
             $shift->setAttribute('cash_out_total', (int) $shift->movements()->where('direction', 'out')->sum('amount'));
             $shift->setAttribute('expected_cash', (int) $shift->opening_cash + $shift->cash_in_total - $shift->cash_out_total);
@@ -29,18 +41,39 @@ class CashShiftController extends Controller
     public function open(OpenCashShiftRequest $request, CashShiftService $shifts): JsonResponse
     {
         $data = $request->validated();
-        return response()->json(['data' => $shifts->open($data['opening_cash'], $data['note'] ?? null, $request->user()->id)], 201);
+
+        return response()->json([
+            'data' => $shifts->open(
+                $data['opening_cash'],
+                $data['note'] ?? null,
+                $request->user()->id,
+                $data['cashier_name'] ?? null,
+            ),
+        ], 201);
     }
 
     public function close(CloseCashShiftRequest $request, CashShift $cashShift, CashShiftService $shifts): JsonResponse
     {
         $data = $request->validated();
-        return response()->json(['data' => $shifts->close($cashShift->id, $data['counted_cash'], $data['note'] ?? null, $request->user()->id)]);
+
+        return response()->json([
+            'data' => $shifts->close($cashShift->id, $data['counted_cash'], $data['note'] ?? null, $request->user()->id),
+        ]);
     }
 
     public function movement(ManualCashMovementRequest $request, CashShift $cashShift, CashShiftService $shifts): JsonResponse
     {
         $data = $request->validated();
-        return response()->json(['data' => $shifts->manualMovement($cashShift->id, $data['direction'], $data['amount'], $data['reason'], $data['idempotency_key'], $request->user()->id)], 201);
+
+        return response()->json([
+            'data' => $shifts->manualMovement(
+                $cashShift->id,
+                $data['direction'],
+                $data['amount'],
+                $data['reason'],
+                $data['idempotency_key'],
+                $request->user()->id,
+            ),
+        ], 201);
     }
 }

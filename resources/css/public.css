@@ -1,7 +1,5 @@
 @import './fonts.css';
 @import './public-base.css';
-@import './public-menu.css';
-@import './public-reservation.css';
-@import './public-qr.css';
-@import './public-home.css';
+@import './public-redesign.css';
 @import './jalali-calendar.css';
+@import './public-consistency.css';
