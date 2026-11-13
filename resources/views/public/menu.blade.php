@@ -67,7 +67,7 @@
                 <div class="menu-template-bank" hidden>
                     @foreach($category->products as $product)
                         <template data-menu-product-template="{{ $product->id }}">
-                            <article class="stage-feature">
+                            <article class="stage-feature" data-product-card>
                                 <div class="plate">
                                     @if($product->image_url)<img data-menu-image src="{{ $product->image_url }}" alt="{{ $product->name }}" loading="eager"><span data-menu-image-fallback hidden>تصویر در دسترس نیست</span>
                                     @else<span data-menu-image-fallback>تصویر ثبت نشده</span>@endif
@@ -110,13 +110,28 @@
         <div id="online-cart-empty" class="cart-empty">هنوز محصولی به سبد اضافه نکرده‌ای.</div>
         <div id="online-cart-items" class="cart-items" aria-live="polite"></div>
         <div class="cart-total"><span>جمع تقریبی</span><strong id="online-cart-total">۰ {{ $settings->currency_label }}</strong></div>
+        <section class="kg-order-success" id="online-order-success" hidden aria-live="polite" aria-atomic="true">
+            <span class="kg-order-success__icon" aria-hidden="true">
+                <svg viewBox="0 0 48 48" focusable="false">
+                    <circle cx="24" cy="24" r="20"></circle>
+                    <path d="m13.5 24.5 7 7L35 17"></path>
+                </svg>
+            </span>
+            <div class="kg-order-success__copy">
+                <small>ثبت سفارش موفق</small>
+                <strong>سفارشت با موفقیت ثبت شد.</strong>
+                <span>کد پیگیری: <b dir="ltr" data-online-order-number></b></span>
+                <p>مبلغ سفارش: <b data-online-order-total></b> · پرداخت هنوز انجام نشده و هنگام دریافت تسویه می‌شود.</p>
+            </div>
+            <button type="button" data-online-new-order>ثبت سفارش جدید</button>
+        </section>
         <form id="online-checkout-form" action="{{ route('public.orders.store') }}" method="POST">
             @csrf
             <div class="cart-fields">
                 <label>نام و نام خانوادگی<input name="customer_name" maxlength="150" autocomplete="name" required></label>
                 <label>شماره تماس<input name="customer_phone" inputmode="tel" autocomplete="tel" maxlength="30" required></label>
                 <label class="cart-field-wide">توضیحات سفارش<textarea name="customer_note" rows="2" maxlength="1000"></textarea></label>
-                <label>روش پرداخت<select name="payment_preference"><option value="at_counter">پرداخت هنگام دریافت</option><option value="online">پرداخت آنلاین (در صورت فعال بودن)</option></select></label>
+                <label>روش پرداخت<select name="payment_preference"><option value="at_counter">پرداخت هنگام دریافت</option><option value="cash">نقدی هنگام دریافت</option><option value="card_terminal">کارت‌خوان هنگام دریافت</option></select></label>
             </div>
             <button type="submit" id="online-checkout-submit" disabled>ثبت سفارش بیرون‌بر </button>
             <p id="online-checkout-message" role="status" aria-live="polite"></p>
