@@ -80,9 +80,10 @@ class RestaurantOperationsTest extends TestCase
 
         $this->actingAs($this->admin)->get('/')
             ->assertOk()
-            ->assertSee('پنل مدیریت')
-            ->assertSee('خروج')
-            ->assertSee(route('admin.logout'), false);
+            ->assertSee('class="profile-link"', false)
+            ->assertSee(route('admin.dashboard'))
+            ->assertDontSee('پنل مدیریت')
+            ->assertDontSee('خروج');
 
         $this->get('/menu')->assertOk()->assertSee('طعم دلخواهت')->assertSee('لاته تست');
     }
