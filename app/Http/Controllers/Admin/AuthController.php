@@ -19,34 +19,32 @@ class AuthController extends Controller
         return view('admin.login');
     }
 
-    /**
-     * All authorized reviewers use the same administrator username/password.
-     * The username is ADMIN_PHONE, normalized to an international number.
-     * Every browser/device receives its own Laravel session after login.
-     */
     public function store(Request $request): RedirectResponse
     {
+        $request->merge([
+            'phone' => PhoneNumber::normalize((string) $request->input('phone')),
+        ]);
+
         $credentials = $request->validate([
-            'username' => ['required', 'string', 'max:30'],
+            'phone' => ['required', 'string', 'regex:/^\+[1-9][0-9]{7,14}$/'],
             'password' => ['required', 'string', 'max:200'],
             'remember' => ['sometimes', 'boolean'],
+        ], [
+            'phone.required' => 'شماره موبایل مدیر را وارد کن.',
+            'phone.regex' => 'شماره موبایل معتبر وارد کن.',
         ]);
 
         $configuredPhone = PhoneNumber::normalize((string) config('admin.phone'));
-        $submittedPhone = PhoneNumber::normalize($credentials['username']);
+        $submittedPhone = $credentials['phone'];
 
-        $admin = $configuredPhone !== null
-            && $submittedPhone !== null
-            && hash_equals($configuredPhone, $submittedPhone)
-                ? User::query()
-                    ->where('phone', $configuredPhone)
-                    ->where('is_admin', true)
-                    ->first()
-                : null;
+        // The only shared admin username is the phone configured in .env.
+        $admin = $configuredPhone !== null && hash_equals($configuredPhone, $submittedPhone)
+            ? User::query()->where('phone', $configuredPhone)->where('is_admin', true)->first()
+            : null;
 
         if (! $admin || ! Hash::check($credentials['password'], (string) $admin->password)) {
             throw ValidationException::withMessages([
-                'username' => 'نام کاربری یا رمز عبور صحیح نیست.',
+                'phone' => 'نام کاربری یا رمز عبور صحیح نیست.',
             ]);
         }
 

@@ -19,9 +19,9 @@
             @if ($errors->any()) <div class="auth-error" role="alert">{{ $errors->first() }}</div> @endif
             <form method="POST" action="{{ route('admin.login.store') }}" class="auth-form">
                 @csrf
-                <label class="auth-label" for="username">نام کاربری (شماره موبایل)</label>
+                <label class="auth-label" for="phone">نام کاربری (شماره موبایل)</label>
                 <div class="auth-input-wrap">
-                    <input class="auth-input" id="username" type="tel" name="username" value="{{ old('username') }}"
+                    <input class="auth-input" id="phone" type="tel" name="phone" value="{{ old('phone') }}"
                         autocomplete="username" inputmode="tel" dir="ltr"
                         placeholder="شماره موبایل مدیر" maxlength="30" required autofocus>
                 </div>

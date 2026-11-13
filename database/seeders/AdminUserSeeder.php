@@ -12,7 +12,7 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         $phone = PhoneNumber::normalize((string) config('admin.phone'));
-        $email = strtolower(trim((string) config('admin.email')));
+        $email = trim((string) config('admin.email'));
         $password = (string) config('admin.password');
         $name = trim((string) config('admin.name', 'مدیر خانه گیلاسی'));
 
