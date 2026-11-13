@@ -13,15 +13,6 @@
 </head>
 <body class="page-menu" id="top">
 <div class="m" data-public-ordering data-menu-showcase data-order-endpoint="{{ route('public.orders.store') }}">
-    @php
-        $categories = $categories->map(function ($category) {
-            $availableProducts = $category->products
-                ->filter(fn ($product) => $product->stock_quantity === null || $product->stock_quantity > 0)
-                ->values();
-            $category->setRelation('products', $availableProducts);
-            return $category;
-        })->filter(fn ($category) => $category->products->isNotEmpty())->values();
-    @endphp
     <div class="top">
         @include('public.partials.nav')
     </div>
