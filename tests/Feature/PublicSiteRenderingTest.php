@@ -22,7 +22,7 @@ class PublicSiteRenderingTest extends TestCase
     }
 
 
-    public function test_homepage_uses_database_product_photos_for_the_hero_and_food_carousel(): void
+    public function test_homepage_uses_database_media_and_a_single_featured_product_in_the_landing(): void
     {
         $category = Category::query()->create([
             'name' => 'غذاهای خانه',
@@ -50,13 +50,17 @@ class PublicSiteRenderingTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('data-home-carousel', false)
-            ->assertSee('data-home-carousel-card', false)
+            ->assertSee('kg-reference-hero', false)
+            ->assertSee('aria-label="خانه خانه گیلاسی"', false)
+            ->assertSee(e($first->image_url), false)
+            ->assertSee('غذای تصویر اول')
+            ->assertDontSee('غذای تصویر دوم');
+
+        $this->get(route('public.menu'))
+            ->assertOk()
             ->assertSee('غذای تصویر اول')
             ->assertSee('غذای تصویر دوم')
-            ->assertSee(e($first->image_url), false)
-            ->assertSee(e($second->image_url), false)
-            ->assertSee('kg-reference-hero', false);
+            ->assertSee(e($second->image_url), false);
     }
 
     public function test_homepage_copy_is_read_from_dashboard_managed_settings(): void
@@ -82,10 +86,11 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('صبح دلنشین،')
             ->assertSee('طعم تازه.')
             ->assertSee('متن ویرایش‌شده از داشبورد')
-            ->assertSee('انتخاب‌های تازه');
+            ->assertSee('منوی ویژه')
+            ->assertSee('رزرو تازه');
     }
 
-    public function test_homepage_category_count_includes_products_beyond_the_preview_limit(): void
+    public function test_homepage_stays_a_single_landing_while_the_full_database_catalog_remains_on_the_menu(): void
     {
         $category = Category::query()->create([
             'name' => 'نوشیدنی‌های تست',
@@ -114,11 +119,16 @@ class PublicSiteRenderingTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('5 محصول در منو')
-            ->assertSee('نوشیدنی تست 4')
-            ->assertSee('نوشیدنی تست 5');
-    }
+            ->assertSee(route('public.menu'))
+            ->assertDontSee('نوشیدنی تست 4');
 
+        $this->get(route('public.menu'))
+            ->assertOk()
+            ->assertSee('5 محصول')
+            ->assertSee('نوشیدنی تست 4')
+            ->assertSee('نوشیدنی تست 5')
+            ->assertDontSee('محصول ناموجود برای شمارش');
+    }
 
     public function test_dashboard_media_assets_are_rendered_on_home_menu_navigation_and_reservation_pages(): void
     {
@@ -149,7 +159,8 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('site-media/showcase.webp')
             ->assertSee('site-media/home-reservation.webp')
             ->assertSee('site-media/gallery-one.webp')
-            ->assertSee('kg-photo-gallery', false);
+            ->assertSee('kg-reference-hero', false)
+            ->assertSee('class="slot tile"', false);
 
         $this->get(route('public.menu'))
             ->assertOk()
@@ -286,6 +297,7 @@ class PublicSiteRenderingTest extends TestCase
         $this->assertStringContainsString("--kg-fs-display", $base);
         $this->assertStringContainsString("--kg-section-space", $base);
         $this->assertStringContainsString("public-base.css", $entry);
+        $this->assertStringContainsString("public-redesign.css", $entry);
         $this->assertStringNotContainsString("dashboard.css", $entry);
     }
 
