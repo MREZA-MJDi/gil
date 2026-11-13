@@ -6,7 +6,6 @@ use App\Enums\OrderStatus;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CashShift;
-use App\Models\Ingredient;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Reservation;
@@ -126,7 +125,13 @@ class DashboardController extends Controller
             ->orderByDesc('units_sold')
             ->orderBy('order_items.name')
             ->limit(5)
-            ->get();
+            ->get()
+            ->map(fn ($product) => [
+                'product_id' => $product->product_id,
+                'name' => $product->name,
+                'units_sold' => (int) $product->units_sold,
+                'gross_sales' => (int) $product->gross_sales,
+            ]);
 
         $lowStockCount = Product::query()->onMenu()->lowStock()->count();
 
