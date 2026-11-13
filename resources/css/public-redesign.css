@@ -289,3 +289,13 @@ body.public-site { margin: 0; min-height: 100vh; font-family: "Vazirmatn", Tahom
 
 .menu-layout .plate > [data-menu-image-fallback] { display: grid; place-items: center; width: 100%; height: 100%; font-size: 72px; }
 .menu-layout .card > [data-menu-image-fallback] { position: absolute; z-index: 0; inset: 0; display: grid; place-items: center; font-size: 38px; opacity: .75; }
+
+/* Small brand mark and visually-hidden accessibility copy */
+.page-home .logo { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.page-home .kg-home-logo-image { width: 42px; height: 42px; object-fit: contain; }
+.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
+.kg-menu-cover { position: fixed; inset: 0; z-index: 0; opacity: .045; pointer-events: none; overflow: hidden; }
+.kg-menu-cover img { filter: grayscale(1); }
+.kg-public-nav .nav-links form, .page-menu .menu-nav form { display: inline-flex; margin: 0; }
+.kg-public-nav .nav-links form button, .page-menu .menu-nav form button { border: 0; border-radius: 8px; padding: 9px 10px; background: transparent; color: inherit; font-size: 12.5px; font-weight: 600; }
+.kg-public-nav .nav-links form button:hover, .page-menu .menu-nav form button:hover { background: rgba(241,232,212,.12); }
