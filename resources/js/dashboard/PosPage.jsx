@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const formatMoney = value => new Intl.NumberFormat('fa-IR-u-nu-arabext', { maximumFractionDigits: 0 })
     .format(Number(value || 0));
@@ -87,6 +87,18 @@ export default function PosPage({
     const activeTables = (tables || []).filter(table => table.is_active);
     const shiftOpen = cashShift?.status === 'open';
 
+    useEffect(() => {
+        if (!activeProducts.length) {
+            setSelectedProductId('');
+            setSelectedOptions([]);
+            return;
+        }
+        if (!activeProducts.some(product => String(product.id) === selectedProductId)) {
+            setSelectedProductId(String(activeProducts[0].id));
+            setSelectedOptions([]);
+        }
+    }, [activeProducts, selectedProductId]);
+
     const setProduct = product => {
         setSelectedProductId(String(product.id));
         setSelectedOptions([]);
@@ -131,8 +143,12 @@ export default function PosPage({
         if (!line || !product) return;
         const otherQuantity = cart.reduce((sum, item, itemIndex) =>
             itemIndex !== index && Number(item.product_id) === Number(line.product_id) ? sum + Number(item.quantity) : sum, 0);
-        const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? 100 : Math.max(0, Number(product.stock_quantity) - otherQuantity);
-        const quantity = Math.max(1, Math.min(stockLimit, Number(requested) || 1));
+        const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? 100 : Number(product.stock_quantity) - otherQuantity;
+        if (stockLimit < 1 && Number(requested) > Number(line.quantity)) {
+            setMessage('موجودی کافی برای افزایش این ردیف وجود ندارد.');
+            return;
+        }
+        const quantity = Math.max(1, Math.min(Math.max(1, stockLimit), Number(requested) || 1));
         setCart(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, quantity } : item));
     };
 
