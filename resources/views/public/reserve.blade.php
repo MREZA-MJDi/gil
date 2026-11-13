@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="ثبت درخواست رزرو میز، جشن و دورهمی در {{ $settings->name }}.">
     <title>رزرو و مناسبت‌ها | {{ $settings->name }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site kg-reserve-page" id="top">
     <div class="kg-topline"><span>🍒 یک قرار خوب، با برنامه‌ریزی بهتر</span><span>رزرو میز و مناسبت‌ها</span></div>

@@ -8,7 +8,7 @@
     <meta name="currency-label" content="{{ $settings->currency_label }}">
     <meta name="description" content="منوی به‌روز {{ $settings->name }}؛ محصولات، قیمت‌ها و افزودنی‌های فعال.">
     <title>منو و سفارش | {{ $settings->name }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site kg-menu-page" id="top">
     <div class="kg-topline"><span>🍒 منوی خانه گیلاسی</span><span>انتخاب روشن، سفارش ساده</span></div>

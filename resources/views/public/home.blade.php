@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#171313">
     <meta name="description" content="{{ $settings->name }}؛ منو، سفارش بیرون‌بر و درخواست رزرو میز و مناسبت‌ها.">
     <title>{{ $settings->name }} | کافه و رستوران</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site kg-home" id="top">
     <div class="kg-topline">

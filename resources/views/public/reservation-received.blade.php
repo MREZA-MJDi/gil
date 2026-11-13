@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#fbf6ec">
     <title>درخواست دریافت شد | {{ $settings->name }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site kg-reservation-received" id="top">
     <div class="kg-topline"><span>🍒 {{ $settings->name }}</span><span>دریافت درخواست رزرو</span></div>
