@@ -9,7 +9,7 @@
     <title>منو | {{ $settings->name }}</title>
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
-<body class="public-site page-menu">
+<body class="public-site page-menu" id="top">
 <div class="menu-shell" data-public-ordering data-menu-showcase data-order-endpoint="{{ route('public.orders.store') }}">
     @if(!empty($media['menu_cover']['url']))
         <div class="menu-cover-background kg-menu-cover" aria-hidden="true"><img src="{{ $media['menu_cover']['url'] }}" alt=""></div>
