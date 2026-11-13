@@ -97,6 +97,7 @@ function ShiftPanel({ cashShift, currency, submitting, onOpenShift, onCloseShift
                 <span>ثبت‌شده</span>
             </div>
             <div className="pos-shift-summary-grid">
+                <div><small>مدت شیفت</small><b>{formatNumber(Math.floor(Number(cashShift.duration_minutes || 0) / 60))} ساعت و {formatNumber(Number(cashShift.duration_minutes || 0) % 60)} دقیقه</b></div>
                 <div><small>تعداد سفارش</small><b>{formatNumber(cashShift.orders_count)}</b></div>
                 <div><small>فروش ناخالص</small><b>{money(cashShift.gross_sales, currency)}</b></div>
                 <div><small>دریافت نقدی</small><b>{money(cashShift.cash_payments_total, currency)}</b></div>
