@@ -8,7 +8,7 @@
     <title>منوی میز {{ $table->name }} | {{ $settings->name }}</title>
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
-<body class="public-site page-qr-menu">
+<body class="public-site page-qr-menu" id="top">
 <div class="menu-shell">
     <header class="menu-top" data-kg-header>
         <button type="button" class="burger2" data-kg-menu-toggle aria-expanded="false" aria-controls="kg-qr-nav" aria-label="باز کردن منو"><i></i><i></i></button>
@@ -51,6 +51,7 @@
         </section>
     </main>
     <p class="menu-qr-note">سفارش به آشپزخانه و صندوق مجموعه ارسال می‌شود. پرداخت از طریق صندوق یا کارت‌خوان انجام می‌شود.</p>
+    @include('public.partials.footer')
 </div>
 </body>
 </html>
