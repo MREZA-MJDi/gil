@@ -15,7 +15,6 @@ if (bestFood) {
         let active = Math.floor(slides.length / 2);
         let timer = null;
         let pointerStart = null;
-        let moved = false;
         let suppressClick = false;
 
         const stop = () => {
@@ -97,7 +96,7 @@ if (bestFood) {
         track.addEventListener('pointerdown', event => {
             if (event.pointerType === 'mouse' && event.button !== 0) return;
             pointerStart = event.clientX;
-            moved = false;
+            try { track.setPointerCapture(event.pointerId); } catch (_) { /* Pointer capture is optional on older browsers. */ }
             stop();
         });
 
@@ -105,14 +104,11 @@ if (bestFood) {
             if (pointerStart === null) return;
             const delta = event.clientX - pointerStart;
             pointerStart = null;
-            moved = Math.abs(delta) > 8;
-
             if (Math.abs(delta) > 42) {
                 suppressClick = true;
                 go(active + (delta < 0 ? 1 : -1));
                 window.setTimeout(() => {
                     suppressClick = false;
-                    moved = false;
                 }, 80);
             } else {
                 start();
@@ -121,7 +117,6 @@ if (bestFood) {
 
         track.addEventListener('pointercancel', () => {
             pointerStart = null;
-            moved = false;
             start();
         });
 
