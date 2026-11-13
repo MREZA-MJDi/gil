@@ -22,6 +22,9 @@ class MediaController extends Controller
         'gallery_1',
         'gallery_2',
         'gallery_3',
+        'home_showcase_background',
+        'home_reservation_banner',
+        'reservation_cover',
     ];
 
     public function index(): JsonResponse

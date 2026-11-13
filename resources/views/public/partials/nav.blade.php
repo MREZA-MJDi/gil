@@ -2,6 +2,9 @@
     <div class="kg-header-inner">
         <a class="kg-brand" href="{{ route('home') }}" aria-label="صفحه اصلی {{ $settings->name }}">
             <span class="kg-brand-mark" aria-hidden="true">
+                @if(!empty($media['brand_logo']['url']))
+                    <img class="kg-brand-logo" src="{{ $media['brand_logo']['url'] }}" alt="">
+                @else
                 <svg viewBox="0 0 48 48" role="img">
                     <path d="M23 19C22 8 15 6 11 5" fill="none" stroke="#55784d" stroke-width="2.8" stroke-linecap="round"/>
                     <path d="M24 18C27 7 34 6 39 8" fill="none" stroke="#55784d" stroke-width="2.8" stroke-linecap="round"/>
@@ -12,6 +15,7 @@
                     <path d="M16 27C16 24 18 23 20 24" fill="none" stroke="#f9d5d2" stroke-width="2" stroke-linecap="round"/>
                     <path d="M31 26C31 23 34 22 35 24" fill="none" stroke="#f9d5d2" stroke-width="2" stroke-linecap="round"/>
                 </svg>
+                @endif
             </span>
             <span class="kg-brand-copy">
                 <strong>{{ $settings->name ?: 'خانه گیلاسی' }}</strong>

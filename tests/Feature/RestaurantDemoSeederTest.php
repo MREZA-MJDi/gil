@@ -138,6 +138,27 @@ class RestaurantDemoSeederTest extends TestCase
         $this->assertSame(80000000, (int) Reservation::query()->where('reference', 'DEMO-RSV-BDAY')->value('estimated_budget'));
     }
 
+
+    public function test_production_demo_seeder_requires_an_explicit_one_command_opt_in(): void
+    {
+        $this->app->detectEnvironment(fn () => 'production');
+        config(['app.env' => 'production']);
+
+        $previous = getenv('ALLOW_PRODUCTION_DEMO_SEED');
+        putenv('ALLOW_PRODUCTION_DEMO_SEED=false');
+
+        try {
+            $this->expectException(\RuntimeException::class);
+            app(\Database\Seeders\RestaurantDemoSeeder::class)->run();
+        } finally {
+            if ($previous === false) {
+                putenv('ALLOW_PRODUCTION_DEMO_SEED');
+            } else {
+                putenv('ALLOW_PRODUCTION_DEMO_SEED='.$previous);
+            }
+        }
+    }
+
     public function test_demo_seeder_refuses_to_run_outside_local_environment(): void
     {
         $this->app->detectEnvironment(fn () => 'testing');

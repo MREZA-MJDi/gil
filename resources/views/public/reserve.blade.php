@@ -22,7 +22,9 @@
                 <div class="kg-reserve-assurance"><span>✓</span><div><b>ثبت درخواست، نه تأیید خودکار</b><small>زمان و تعداد مهمان ثبت می‌شود تا مجموعه درخواست را بررسی و برای هماهنگی با تو تماس بگیرد.</small></div></div>
             </div>
             <div class="kg-reserve-art">
-                @if(!empty($media['gallery_1']['url']))
+                @if(!empty($media['reservation_cover']['url']))
+                    <img src="{{ $media['reservation_cover']['url'] }}" alt="{{ $media['reservation_cover']['alt_text'] ?: 'تصویر صفحه رزرو' }}" loading="lazy">
+                @elseif(!empty($media['gallery_1']['url']))
                     <img src="{{ $media['gallery_1']['url'] }}" alt="{{ $media['gallery_1']['alt_text'] ?? 'چیدمان میز' }}" loading="lazy">
                 @elseif(!empty($media['gallery_3']['url']))
                     <img src="{{ $media['gallery_3']['url'] }}" alt="{{ $media['gallery_3']['alt_text'] ?? 'چیدمان میز' }}" loading="lazy">

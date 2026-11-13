@@ -20,15 +20,15 @@ class PrintController extends Controller
 
     public function receipt(Order $order): JsonResponse
     {
+        // A customer order copy can be printed before payment; payment rows are shown when present.
         $order->load(['table:id,name', 'items', 'payments.refunds', 'refunds']);
-        abort_if($order->payments->isEmpty(), 422, 'برای این سفارش پرداختی ثبت نشده است.');
         return response()->json(['type' => PrintType::Receipt->value, 'data' => $order]);
     }
 
     public function kitchen(Order $order): JsonResponse
     {
         $order->load(['table:id,name', 'items']);
-        return response()->json(['type' => PrintType::Kitchen->value, 'data' => $order->only(['number','channel','status','customer_note','created_at']) + ['table' => $order->table, 'items' => $order->items]]);
+        return response()->json(['type' => PrintType::Kitchen->value, 'data' => $order->only(['number','channel','status','customer_name','customer_phone','customer_note','created_at']) + ['table' => $order->table, 'items' => $order->items]]);
     }
 
     public function log(Request $request, Order $order): JsonResponse

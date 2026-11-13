@@ -255,6 +255,7 @@ function OrdersPage({ orders, filters, onFiltersChange, pagination, onPageChange
                         <Button onClick={() => onDetails(order.id)}>جزئیات</Button>
                         {nextStatus(order.status) && <Button kind="primary" onClick={() => onTransition(order, nextStatus(order.status))}>{nextStatusLabel(order.status)}</Button>}
                         {!['delivered','cancelled'].includes(order.status) && !['paid','partial','partially_refunded'].includes(order.payment_status) && <Button kind="danger" onClick={() => onCancel(order)}>لغو</Button>}
+                        <Button onClick={() => onPrint(order.id, 'receipt')}>فیش مشتری</Button>
                         <Button onClick={() => onPrint(order.id, 'kitchen')}>فیش آشپزخانه</Button>
                     </div></td>
                 </tr>)}
@@ -270,7 +271,7 @@ function nextStatusLabel(status) {
     return ({ new: 'تأیید', confirmed: 'شروع آماده‌سازی', preparing: 'آماده تحویل', ready: 'ثبت تحویل' })[status] || 'تغییر وضعیت';
 }
 
-function CashierPage({ cashShift, orders, pagination, onPageChange, onRefresh, onOpenShift, onCloseShift, onMovement, onPayment, onDetails }) {
+function CashierPage({ cashShift, orders, pagination, onPageChange, onRefresh, onOpenShift, onCloseShift, onMovement, onPayment, onDetails, onPrint }) {
     const [openingCash, setOpeningCash] = useState('0');
     const [countedCash, setCountedCash] = useState('');
     const [shiftNote, setShiftNote] = useState('');
@@ -311,7 +312,7 @@ function CashierPage({ cashShift, orders, pagination, onPageChange, onRefresh, o
         </section>
         <section className="panel orders-panel"><div className="panel-heading"><div><h2>مانده‌های قابل تسویه</h2><p>فقط سفارش‌های تسویه‌نشده نمایش داده می‌شوند؛ مبلغ باقی‌مانده در جزئیات سفارش محاسبه می‌شود.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
             {payable.length ? <TableWrap><thead><tr><th>شماره</th><th>کانال</th><th>مبلغ کل</th><th>وضعیت پرداخت</th><th>اقدام</th></tr></thead><tbody>
-                {payable.map(order => <tr key={order.id}><td className="mono">{order.number}</td><td>{channelLabel(order)}</td><td>{money(order.total)}</td><td><Pill value={order.payment_status} dictionary={paymentStatusLabel} /></td><td><div className="op-actions"><Button kind="primary" onClick={() => onPayment(order)}>ثبت پرداخت</Button><Button onClick={() => onDetails(order.id)}>سوابق / بازپرداخت</Button></div></td></tr>)}
+                {payable.map(order => <tr key={order.id}><td className="mono">{order.number}</td><td>{channelLabel(order)}</td><td>{money(order.total)}</td><td><Pill value={order.payment_status} dictionary={paymentStatusLabel} /></td><td><div className="op-actions"><Button kind="primary" onClick={() => onPayment(order)}>ثبت پرداخت</Button><Button onClick={() => onDetails(order.id)}>سوابق / بازپرداخت</Button><Button onClick={() => onPrint(order.id,'receipt')}>فیش مشتری</Button><Button onClick={() => onPrint(order.id,'kitchen')}>آشپزخانه</Button></div></td></tr>)}
             </tbody></TableWrap> : <Empty>هیچ مانده‌ی قابل تسویه‌ای وجود ندارد.</Empty>}
             <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
@@ -482,6 +483,79 @@ function ReportsPage({ report, onRefresh }) {
 
 function SettingsPage({ settings, onSave, onRefresh }) {
     const [form, setForm] = useState(null);
+    const [printerStatus, setPrinterStatus] = useState('not-connected');
+    const [printerNames, setPrinterNames] = useState([]);
+    const [cashierPrinter, setCashierPrinter] = useState('');
+    const [kitchenPrinter, setKitchenPrinter] = useState('');
+    const [printerError, setPrinterError] = useState('');
+    const [printerNotice, setPrinterNotice] = useState('');
+
+    useEffect(() => {
+        try {
+            setCashierPrinter(window.localStorage.getItem('gil-qz-cashier-printer') || '');
+            setKitchenPrinter(window.localStorage.getItem('gil-qz-kitchen-printer') || '');
+        } catch {
+            setPrinterError('ذخیره تنظیمات چاپگر در این مرورگر در دسترس نیست.');
+        }
+    }, []);
+
+    const discoverPrinters = async () => {
+        setPrinterError('');
+        setPrinterNotice('');
+        const qz = window.qz;
+        if (!qz?.websocket || !qz?.printers) {
+            setPrinterStatus('missing');
+            setPrinterError('کتابخانه QZ Tray بارگذاری نشده است؛ صفحه را بازخوانی کن.');
+            return;
+        }
+        setPrinterStatus('connecting');
+        try {
+            if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
+            setPrinterStatus('connected');
+            const list = await qz.printers.find();
+            const names = Array.isArray(list) ? list : [];
+            setPrinterNames(names);
+            setPrinterNotice(names.length ? (numberFa(names.length) + ' چاپگر از سیستم‌عامل این کامپیوتر شناسایی شد.') : 'چاپگری در این کامپیوتر پیدا نشد؛ ابتدا درایور چاپگر را نصب و آن را به سیستم‌عامل اضافه کن.');
+        } catch (error) {
+            setPrinterStatus('error');
+            setPrinterError(error?.message || 'ارتباط با QZ Tray برقرار نشد. نصب و اجرای برنامه روی کامپیوتر صندوق را بررسی کن.');
+        }
+    };
+
+    const savePrinterRouting = () => {
+        try {
+            window.localStorage.setItem('gil-qz-cashier-printer', cashierPrinter);
+            window.localStorage.setItem('gil-qz-kitchen-printer', kitchenPrinter);
+            setPrinterNotice('انتخاب چاپگرهای این کامپیوتر ذخیره شد.');
+            setPrinterError('');
+        } catch {
+            setPrinterError('ذخیره انتخاب چاپگر در این مرورگر ناموفق بود.');
+        }
+    };
+
+    const testPrinter = async (printerName, kind) => {
+        if (!printerName) {
+            setPrinterError('ابتدا چاپگر موردنظر را انتخاب کن.');
+            return;
+        }
+        const qz = window.qz;
+        if (!qz?.websocket) {
+            setPrinterError('QZ Tray در دسترس نیست.');
+            return;
+        }
+        setPrinterError('');
+        setPrinterNotice('');
+        try {
+            if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
+            const width = Number(form?.paper_width) === 58 ? 58 : 80;
+            const html = '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><style>@page{size:'+width+'mm auto;margin:3mm}body{width:'+(width-6)+'mm;margin:0 auto;font:13px Tahoma,Arial;text-align:center}h1{font-size:18px}p{font-size:11px}</style><body><h1>خانه گیلاسی</h1><p>آزمایش چاپگر '+escapeHtml(kind)+'</p><b>اتصال چاپگر موفق است</b></body></html>';
+            const config = qz.configs.create(printerName);
+            await qz.print(config, [{ type: 'pixel', format: 'html', flavor: 'plain', data: html }]);
+            setPrinterNotice('درخواست آزمایش برای «'+printerName+'» ارسال شد. خروج واقعی کاغذ باید روی دستگاه بررسی شود.');
+        } catch (error) {
+            setPrinterError(error?.message || 'ارسال آزمایشی به چاپگر ناموفق بود.');
+        }
+    };
     const defaults = {
         hero_eyebrow: 'کافه و رستوران خانه گیلاسی',
         hero_title_line1: 'طعم خوب،',
@@ -544,7 +618,41 @@ function SettingsPage({ settings, onSave, onRefresh }) {
             </form>
             <p className="op-note">تصویر اصلی را از «رسانه و تصاویر سایت ← تصویر اصلی صفحه خانه» عوض کن. ترتیب و تصویرهای اسلایدر از ترتیب و تصاویر محصولات فعال در «منو و محصولات» گرفته می‌شوند.</p>
         </section>
-        <section className="panel op-card"><h2>چاپگر فیش</h2><p className="op-note">این تنظیم عرض صفحه چاپ را مشخص می‌کند، اما چاپ مستقیم و بی‌پنجره نیازمند نرم‌افزار واسط روی کامپیوتر صندوق است. راهنمای نصب در docs/receipt-printer-integration.md ثبت شده است.</p><Button onClick={() => window.print()}>آزمایش چاپ مرورگر</Button></section>
+        <section className="panel op-card op-printer-settings">
+            <div className="panel-heading"><div><h2>اتصال چاپگرهای همین کامپیوتر</h2><p>چاپگرها از طریق QZ Tray و درایور سیستم‌عامل کامپیوتر صندوق پیدا می‌شوند. انتخاب‌ها فقط روی همین مرورگر ذخیره می‌شوند.</p></div><Pill value={printerStatus === 'connected' ? 'open' : printerStatus === 'connecting' ? 'pending' : 'closed'} dictionary={{open:'متصل',pending:'در حال اتصال',closed:'قطع'}} /></div>
+            <div className="op-printer-setup-note">
+                <b>پیش‌نیاز</b>
+                <span>QZ Tray را روی کامپیوتر صندوق نصب و اجرا کن و مطمئن شو چاپگر در تنظیمات Windows / macOS / Linux دیده می‌شود. سرور سایت به چاپگر USB کامپیوتر تو دسترسی مستقیم ندارد.</span>
+            </div>
+            <div className="op-form-actions">
+                <Button kind="primary" onClick={discoverPrinters} disabled={printerStatus === 'connecting'}>{printerStatus === 'connecting' ? 'در حال اتصال…' : 'اتصال و شناسایی چاپگرها'}</Button>
+                <Button onClick={() => window.print()}>آزمایش چاپ مرورگر</Button>
+            </div>
+            {printerError && <p className="media-manager-message is-error" role="alert">{printerError}</p>}
+            {printerNotice && <p className="media-manager-message is-success" role="status">{printerNotice}</p>}
+            {printerNames.length > 0 && <>
+                <div className="op-form op-form-grid op-printer-routing">
+                    <Field label="چاپگر فیش صندوق / مشتری">
+                        <select value={cashierPrinter} onChange={event => setCashierPrinter(event.target.value)}>
+                            <option value="">انتخاب چاپگر صندوق…</option>
+                            {printerNames.map(name => <option value={name} key={name}>{name}</option>)}
+                        </select>
+                    </Field>
+                    <Field label="چاپگر فیش آشپزخانه">
+                        <select value={kitchenPrinter} onChange={event => setKitchenPrinter(event.target.value)}>
+                            <option value="">انتخاب چاپگر آشپزخانه…</option>
+                            {printerNames.map(name => <option value={name} key={name}>{name}</option>)}
+                        </select>
+                    </Field>
+                </div>
+                <div className="op-form-actions">
+                    <Button kind="primary" onClick={savePrinterRouting}>ذخیره مسیر چاپ</Button>
+                    <Button onClick={() => testPrinter(cashierPrinter, 'صندوق / مشتری')}>تست چاپگر صندوق</Button>
+                    <Button onClick={() => testPrinter(kitchenPrinter, 'آشپزخانه')}>تست چاپگر آشپزخانه</Button>
+                </div>
+            </>}
+            <p className="op-note">چاپ فیش مشتری حتی پیش از تسویه، شماره سفارش و مبلغ قابل پرداخت را نشان می‌دهد. چاپ رسید پرداخت هم پرداخت‌های ثبت‌شده را درج می‌کند. اگر QZ Tray در دسترس نباشد، پنجره چاپ مرورگر باز می‌شود.</p>
+        </section>
     </div>;
 }
 
@@ -744,7 +852,7 @@ function OrderDetailsModal({ order, onClose, onPrint, onRefund }) {
             <div className="op-detail-totals"><span>جمع اقلام: <b>{money(subtotal)}</b></span><span>تخفیف: <b>{money(order.discount)}</b></span><span>مالیات: <b>{money(order.tax)}</b></span><span>سرویس: <b>{money(order.service)}</b></span><span>دریافت ناخالص: <b>{money(paid)}</b></span><span>بازپرداخت: <b>{money(refunded)}</b></span><span>مانده: <b>{money(Math.max(0,Number(order.total)-paid+refunded))}</b></span></div>
             <div className="panel-heading"><div><h3>سوابق پرداخت</h3><p>پرداخت‌ها تغییرناپذیرند؛ اصلاح از مسیر بازپرداخت ثبت می‌شود.</p></div></div>
             {payments.length ? <TableWrap><thead><tr><th>زمان</th><th>روش</th><th>مبلغ</th><th>وضعیت</th><th>پیگیری</th><th>بازپرداخت</th></tr></thead><tbody>{payments.map(p=>{const refundable=Math.max(0,Number(p.amount)-(p.refunds||[]).reduce((sum,r)=>sum+Number(r.amount||0),0));return <tr key={p.id}><td>{dateTime(p.paid_at)}</td><td>{paymentMethodLabel[p.method]||p.method}</td><td>{money(p.amount)}</td><td>{p.status}</td><td>{p.reference||'—'}</td><td>{refundable>0&&p.status==='succeeded'?<Button kind="danger" onClick={()=>onRefund(p,order.id)}>بازپرداخت تا {money(refundable)}</Button>:'—'}</td></tr>;})}</tbody></TableWrap> : <Empty>برای این سفارش هنوز پرداختی ثبت نشده است.</Empty>}
-            <div className="op-form-actions"><Button onClick={()=>onPrint(order.id,'invoice')}>چاپ فاکتور</Button><Button onClick={()=>onPrint(order.id,'kitchen')}>فیش آشپزخانه</Button><Button kind="primary" onClick={()=>onPrint(order.id,'receipt')}>چاپ رسید پرداخت</Button><Button onClick={onClose}>بستن</Button></div>
+            <div className="op-form-actions"><Button onClick={()=>onPrint(order.id,'invoice')}>چاپ فاکتور</Button><Button onClick={()=>onPrint(order.id,'kitchen')}>فیش آشپزخانه</Button><Button kind="primary" onClick={()=>onPrint(order.id,'receipt')}>فیش مشتری / رسید</Button><Button onClick={onClose}>بستن</Button></div>
         </>}
     </Modal>;
 }
@@ -753,13 +861,74 @@ function escapeHtml(value) {
     return String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");
 }
 function printHtml(order, type, settings) {
-    const width=Number(settings?.paper_width) === 58 ? 58 : 80;
-    const kitchen=type==='kitchen';
-    const title=kitchen?'فیش آشپزخانه':type==='receipt'?'رسید پرداخت':'فاکتور فروش';
-    const itemRows=(order.items||[]).map(item=>'<tr><td>'+escapeHtml(item.name)+(item.options?.length?'<small>'+escapeHtml(item.options.map(o=>o.name).join('، '))+'</small>':'')+'</td><td>'+numberFa(item.quantity)+'</td><td>'+money(item.line_total)+'</td></tr>').join('');
-    const paymentRows=(order.payments||[]).filter(p=>p.status==='succeeded').map(p=>'<p class="row"><span>'+escapeHtml(paymentMethodLabel[p.method]||p.method)+'</span><b>'+money(p.amount)+'</b></p>').join('');
-    const totals=kitchen?'':('<hr/><p class="row"><span>جمع اقلام</span><b>'+money(order.subtotal)+'</b></p><p class="row"><span>تخفیف</span><b>'+money(order.discount)+'</b></p><p class="row"><span>مالیات</span><b>'+money(order.tax)+'</b></p><p class="row"><span>سرویس</span><b>'+money(order.service)+'</b></p><p class="row total"><span>مبلغ نهایی</span><b>'+money(order.total)+'</b></p>');
-    return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+title+'</title><style>@page{size:'+width+'mm auto;margin:3mm}*{box-sizing:border-box}body{width:'+(width-6)+'mm;margin:0 auto;font:12px Tahoma,Arial,sans-serif;color:#111}h1{text-align:center;font-size:18px;margin:0 0 6px}h2{text-align:center;font-size:13px;margin:0 0 10px}p{margin:4px 0}.muted{text-align:center;color:#555;font-size:10px}.row{display:flex;justify-content:space-between;gap:6px}hr{border:0;border-top:1px dashed #777;margin:8px 0}table{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}th,td{text-align:right;padding:5px 1px;border-bottom:1px dashed #aaa;vertical-align:top}td small{display:block;font-size:9px;margin-top:2px}.total{font-size:14px;font-weight:bold;border-top:1px solid #222;padding-top:7px}.foot{text-align:center;margin-top:15px;font-size:10px;white-space:pre-wrap}@media screen{body{margin:12px auto}}</style></head><body><h1>'+escapeHtml(settings?.name||'خانه گیلاسی')+'</h1><h2>'+title+'</h2><p class="muted">'+escapeHtml(settings?.phone||'')+'</p><p class="row"><span>شماره</span><b>'+escapeHtml(order.number||order.id)+'</b></p><p class="row"><span>زمان</span><b>'+escapeHtml(dateTime(order.created_at))+'</b></p><p class="row"><span>کانال</span><b>'+escapeHtml(channelLabel(order))+'</b></p>'+(order.customer_name?'<p class="row"><span>مشتری</span><b>'+escapeHtml(order.customer_name)+'</b></p>':'')+(order.customer_note?'<p>یادداشت: '+escapeHtml(order.customer_note)+'</p>':'')+'<hr/><table><thead><tr><th>شرح</th><th>تعداد</th><th>مبلغ</th></tr></thead><tbody>'+itemRows+'</tbody></table>'+totals+(type==='receipt'?'<hr/><b>پرداخت‌های ثبت‌شده</b>'+paymentRows:'')+'<div class="foot">'+escapeHtml(settings?.receipt_footer||'با تشکر از انتخاب شما')+'</div><script>window.addEventListener("load",function(){window.focus();setTimeout(function(){window.print();},250);});</script></body></html>';
+    const width = Number(settings?.paper_width) === 58 ? 58 : 80;
+    const kitchen = type === 'kitchen';
+    const title = kitchen ? 'فیش آشپزخانه' : type === 'receipt' ? 'فیش مشتری' : 'فاکتور فروش';
+    const status = orderStatusLabel[order.status] || order.status || 'ثبت‌شده';
+    const paymentStatus = paymentStatusLabel[order.payment_status] || order.payment_status || 'تسویه‌نشده';
+
+    const itemRows = (order.items || []).map(item => {
+        const optionNames = (item.options || []).map(option => option.name).filter(Boolean);
+        const notes = [optionNames.join('، '), item.note].filter(Boolean).join(' · ');
+        return '<tr><td><b>' + escapeHtml(item.name) + '</b>' +
+            (notes ? '<small>' + escapeHtml(notes) + '</small>' : '') +
+            '</td><td>' + numberFa(item.quantity) + '</td>' +
+            (kitchen ? '' : '<td>' + money(item.line_total) + '</td>') +
+            '</tr>';
+    }).join('');
+
+    const itemHeaders = kitchen
+        ? '<th>شرح سفارش</th><th>تعداد</th>'
+        : '<th>شرح</th><th>تعداد</th><th>مبلغ</th>';
+
+    const totals = kitchen ? '' :
+        '<hr/><p class="row"><span>جمع اقلام</span><b>' + money(order.subtotal) + '</b></p>' +
+        '<p class="row"><span>تخفیف</span><b>' + money(order.discount) + '</b></p>' +
+        '<p class="row"><span>مالیات</span><b>' + money(order.tax) + '</b></p>' +
+        '<p class="row"><span>سرویس</span><b>' + money(order.service) + '</b></p>' +
+        '<p class="row total"><span>مبلغ نهایی</span><b>' + money(order.total) + '</b></p>' +
+        '<p class="row"><span>وضعیت پرداخت</span><b>' + escapeHtml(paymentStatus) + '</b></p>';
+
+    const paymentRows = (order.payments || [])
+        .filter(payment => payment.status === 'succeeded')
+        .map(payment => '<p class="row"><span>' +
+            escapeHtml(paymentMethodLabel[payment.method] || payment.method) +
+            '</span><b>' + money(payment.amount) + '</b></p>')
+        .join('');
+
+    const paymentSection = type === 'receipt'
+        ? '<hr/><b>پرداخت‌های ثبت‌شده</b>' +
+            (paymentRows || '<p class="muted">هنوز پرداختی ثبت نشده است.</p>') : '';
+
+    return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">' +
+        '<meta name="viewport" content="width=device-width,initial-scale=1"><title>' + title + '</title>' +
+        '<style>@page{size:' + width + 'mm auto;margin:3mm}*{box-sizing:border-box}' +
+        'body{width:' + (width - 6) + 'mm;margin:0 auto;font:12px Tahoma,Arial,sans-serif;color:#111}' +
+        'h1{text-align:center;font-size:18px;margin:0 0 6px}h2{text-align:center;font-size:13px;margin:0 0 10px}' +
+        'p{margin:4px 0}.muted{text-align:center;color:#555;font-size:10px}' +
+        '.row{display:flex;justify-content:space-between;gap:6px}hr{border:0;border-top:1px dashed #777;margin:8px 0}' +
+        'table{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}' +
+        'th,td{text-align:right;padding:5px 1px;border-bottom:1px dashed #aaa;vertical-align:top}' +
+        'td small{display:block;font-size:9px;margin-top:3px;line-height:1.7;color:#555}' +
+        '.total{font-size:14px;font-weight:bold;border-top:1px solid #222;padding-top:7px}' +
+        '.foot{text-align:center;margin-top:15px;font-size:10px;white-space:pre-wrap}' +
+        '.ticket-number{text-align:center;font-size:23px;font-weight:900;letter-spacing:.04em;margin:7px 0}' +
+        '.ticket-note{margin-top:8px;padding:7px;border:1px dashed #777;font-weight:700}' +
+        '@media screen{body{margin:12px auto}}</style></head><body>' +
+        '<h1>' + escapeHtml(settings?.name || 'خانه گیلاسی') + '</h1><h2>' + title + '</h2>' +
+        '<p class="muted">' + escapeHtml(settings?.phone || '') + '</p>' +
+        '<div class="ticket-number">' + escapeHtml(order.number || order.id) + '</div>' +
+        '<p class="row"><span>زمان ثبت</span><b>' + escapeHtml(dateTime(order.created_at)) + '</b></p>' +
+        '<p class="row"><span>کانال</span><b>' + escapeHtml(channelLabel(order)) + '</b></p>' +
+        (order.table?.name ? '<p class="row"><span>میز</span><b>' + escapeHtml(order.table.name) + '</b></p>' : '') +
+        '<p class="row"><span>وضعیت سفارش</span><b>' + escapeHtml(status) + '</b></p>' +
+        (order.customer_name ? '<p class="row"><span>مشتری</span><b>' + escapeHtml(order.customer_name) + '</b></p>' : '') +
+        (order.customer_phone ? '<p class="row"><span>تلفن</span><b>' + escapeHtml(order.customer_phone) + '</b></p>' : '') +
+        (order.customer_note ? '<p class="ticket-note">یادداشت: ' + escapeHtml(order.customer_note) + '</p>' : '') +
+        '<hr/><table><thead><tr>' + itemHeaders + '</tr></thead><tbody>' + itemRows + '</tbody></table>' +
+        totals + paymentSection +
+        '<div class="foot">' + escapeHtml(settings?.receipt_footer || 'با تشکر از انتخاب شما') + '</div>' +
+        '</body></html>';
 }
 
 export default function DashboardApp() {
@@ -904,14 +1073,45 @@ export default function DashboardApp() {
     const submitRefund=(payload,paymentId,orderId)=>action(()=>api('/payments/'+paymentId+'/refunds',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'بازپرداخت ثبت شد. اگر روش وجه نقد باشد، حرکت خروجی صندوق هم ثبت می‌شود.',{close:true});
     const printDocument=async(id,type)=>{
         const popup=window.open('about:blank','_blank','width=460,height=800');
-        if(!popup){notify('مرورگر پنجره چاپ را مسدود کرد؛ اجازه Pop-up را برای این سایت فعال کن.');return;}
         try{
             const [payload,settingPayload]=await Promise.all([api('/orders/'+id+'/'+(type==='kitchen'?'kitchen-slip':type==='receipt'?'receipt':'invoice')),settings?Promise.resolve({data:settings}):api('/settings')]);
-            const order=unwrapData(payload);const config=unwrapData(settingPayload);
+            const order=unwrapData(payload);
+            const printerKey=type==='kitchen'?'gil-qz-kitchen-printer':'gil-qz-cashier-printer';
+            let targetPrinter='';
+            try{targetPrinter=window.localStorage.getItem(printerKey)||'';}catch{}
+            const qz=window.qz;
+            let sentToLocalPrinter=false;
+
+            if(targetPrinter && qz?.websocket && qz?.printers && qz?.configs && qz?.print){
+                try{
+                    if(!qz.websocket.isActive || !qz.websocket.isActive()) await qz.websocket.connect({retries:2,delay:1});
+                    const printerConfig=qz.configs.create(targetPrinter);
+                    await qz.print(printerConfig,[{type:'pixel',format:'html',flavor:'plain',data:printHtml(order,type,unwrapData(settingPayload))}]);
+                    sentToLocalPrinter=true;
+                    notify('درخواست '+(type==='kitchen'?'فیش آشپزخانه':'فیش مشتری')+' به چاپگر «'+targetPrinter+'» ارسال شد. خروج واقعی کاغذ را بررسی کن.');
+                }catch(localError){
+                    notify('چاپ مستقیم در دسترس نبود؛ پنجره چاپ مرورگر باز می‌شود. '+(localError?.message||''));
+                }
+            }
+
+            if(!sentToLocalPrinter){
+                if(!popup){notify('چاپگر محلی متصل نیست و مرورگر نیز پنجره چاپ را مسدود کرده است.');return;}
+                popup.document.open();
+                popup.document.write(printHtml(order,type,unwrapData(settingPayload)));
+                popup.document.close();
+                popup.focus();
+                window.setTimeout(()=>{try{popup.focus();popup.print();}catch{}},400);
+            }else if(popup && !popup.closed){
+                popup.close();
+            }
+
             const printType=type==='kitchen'?'kitchen':type;
-            try{await api('/orders/'+id+'/print-log',{method:'POST',body:{type:printType,payment_id:type==='receipt'?(order.payments||[]).find(p=>p.status==='succeeded')?.id||null:null,is_reprint:false}});}catch(e){notify('چاپ ادامه پیدا می‌کند، اما ثبت گزارش چاپ ناموفق بود: '+e.message);}
-            popup.document.open();popup.document.write(printHtml(order,type,config));popup.document.close();popup.focus();
-        }catch(e){popup.close();notify(e?.message||'دریافت اطلاعات برای چاپ ناموفق بود.');}
+            try{await api('/orders/'+id+'/print-log',{method:'POST',body:{type:printType,payment_id:type==='receipt'?(order.payments||[]).find(p=>p.status==='succeeded')?.id||null:null,is_reprint:false}});}
+            catch(e){notify('درخواست چاپ ارسال شد، اما ثبت گزارش چاپ ناموفق بود: '+e.message);}
+        }catch(e){
+            if(popup && !popup.closed) popup.close();
+            notify(e?.message||'دریافت اطلاعات برای چاپ ناموفق بود.');
+        }
     };
     const createProduct=(payload,id)=>action(()=>{
         if (typeof File !== 'undefined' && payload.image instanceof File) {
@@ -969,7 +1169,7 @@ export default function DashboardApp() {
     const renderPage=()=>{
         if(page==='overview') return data.dashboard ? <OverviewPage dashboard={data.dashboard} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} /> : (loading ? <OverviewSkeleton /> : <OverviewPage dashboard={{}} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} />);
         if(page==='orders') return <OrdersPage orders={data.orders} filters={listFilters.orders} onFiltersChange={patch=>updateListFilters('orders',patch)} pagination={data.ordersPagination} onPageChange={setListPage} onRefresh={refresh} onDetails={orderDetails} onPrint={printDocument} onNewOrder={newOrder} onTransition={transition} onCancel={cancelOrder} />;
-        if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} pagination={data.cashierOrdersPagination} onPageChange={setListPage} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} />;
+        if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} pagination={data.cashierOrdersPagination} onPageChange={setListPage} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} onPrint={printDocument} />;
         if(page==='menu') return <MenuPage products={data.products} categories={data.categories} filters={listFilters.products} onFiltersChange={patch=>updateListFilters('products',patch)} pagination={data.productsPagination} onPageChange={setListPage} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onProductDelete={deleteProduct} onCategory={category=>setModal({type:'category',category})} onCategoryDelete={deleteCategory} />;
         if(page==='inventory') return <InventoryPage products={data.products} movements={data.movements} pagination={data.movementsPagination} onPageChange={setListPage} onRefresh={refresh} onAdjust={product=>setModal({type:'inventory',product})} />;
         if(page==='recipes') return <RecipesPage recipeData={data.recipes} onRefresh={refresh} onCreateIngredient={createIngredient} onUpdateIngredient={updateIngredient} onAdjustIngredient={ingredient=>setModal({type:'ingredient-stock',ingredient})} onSaveRecipe={saveRecipe} />;

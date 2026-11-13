@@ -15,6 +15,15 @@
     @include('public.partials.nav')
 
     <main class="kg-menu-main" data-public-ordering data-menu-showcase data-order-endpoint="{{ route('public.orders.store') }}">
+
+    @if(!empty($media['menu_cover']['url']))
+        <section class="kg-menu-cover">
+            <img src="{{ $media['menu_cover']['url'] }}" alt="{{ $media['menu_cover']['alt_text'] ?: 'کاور منوی خانه گیلاسی' }}" fetchpriority="high">
+            <div class="kg-menu-cover-overlay"></div>
+            <div class="kg-menu-cover-copy"><span>منوی خانه گیلاسی</span><h1>انتخاب‌های خوش‌طعم،<br><em>در یک نگاه.</em></h1><p>منوی روز را ببین و سفارش دلخواهت را ثبت کن.</p></div>
+        </section>
+    @endif
+
         <section class="kg-shop" aria-labelledby="kg-shop-title">
             <header class="kg-shop-intro">
                 <div>
