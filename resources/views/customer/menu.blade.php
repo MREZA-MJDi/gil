@@ -23,6 +23,7 @@
             <a href="{{ route('public.reservations.create') }}">رزرو میز</a>
         </nav>
     </header>
+    <p class="menu-intro">طعم دلخواهت، همین‌جاست.</p>
 
     <main data-customer-qr-menu
           data-table-name="{{ $table->name }}"
