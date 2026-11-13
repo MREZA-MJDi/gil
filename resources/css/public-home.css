@@ -197,7 +197,7 @@
 
 /* Dashboard-managed image surfaces */
 .public-site .kg-home-showcase.has-custom-background {
-    background-image:linear-gradient(180deg,rgba(15,13,14,.82),rgba(15,13,14,.9)),url(var(--kg-showcase-image));
+    background-image:linear-gradient(180deg,rgba(15,13,14,.82),rgba(15,13,14,.9)),var(--kg-showcase-image);
     background-position:center;
     background-size:cover;
 }
