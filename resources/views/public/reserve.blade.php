@@ -8,7 +8,7 @@
 </head>
 <body class="page-reserve" id="top">
 <div class="wrap">
-    <div class="logo">{{ $settings->name }}</div>
+    @include('public.partials.site-logo')
     <div class="frame">
         <div class="form">
             <h2>رزرو میز</h2>
