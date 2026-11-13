@@ -110,3 +110,12 @@
  .media-crop-actions { align-items:stretch; flex-direction:column; }
  .media-crop-actions>div>* { flex:1; }
 }
+
+
+/* Local receipt-printer routing */
+.op-printer-settings .op-printer-setup-note { display:grid; gap:5px; margin:12px 0 16px; padding:13px 15px; border:1px solid #e8dfd4; border-radius:10px; background:#faf7f2; }
+.op-printer-settings .op-printer-setup-note b { color:#50463c; font-size:11px; }
+.op-printer-settings .op-printer-setup-note span { color:#82776c; font-size:10px; line-height:1.9; }
+.op-printer-routing { margin-top:14px; }
+.op-printer-settings .op-form-actions { display:flex; flex-wrap:wrap; gap:8px; }
+@media(max-width:560px){.op-printer-settings .op-form-actions>*{flex:1 1 100%}}
