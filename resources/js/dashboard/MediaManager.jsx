@@ -278,7 +278,7 @@ export default function MediaManager({ onNavigate }) {
                         <div className="media-asset-actions">
                             {selected
                                 ? <ActionButton kind="primary" disabled={busy !== ''} onClick={() => upload(slot.key)}>{busy === slot.key ? 'در حال ذخیره…' : 'ذخیره و اعمال تصویر'}</ActionButton>
-                                : <ActionButton disabled={busy !== ''} onClick={() => setNotice('برای این جایگاه یک تصویر انتخاب کن تا برش و پیش‌نمایش آن باز شود.')}>آماده‌سازی تصویر</ActionButton>}
+                                : <ActionButton disabled>ابتدا تصویر را انتخاب کن</ActionButton>}
                             {selected && <ActionButton disabled={busy !== ''} onClick={() => { const entry=files[slot.key]; if(entry?.previewUrl) revokeUrl(entry.previewUrl); setFiles(previous=>{const next={...previous};delete next[slot.key];return next;}); }}>لغو پیش‌نمایش</ActionButton>}
                             {asset && <ActionButton kind="danger" disabled={busy !== ''} onClick={() => remove(asset)}>حذف تصویر اعمال‌شده</ActionButton>}
                         </div>
