@@ -201,6 +201,40 @@ class PublicSiteRenderingTest extends TestCase
         }
     }
 
+    public function test_best_food_cards_open_their_product_and_rtl_controls_match_carousel_direction(): void
+    {
+        $category = Category::query()->create([
+            'name' => 'دسته اسلایدر',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+        $product = Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'محصول قابل کلیک',
+            'base_price' => 78000,
+            'status' => 'active',
+            'stock_quantity' => 5,
+            'sort_order' => 1,
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('href="'.route('public.menu', ['product' => $product->id]).'#category-'.$category->id.'"', false)
+            ->assertSee('aria-label="مشاهده محصول قابل کلیک در منوی کامل"', false)
+            ->assertSee('data-best-food-next aria-label="محصول بعدی"', false)
+            ->assertSee('data-best-food-prev aria-label="محصول قبلی"', false);
+
+        $carousel = file_get_contents(resource_path('js/public/best-food-carousel.js'));
+        $menu = file_get_contents(resource_path('js/public/menu-showcase.js'));
+
+        $this->assertIsString($carousel);
+        $this->assertIsString($menu);
+        $this->assertStringContainsString("next?.addEventListener('click', () => go(active + 1))", $carousel);
+        $this->assertStringContainsString("previous?.addEventListener('click', () => go(active - 1))", $carousel);
+        $this->assertStringContainsString("new URLSearchParams(window.location.search).get('product')", $menu);
+        $this->assertStringContainsString('setSelectedProduct(initialPanel, requestedProductId)', $menu);
+    }
+
     public function test_mobile_navigation_has_inset_popovers_and_dismiss_controls(): void
     {
         $this->get(route('home'))
