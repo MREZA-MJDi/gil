@@ -11,6 +11,7 @@ use App\Services\AuditLogger;
 use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -57,13 +58,21 @@ class ProductController extends Controller
     public function destroy(Product $product, AuditLogger $audit, Request $request): JsonResponse
     {
         abort_if($product->options()->exists(), 409, 'ابتدا گزینه‌های محصول را حذف کنید یا محصول را غیرفعال کنید.');
+        abort_if($product->recipeIngredients()->exists(), 409, 'محصول در رسپی مواد اولیه استفاده شده است؛ ابتدا رسپی را اصلاح کنید یا محصول را غیرفعال کنید.');
         abort_if(
             $product->orderItems()->exists() || $product->inventoryMovements()->exists(),
             409,
             'محصول دارای سابقه فروش یا گردش موجودی است؛ برای حفظ سوابق، آن را غیرفعال کنید.',
         );
-        $audit->record('product.deleted', $product, $product->only(['name','base_price','status']), [], 'product_delete', $request->user()->id);
+
+        $imagePath = $product->image_path;
+        $audit->record('product.deleted', $product, $product->only(['name', 'base_price', 'status']), [], 'product_delete', $request->user()->id);
         $product->delete();
+
+        if ($imagePath && ! filter_var($imagePath, FILTER_VALIDATE_URL)) {
+            Storage::disk('public')->delete($imagePath);
+        }
+
         return response()->json(['message' => 'محصول حذف شد.']);
     }
 }
