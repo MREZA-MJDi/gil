@@ -9,7 +9,7 @@
     <title>رزرو میز | {{ $settings->name }}</title>
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
-<body class="public-site page-reserve">
+<body class="public-site page-reserve" id="top">
 <div class="wrap">
     <div class="logo">{{ $settings->name ?: 'خانه گیلاسی' }}</div>
     <main class="frame">
