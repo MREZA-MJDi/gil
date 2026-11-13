@@ -36,11 +36,11 @@
         <aside class="side" aria-label="دسترسی سریع">
             <a href="{{ route('public.menu') }}" class="slot tile">
                 @if(!empty($media['menu_cover']['url']))<img src="{{ $media['menu_cover']['url'] }}" alt="منوی خانه گیلاسی" loading="lazy">@elseif($featuredProducts->first()?->image_url)<img src="{{ $featuredProducts->first()->image_url }}" alt="محصول منتخب" loading="lazy">@endif
-                <span class="tag"><i>←</i>منو</span>
+                <span class="tag"><i>←</i>{{ data_get($homepageContent, 'hero_primary_cta', 'منو') }}</span>
             </a>
             <a href="{{ route('public.reservations.create') }}" class="slot tile">
                 @if(!empty($media['home_reservation_banner']['url']))<img src="{{ $media['home_reservation_banner']['url'] }}" alt="{{ $media['home_reservation_banner']['alt_text'] ?: 'رزرو میز' }}" loading="lazy">@elseif(!empty($media['reservation_cover']['url']))<img src="{{ $media['reservation_cover']['url'] }}" alt="رزرو میز" loading="lazy">@elseif(!empty($media['gallery_1']['url']))<img src="{{ $media['gallery_1']['url'] }}" alt="فضای رستوران" loading="lazy">@endif
-                <span class="tag"><i>←</i>رزرو میز</span>
+                <span class="tag"><i>←</i>{{ data_get($homepageContent, 'hero_secondary_cta', 'رزرو میز') }}</span>
             </a>
             <a href="#about" class="slot tile">
                 @if(!empty($media['gallery_1']['url']))<img src="{{ $media['gallery_1']['url'] }}" alt="{{ $media['gallery_1']['alt_text'] ?: 'فضای خانه گیلاسی' }}" loading="lazy">@elseif(!empty($media['story_main']['url']))<img src="{{ $media['story_main']['url'] }}" alt="رستوران خانه گیلاسی" loading="lazy">@elseif(!empty($media['gallery_2']['url']))<img src="{{ $media['gallery_2']['url'] }}" alt="رستوران خانه گیلاسی" loading="lazy">@endif
