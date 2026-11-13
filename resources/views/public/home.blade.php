@@ -8,7 +8,7 @@
     <title>{{ $settings->name ?: 'خانه گیلاسی' }} | کافه رستوران</title>
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
-<body class="public-site page-home">
+<body class="public-site page-home" id="top">
 <div class="wrap">
     <main class="frame" aria-label="خانه خانه گیلاسی">
         @if(!empty($media['home_showcase_background']['url']))
