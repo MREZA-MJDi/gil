@@ -271,7 +271,7 @@ function nextStatusLabel(status) {
     return ({ new: 'تأیید', confirmed: 'شروع آماده‌سازی', preparing: 'آماده تحویل', ready: 'ثبت تحویل' })[status] || 'تغییر وضعیت';
 }
 
-function CashierPage({ cashShift, orders, pagination, onPageChange, onRefresh, onOpenShift, onCloseShift, onMovement, onPayment, onDetails }) {
+function CashierPage({ cashShift, orders, pagination, onPageChange, onRefresh, onOpenShift, onCloseShift, onMovement, onPayment, onDetails, onPrint }) {
     const [openingCash, setOpeningCash] = useState('0');
     const [countedCash, setCountedCash] = useState('');
     const [shiftNote, setShiftNote] = useState('');
@@ -312,7 +312,7 @@ function CashierPage({ cashShift, orders, pagination, onPageChange, onRefresh, o
         </section>
         <section className="panel orders-panel"><div className="panel-heading"><div><h2>مانده‌های قابل تسویه</h2><p>فقط سفارش‌های تسویه‌نشده نمایش داده می‌شوند؛ مبلغ باقی‌مانده در جزئیات سفارش محاسبه می‌شود.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
             {payable.length ? <TableWrap><thead><tr><th>شماره</th><th>کانال</th><th>مبلغ کل</th><th>وضعیت پرداخت</th><th>اقدام</th></tr></thead><tbody>
-                {payable.map(order => <tr key={order.id}><td className="mono">{order.number}</td><td>{channelLabel(order)}</td><td>{money(order.total)}</td><td><Pill value={order.payment_status} dictionary={paymentStatusLabel} /></td><td><div className="op-actions"><Button kind="primary" onClick={() => onPayment(order)}>ثبت پرداخت</Button><Button onClick={() => onDetails(order.id)}>سوابق / بازپرداخت</Button></div></td></tr>)}
+                {payable.map(order => <tr key={order.id}><td className="mono">{order.number}</td><td>{channelLabel(order)}</td><td>{money(order.total)}</td><td><Pill value={order.payment_status} dictionary={paymentStatusLabel} /></td><td><div className="op-actions"><Button kind="primary" onClick={() => onPayment(order)}>ثبت پرداخت</Button><Button onClick={() => onDetails(order.id)}>سوابق / بازپرداخت</Button><Button onClick={() => onPrint(order.id,'receipt')}>فیش مشتری</Button><Button onClick={() => onPrint(order.id,'kitchen')}>آشپزخانه</Button></div></td></tr>)}
             </tbody></TableWrap> : <Empty>هیچ مانده‌ی قابل تسویه‌ای وجود ندارد.</Empty>}
             <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
@@ -1108,7 +1108,7 @@ export default function DashboardApp() {
     const renderPage=()=>{
         if(page==='overview') return data.dashboard ? <OverviewPage dashboard={data.dashboard} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} /> : (loading ? <OverviewSkeleton /> : <OverviewPage dashboard={{}} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} />);
         if(page==='orders') return <OrdersPage orders={data.orders} filters={listFilters.orders} onFiltersChange={patch=>updateListFilters('orders',patch)} pagination={data.ordersPagination} onPageChange={setListPage} onRefresh={refresh} onDetails={orderDetails} onPrint={printDocument} onNewOrder={newOrder} onTransition={transition} onCancel={cancelOrder} />;
-        if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} pagination={data.cashierOrdersPagination} onPageChange={setListPage} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} />;
+        if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} pagination={data.cashierOrdersPagination} onPageChange={setListPage} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} onPrint={printDocument} />;
         if(page==='menu') return <MenuPage products={data.products} categories={data.categories} filters={listFilters.products} onFiltersChange={patch=>updateListFilters('products',patch)} pagination={data.productsPagination} onPageChange={setListPage} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onProductDelete={deleteProduct} onCategory={category=>setModal({type:'category',category})} onCategoryDelete={deleteCategory} />;
         if(page==='inventory') return <InventoryPage products={data.products} movements={data.movements} pagination={data.movementsPagination} onPageChange={setListPage} onRefresh={refresh} onAdjust={product=>setModal({type:'inventory',product})} />;
         if(page==='recipes') return <RecipesPage recipeData={data.recipes} onRefresh={refresh} onCreateIngredient={createIngredient} onUpdateIngredient={updateIngredient} onAdjustIngredient={ingredient=>setModal({type:'ingredient-stock',ingredient})} onSaveRecipe={saveRecipe} />;
