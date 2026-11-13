@@ -11,9 +11,9 @@
 <body class="page-menu account-page" id="top">
 <div class="m">
     <header class="top menu-top" data-kg-header>
-        <button type="button" class="burger2" data-kg-menu-toggle aria-expanded="false" aria-label="باز کردن منو"><i></i><i></i></button>
+        <button type="button" class="burger2" data-kg-menu-toggle aria-expanded="false" aria-controls="kg-account-nav" aria-label="باز کردن منو"><i></i><i></i></button>
         <a class="brand" href="{{ route('home') }}"><span>{{ config('app.name') }}</span></a>
-        <nav class="menu-nav" data-kg-nav aria-label="ناوبری اصلی">
+        <nav class="menu-nav" id="kg-account-nav" data-kg-nav aria-label="ناوبری اصلی">
             <a href="{{ route('home') }}">خانه</a><a href="{{ route('public.menu') }}">منو</a>
             <a href="{{ route('public.reservations.create') }}">رزرو میز</a>
         </nav>
