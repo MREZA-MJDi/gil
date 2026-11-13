@@ -43,8 +43,6 @@ Route::post('/api/integrations/orders/{provider}', [OrderWebhookController::clas
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AuthController::class, 'create'])->name('admin.login');
     Route::post('/admin/login', [AuthController::class, 'store'])->middleware('throttle:5,1')->name('admin.login.store');
-    Route::get('/admin/register', [AuthController::class, 'register'])->name('admin.register');
-    Route::post('/admin/register', [AuthController::class, 'registerStore'])->middleware('throttle:3,1')->name('admin.register.store');
 });
 Route::post('/admin/logout', [AuthController::class, 'destroy'])->middleware(['auth', 'can:access-admin'])->name('admin.logout');
 
