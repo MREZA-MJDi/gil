@@ -33,7 +33,7 @@ if (bestFood) {
                 const distance = Math.min(Math.abs(offset), 3);
                 slide.style.setProperty('--o', String(offset));
                 slide.dataset.distance = String(distance);
-                slide.setAttribute('aria-pressed', offset === 0 ? 'true' : 'false');
+                slide.setAttribute('aria-current', offset === 0 ? 'true' : 'false');
                 slide.setAttribute('aria-hidden', distance > 2 ? 'true' : 'false');
                 slide.tabIndex = distance > 2 ? -1 : 0;
             });
@@ -66,15 +66,13 @@ if (bestFood) {
         next?.addEventListener('click', () => go(active + 1));
         dots.forEach(dot => dot.addEventListener('click', () => go(Number(dot.dataset.bestFoodDot) || 0)));
 
-        track.addEventListener('click', event => {
-            const slide = event.target.closest('[data-best-food-slide]');
-            if (!slide || suppressClick) {
-                if (suppressClick) event.preventDefault();
-                return;
+        bestFood.addEventListener('click', event => {
+            if (!suppressClick) return;
+            const slideLink = event.target.closest('[data-best-food-slide]');
+            if (slideLink && bestFood.contains(slideLink)) {
+                event.preventDefault();
+                event.stopPropagation();
             }
-
-            const index = Number(slide.dataset.index);
-            if (Number.isInteger(index) && index !== active) go(index);
         });
 
         track.addEventListener('keydown', event => {
@@ -96,26 +94,24 @@ if (bestFood) {
         track.addEventListener('pointerdown', event => {
             if (event.pointerType === 'mouse' && event.button !== 0) return;
             pointerStart = event.clientX;
-            try { track.setPointerCapture(event.pointerId); } catch (_) { /* Pointer capture is optional on older browsers. */ }
             stop();
         });
 
-        track.addEventListener('pointerup', event => {
+        // Listen on window so a press that starts on a card still produces a native link click.
+        window.addEventListener('pointerup', event => {
             if (pointerStart === null) return;
             const delta = event.clientX - pointerStart;
             pointerStart = null;
             if (Math.abs(delta) > 42) {
                 suppressClick = true;
                 go(active + (delta < 0 ? 1 : -1));
-                window.setTimeout(() => {
-                    suppressClick = false;
-                }, 80);
+                window.setTimeout(() => { suppressClick = false; }, 0);
             } else {
                 start();
             }
         });
 
-        track.addEventListener('pointercancel', () => {
+        window.addEventListener('pointercancel', () => {
             pointerStart = null;
             start();
         });
