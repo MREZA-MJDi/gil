@@ -1199,9 +1199,9 @@ function JalaliDateTimeInput({ value, onChange, required = false }) {
             <input className="jalali-picker-trigger" type="text" readOnly required={required} value={displayDate} placeholder="انتخاب تاریخ شمسی" aria-label="تاریخ شمسی رزرو" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(current => !current)} />
             {open && <JalaliCalendarPopover value={selectedDate} onSelect={date => onChange(date + 'T' + (time || '18:00'))} onClose={() => setOpen(false)} />}
         </div>
-        <label className="jalali-time-field"><span>ساعت</span>
+        <div className="jalali-time-field"><span>ساعت</span>
             <input type="time" required={required} value={time} onChange={event => { const next = event.target.value; setTime(next); if (selectedDate && next) onChange(selectedDate + 'T' + next); }} />
-        </label>
+        </div>
     </div>;
 }
 
