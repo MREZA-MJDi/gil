@@ -96,7 +96,7 @@ export function buildPrintHtml(order, type, settings = {}) {
         return '<article class="item">' +
             '<div class="item-heading"><b>' + numberFa(index + 1) + '. ' + escapeHtml(item.name || 'محصول') + '</b><strong>' + money(item.line_total, currency) + '</strong></div>' +
             '<div class="item-meta"><span>' + quantity + ' × ' + money(item.unit_price, currency) + '</span>' +
-            (Number(item.options_total || 0) > 0 ? '<span>افزودنی‌ها: ' + money(item.options_total, currency) + '</span>' : '') +
+            (Number(item.options_total || 0) > 0 ? '<span>افزودنی‌ها: ' + money(Number(item.options_total) * Number(item.quantity || 0), currency) + '</span>' : '') +
             '</div>' +
             (notes ? '<div class="item-note">' + escapeHtml(notes) + '</div>' : '') +
             '</article>';
