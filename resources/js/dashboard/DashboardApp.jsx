@@ -482,6 +482,79 @@ function ReportsPage({ report, onRefresh }) {
 
 function SettingsPage({ settings, onSave, onRefresh }) {
     const [form, setForm] = useState(null);
+    const [printerStatus, setPrinterStatus] = useState('not-connected');
+    const [printerNames, setPrinterNames] = useState([]);
+    const [cashierPrinter, setCashierPrinter] = useState('');
+    const [kitchenPrinter, setKitchenPrinter] = useState('');
+    const [printerError, setPrinterError] = useState('');
+    const [printerNotice, setPrinterNotice] = useState('');
+
+    useEffect(() => {
+        try {
+            setCashierPrinter(window.localStorage.getItem('gil-qz-cashier-printer') || '');
+            setKitchenPrinter(window.localStorage.getItem('gil-qz-kitchen-printer') || '');
+        } catch {
+            setPrinterError('ذخیره تنظیمات چاپگر در این مرورگر در دسترس نیست.');
+        }
+    }, []);
+
+    const discoverPrinters = async () => {
+        setPrinterError('');
+        setPrinterNotice('');
+        const qz = window.qz;
+        if (!qz?.websocket || !qz?.printers) {
+            setPrinterStatus('missing');
+            setPrinterError('کتابخانه QZ Tray بارگذاری نشده است؛ صفحه را بازخوانی کن.');
+            return;
+        }
+        setPrinterStatus('connecting');
+        try {
+            if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
+            setPrinterStatus('connected');
+            const list = await qz.printers.find();
+            const names = Array.isArray(list) ? list : [];
+            setPrinterNames(names);
+            setPrinterNotice(names.length ? (numberFa(names.length) + ' چاپگر از سیستم‌عامل این کامپیوتر شناسایی شد.') : 'چاپگری در این کامپیوتر پیدا نشد؛ ابتدا درایور چاپگر را نصب و آن را به سیستم‌عامل اضافه کن.');
+        } catch (error) {
+            setPrinterStatus('error');
+            setPrinterError(error?.message || 'ارتباط با QZ Tray برقرار نشد. نصب و اجرای برنامه روی کامپیوتر صندوق را بررسی کن.');
+        }
+    };
+
+    const savePrinterRouting = () => {
+        try {
+            window.localStorage.setItem('gil-qz-cashier-printer', cashierPrinter);
+            window.localStorage.setItem('gil-qz-kitchen-printer', kitchenPrinter);
+            setPrinterNotice('انتخاب چاپگرهای این کامپیوتر ذخیره شد.');
+            setPrinterError('');
+        } catch {
+            setPrinterError('ذخیره انتخاب چاپگر در این مرورگر ناموفق بود.');
+        }
+    };
+
+    const testPrinter = async (printerName, kind) => {
+        if (!printerName) {
+            setPrinterError('ابتدا چاپگر موردنظر را انتخاب کن.');
+            return;
+        }
+        const qz = window.qz;
+        if (!qz?.websocket) {
+            setPrinterError('QZ Tray در دسترس نیست.');
+            return;
+        }
+        setPrinterError('');
+        setPrinterNotice('');
+        try {
+            if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
+            const width = Number(form?.paper_width) === 58 ? 58 : 80;
+            const html = '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><style>@page{size:'+width+'mm auto;margin:3mm}body{width:'+(width-6)+'mm;margin:0 auto;font:13px Tahoma,Arial;text-align:center}h1{font-size:18px}p{font-size:11px}</style><body><h1>خانه گیلاسی</h1><p>آزمایش چاپگر '+escapeHtml(kind)+'</p><b>اتصال چاپگر موفق است</b></body></html>';
+            const config = qz.configs.create(printerName);
+            await qz.print(config, [{ type: 'pixel', format: 'html', flavor: 'plain', data: html }]);
+            setPrinterNotice('درخواست آزمایش برای «'+printerName+'» ارسال شد. خروج واقعی کاغذ باید روی دستگاه بررسی شود.');
+        } catch (error) {
+            setPrinterError(error?.message || 'ارسال آزمایشی به چاپگر ناموفق بود.');
+        }
+    };
     const defaults = {
         hero_eyebrow: 'کافه و رستوران خانه گیلاسی',
         hero_title_line1: 'طعم خوب،',
@@ -544,7 +617,41 @@ function SettingsPage({ settings, onSave, onRefresh }) {
             </form>
             <p className="op-note">تصویر اصلی را از «رسانه و تصاویر سایت ← تصویر اصلی صفحه خانه» عوض کن. ترتیب و تصویرهای اسلایدر از ترتیب و تصاویر محصولات فعال در «منو و محصولات» گرفته می‌شوند.</p>
         </section>
-        <section className="panel op-card"><h2>چاپگر فیش</h2><p className="op-note">این تنظیم عرض صفحه چاپ را مشخص می‌کند، اما چاپ مستقیم و بی‌پنجره نیازمند نرم‌افزار واسط روی کامپیوتر صندوق است. راهنمای نصب در docs/receipt-printer-integration.md ثبت شده است.</p><Button onClick={() => window.print()}>آزمایش چاپ مرورگر</Button></section>
+        <section className="panel op-card op-printer-settings">
+            <div className="panel-heading"><div><h2>اتصال چاپگرهای همین کامپیوتر</h2><p>چاپگرها از طریق QZ Tray و درایور سیستم‌عامل کامپیوتر صندوق پیدا می‌شوند. انتخاب‌ها فقط روی همین مرورگر ذخیره می‌شوند.</p></div><Pill value={printerStatus === 'connected' ? 'open' : printerStatus === 'connecting' ? 'pending' : 'closed'} dictionary={{open:'متصل',pending:'در حال اتصال',closed:'قطع'}} /></div>
+            <div className="op-printer-setup-note">
+                <b>پیش‌نیاز</b>
+                <span>QZ Tray را روی کامپیوتر صندوق نصب و اجرا کن و مطمئن شو چاپگر در تنظیمات Windows / macOS / Linux دیده می‌شود. سرور سایت به چاپگر USB کامپیوتر تو دسترسی مستقیم ندارد.</span>
+            </div>
+            <div className="op-form-actions">
+                <Button kind="primary" onClick={discoverPrinters} disabled={printerStatus === 'connecting'}>{printerStatus === 'connecting' ? 'در حال اتصال…' : 'اتصال و شناسایی چاپگرها'}</Button>
+                <Button onClick={() => window.print()}>آزمایش چاپ مرورگر</Button>
+            </div>
+            {printerError && <p className="media-manager-message is-error" role="alert">{printerError}</p>}
+            {printerNotice && <p className="media-manager-message is-success" role="status">{printerNotice}</p>}
+            {printerNames.length > 0 && <>
+                <div className="op-form op-form-grid op-printer-routing">
+                    <Field label="چاپگر فیش صندوق / مشتری">
+                        <select value={cashierPrinter} onChange={event => setCashierPrinter(event.target.value)}>
+                            <option value="">انتخاب چاپگر صندوق…</option>
+                            {printerNames.map(name => <option value={name} key={name}>{name}</option>)}
+                        </select>
+                    </Field>
+                    <Field label="چاپگر فیش آشپزخانه">
+                        <select value={kitchenPrinter} onChange={event => setKitchenPrinter(event.target.value)}>
+                            <option value="">انتخاب چاپگر آشپزخانه…</option>
+                            {printerNames.map(name => <option value={name} key={name}>{name}</option>)}
+                        </select>
+                    </Field>
+                </div>
+                <div className="op-form-actions">
+                    <Button kind="primary" onClick={savePrinterRouting}>ذخیره مسیر چاپ</Button>
+                    <Button onClick={() => testPrinter(cashierPrinter, 'صندوق / مشتری')}>تست چاپگر صندوق</Button>
+                    <Button onClick={() => testPrinter(kitchenPrinter, 'آشپزخانه')}>تست چاپگر آشپزخانه</Button>
+                </div>
+            </>}
+            <p className="op-note">چاپ فیش مشتری حتی پیش از تسویه، شماره سفارش و مبلغ قابل پرداخت را نشان می‌دهد. چاپ رسید پرداخت هم پرداخت‌های ثبت‌شده را درج می‌کند. اگر QZ Tray در دسترس نباشد، پنجره چاپ مرورگر باز می‌شود.</p>
+        </section>
     </div>;
 }
 
