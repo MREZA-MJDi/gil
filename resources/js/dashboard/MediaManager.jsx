@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { api, unwrapList } from './api.js';
 
 const slots = [
@@ -32,7 +32,7 @@ function loadImage(url) {
 }
 
 async function cropImage(file, aspect, zoom, offsetX, offsetY) {
-    const sourceUrl = URL.createObjectURL(file);
+    const sourceUrl = trackUrl(URL.createObjectURL(file));
     try {
         const image = await loadImage(sourceUrl);
         const baseWidth = Math.min(image.naturalWidth, image.naturalHeight * aspect);
@@ -140,15 +140,22 @@ export default function MediaManager({ onNavigate }) {
     const [error, setError] = useState('');
     const [notice, setNotice] = useState('');
     const [version, setVersion] = useState(0);
+    const objectUrls = useRef(new Set());
 
-    useEffect(() => {
-        return () => {
-            Object.values(files).forEach(entry => {
-                if (entry?.previewUrl) URL.revokeObjectURL(entry.previewUrl);
-            });
-            if (cropCandidate?.sourceUrl) URL.revokeObjectURL(cropCandidate.sourceUrl);
-        };
-    }, [files, cropCandidate]);
+    const trackUrl = url => {
+        objectUrls.current.add(url);
+        return url;
+    };
+    const revokeUrl = url => {
+        if (!url) return;
+        URL.revokeObjectURL(url);
+        objectUrls.current.delete(url);
+    };
+
+    useEffect(() => () => {
+        objectUrls.current.forEach(url => URL.revokeObjectURL(url));
+        objectUrls.current.clear();
+    }, []);
 
     const load = async () => {
         setBusy('load');
@@ -184,13 +191,13 @@ export default function MediaManager({ onNavigate }) {
     const applyCrop = async croppedFile => {
         const slot = slots.find(item => item.key === cropCandidate?.slot);
         if (!slot || !cropCandidate) return;
-        const previewUrl = URL.createObjectURL(croppedFile);
+        const previewUrl = trackUrl(URL.createObjectURL(croppedFile));
         setFiles(previous => {
             const old = previous[slot.key];
-            if (old?.previewUrl) URL.revokeObjectURL(old.previewUrl);
+            if (old?.previewUrl) revokeUrl(old.previewUrl);
             return { ...previous, [slot.key]: { file: croppedFile, previewUrl } };
         });
-        URL.revokeObjectURL(cropCandidate.sourceUrl);
+        revokeUrl(cropCandidate.sourceUrl);
         setCropCandidate(null);
         setNotice('پیش‌نمایش برش آماده است. برای انتشار روی «ذخیره و اعمال تصویر» بزن.');
     };
@@ -207,7 +214,7 @@ export default function MediaManager({ onNavigate }) {
         setNotice('');
         try {
             await api('/media', { method: 'POST', body: form });
-            if (selected.previewUrl) URL.revokeObjectURL(selected.previewUrl);
+            if (selected.previewUrl) revokeUrl(selected.previewUrl);
             setFiles(previous => {
                 const next = { ...previous };
                 delete next[slot];
@@ -272,7 +279,7 @@ export default function MediaManager({ onNavigate }) {
                             {selected
                                 ? <ActionButton kind="primary" disabled={busy !== ''} onClick={() => upload(slot.key)}>{busy === slot.key ? 'در حال ذخیره…' : 'ذخیره و اعمال تصویر'}</ActionButton>
                                 : <ActionButton disabled={busy !== ''} onClick={() => setNotice('برای این جایگاه یک تصویر انتخاب کن تا برش و پیش‌نمایش آن باز شود.')}>آماده‌سازی تصویر</ActionButton>}
-                            {selected && <ActionButton disabled={busy !== ''} onClick={() => { const entry=files[slot.key]; if(entry?.previewUrl) URL.revokeObjectURL(entry.previewUrl); setFiles(previous=>{const next={...previous};delete next[slot.key];return next;}); }}>لغو پیش‌نمایش</ActionButton>}
+                            {selected && <ActionButton disabled={busy !== ''} onClick={() => { const entry=files[slot.key]; if(entry?.previewUrl) revokeUrl(entry.previewUrl); setFiles(previous=>{const next={...previous};delete next[slot.key];return next;}); }}>لغو پیش‌نمایش</ActionButton>}
                             {asset && <ActionButton kind="danger" disabled={busy !== ''} onClick={() => remove(asset)}>حذف تصویر اعمال‌شده</ActionButton>}
                         </div>
                         {asset?.updated_at && <small className="media-asset-updated">آخرین تغییر: {new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(asset.updated_at))}</small>}
@@ -284,6 +291,6 @@ export default function MediaManager({ onNavigate }) {
             <div><b>عکس محصولات و کارت دسته‌بندی‌ها</b><p>عکس هر محصول را از فرم ویرایش محصول در «منو و محصولات» ذخیره کن. کارت دسته‌بندی به عکس اولین محصول فعال همان دسته وصل است.</p></div>
             <ActionButton onClick={() => onNavigate?.('menu')}>رفتن به منو و محصولات</ActionButton>
         </section>
-        {cropCandidate && <CropDialog slot={slots.find(item => item.key === cropCandidate.slot)} file={cropCandidate.file} sourceUrl={cropCandidate.sourceUrl} onCancel={() => { URL.revokeObjectURL(cropCandidate.sourceUrl); setCropCandidate(null); }} onApply={applyCrop} />}
+        {cropCandidate && <CropDialog slot={slots.find(item => item.key === cropCandidate.slot)} file={cropCandidate.file} sourceUrl={cropCandidate.sourceUrl} onCancel={() => { revokeUrl(cropCandidate.sourceUrl); setCropCandidate(null); }} onApply={applyCrop} />}
     </div>;
 }
