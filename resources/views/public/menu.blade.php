@@ -13,12 +13,12 @@
 <body class="page-menu" id="top">
 <div class="m" data-public-ordering data-menu-showcase data-order-endpoint="{{ route('public.orders.store') }}">
     <div class="top menu-top" data-kg-header>
-        <button type="button" class="burger2" data-kg-menu-toggle aria-expanded="false" aria-label="باز کردن منو"><i></i><i></i></button>
+        <button type="button" class="burger2" data-kg-menu-toggle aria-expanded="false" aria-controls="kg-menu-nav" aria-label="باز کردن منو"><i></i><i></i></button>
         <a class="brand" href="{{ route('home') }}">
             @if(!empty($media['brand_logo']['url']))<img class="menu-brand-logo" src="{{ $media['brand_logo']['url'] }}" alt="{{ $media['brand_logo']['alt_text'] ?: $settings->name }}">@endif
             <span>{{ $settings->name }}</span>
         </a>
-        <nav class="menu-nav" data-kg-nav aria-label="ناوبری اصلی">
+        <nav class="menu-nav" id="kg-menu-nav" data-kg-nav aria-label="ناوبری اصلی">
             <a href="{{ route('home') }}">خانه</a><a href="{{ route('public.menu') }}" class="act" aria-current="page">منو</a>
             <a href="{{ route('public.reservations.create') }}">رزرو میز</a>
         </nav>
