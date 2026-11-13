@@ -1,4 +1,4 @@
-// Framework-free public entry. React is intentionally limited to the admin dashboard.
+// Framework-free entry for all customer-facing pages.
 import './public/navigation.js';
 import './public/online-ordering.js';
 import './public/reservation.js';
