@@ -21,6 +21,11 @@ class User extends Authenticatable
         return $this->hasMany(Reservation::class, 'customer_id');
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'customer_id');
+    }
+
     public function customerFeedback(): HasMany
     {
         return $this->hasMany(CustomerFeedback::class, 'customer_id');
