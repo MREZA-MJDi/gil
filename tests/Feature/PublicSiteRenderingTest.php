@@ -26,6 +26,7 @@ class PublicSiteRenderingTest extends TestCase
             ->assertDontSee('حال خوب')
             ->assertDontSee('خوش‌آمدی به')
             ->assertDontSee('برای یک قهوه کوتاه')
+            ->assertSee('class="logo"', false)
             ->assertSee('home-hero-signature', false)
             ->assertSee('یک مکث خوش‌طعم.')
             ->assertSee(route('public.menu'))
@@ -171,6 +172,54 @@ class PublicSiteRenderingTest extends TestCase
         $this->actingAs($customer)->get(route('public.reservations.create'))
             ->assertOk()
             ->assertSee('site-media/reservation-cover.webp');
+    }
+
+    public function test_dashboard_logo_asset_uses_a_compact_round_brand_mark(): void
+    {
+        SiteMediaAsset::query()->create([
+            'slot' => 'brand_logo',
+            'path' => 'site-media/brand-logo.png',
+            'alt_text' => 'نشان خانه گیلاسی',
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('class="logo"', false)
+            ->assertSee('site-media/brand-logo.png')
+            ->assertSee('نشان خانه گیلاسی');
+
+        foreach ([
+            resource_path('views/public/home.blade.php'),
+            resource_path('views/public/reserve.blade.php'),
+            resource_path('views/public/reservation-received.blade.php'),
+            resource_path('views/customer/auth/login.blade.php'),
+            resource_path('views/customer/auth/register.blade.php'),
+        ] as $viewPath) {
+            $source = file_get_contents($viewPath);
+            $this->assertIsString($source);
+            $this->assertStringContainsString("public.partials.site-logo", $source);
+        }
+    }
+
+    public function test_mobile_navigation_has_inset_popovers_and_dismiss_controls(): void
+    {
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('aria-controls="kg-reference-nav"', false);
+
+        $this->get(route('public.menu'))
+            ->assertOk()
+            ->assertSee('aria-controls="kg-menu-nav"', false);
+
+        $navigation = file_get_contents(resource_path('js/public/navigation.js'));
+        $styles = file_get_contents(resource_path('css/public-reference.css'));
+
+        $this->assertIsString($navigation);
+        $this->assertIsString($styles);
+        $this->assertStringContainsString("event.key === 'Escape'", $navigation);
+        $this->assertStringContainsString("document.addEventListener('pointerdown'", $navigation);
+        $this->assertStringContainsString('.top .menu-nav.is-open', $styles);
+        $this->assertStringContainsString('calc(100vw - 32px)', $styles);
     }
 
     public function test_public_menu_hides_products_with_zero_tracked_stock(): void
