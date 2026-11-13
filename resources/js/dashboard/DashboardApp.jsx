@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import MediaManager from './MediaManager.jsx';
 import { MoneyInput } from '../shared/iranian-ui.jsx';
-import { api, idempotencyKey, unwrapData, unwrapList } from './api.js';
+import { api, idempotencyKey, unwrapData, unwrapList, unwrapPagination } from './api.js';
 import QRCode from 'qrcode';
-import { gregorianDateToJalali, jalaliDateToGregorian, gregorianDateTimeToJalali, jalaliDateTimeToGregorian, toPersianDigits } from '../date-utils.js';
+import { currentJalaliDate, gregorianDateToJalali, jalaliDateToGregorian, jalaliMonthInfo, shiftJalaliMonth, toPersianDigits, JALALI_WEEKDAYS } from '../date-utils.js';
 
 const navItems = [
     ['overview', 'نمای کلی', '◫'],
@@ -1135,18 +1135,74 @@ function IngredientStockModal({ ingredient, onClose, onSubmit }) {
     </Modal>;
 }
 
-function JalaliDateInput({ value, onChange, placeholder = '۱۴۰۵/۰۸/۰۷', ariaLabel = 'تاریخ شمسی' }) {
-    const [text, setText] = useState(() => value ? toPersianDigits(gregorianDateToJalali(value)) : '');
-    const [invalid, setInvalid] = useState(false);
-    useEffect(() => { setText(value ? toPersianDigits(gregorianDateToJalali(value)) : ''); setInvalid(false); }, [value]);
-    return <div className="jalali-date-control"><input type="text" inputMode="numeric" autoComplete="off" placeholder={placeholder} aria-label={ariaLabel} aria-invalid={invalid} value={text} onChange={event => { const next=event.target.value; setText(next); if (!next.trim()) { setInvalid(false); event.target.setCustomValidity(''); onChange(''); return; } const gregorian=jalaliDateToGregorian(next); setInvalid(!gregorian); event.target.setCustomValidity(gregorian ? '' : 'تاریخ شمسی معتبر وارد کن؛ نمونه: ۱۴۰۵/۰۸/۰۷'); if (gregorian) onChange(gregorian); }} />{invalid && <small role="alert">فرمت تاریخ: سال/ماه/روز شمسی، مثل ۱۴۰۵/۰۸/۰۷</small>}</div>;
+function JalaliCalendarPopover({ value, onSelect, onClose }) {
+    const today = currentJalaliDate().split('/').map(Number);
+    const initial = (value ? gregorianDateToJalali(value) : currentJalaliDate()).split('/').map(Number);
+    const [view, setView] = useState(() => ({
+        year: initial[0] || today[0],
+        month: initial[1] || today[1],
+    }));
+
+    useEffect(() => {
+        if (!value) return;
+        const parts = gregorianDateToJalali(value).split('/').map(Number);
+        if (parts[0] && parts[1]) setView({ year: parts[0], month: parts[1] });
+    }, [value]);
+
+    const info = jalaliMonthInfo(view.year, view.month);
+    const selected = value ? String(value).slice(0, 10) : '';
+    const cells = Array.from({ length: 42 }, (_, index) => {
+        const day = index - info.startOffset + 1;
+        if (day < 1 || day > info.daysInMonth) return null;
+        const iso = jalaliDateToGregorian(view.year + '/' + String(view.month).padStart(2, '0') + '/' + String(day).padStart(2, '0'));
+        return { day, iso };
+    });
+
+    return <div className="jalali-calendar-popover" role="dialog" aria-label="انتخاب تاریخ شمسی">
+        <div className="jalali-calendar-heading">
+            <button type="button" aria-label="ماه قبل" onClick={() => setView(current => shiftJalaliMonth(current.year, current.month, -1))}>‹</button>
+            <strong>{info.monthName} {toPersianDigits(view.year)}</strong>
+            <button type="button" aria-label="ماه بعد" onClick={() => setView(current => shiftJalaliMonth(current.year, current.month, 1))}>›</button>
+        </div>
+        <div className="jalali-calendar-weekdays">
+            {JALALI_WEEKDAYS.map((day, index) => <span key={index}>{day}</span>)}
+        </div>
+        <div className="jalali-calendar-days">
+            {cells.map((cell, index) => cell
+                ? <button key={cell.iso} type="button" className={cell.iso === selected ? 'is-selected' : ''} aria-pressed={cell.iso === selected} onClick={() => { onSelect(cell.iso); onClose(); }}>{toPersianDigits(cell.day)}</button>
+                : <span key={'empty-' + index} aria-hidden="true" />)}
+        </div>
+    </div>;
+}
+
+function JalaliDateInput({ value, onChange, placeholder = 'انتخاب تاریخ شمسی', ariaLabel = 'تاریخ شمسی' }) {
+    const [open, setOpen] = useState(false);
+    const text = value ? toPersianDigits(gregorianDateToJalali(value)) : '';
+    return <div className="jalali-picker">
+        <input className="jalali-picker-trigger" type="text" readOnly value={text} placeholder={placeholder} aria-label={ariaLabel} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(current => !current)} />
+        {open && <JalaliCalendarPopover value={value} onSelect={onChange} onClose={() => setOpen(false)} />}
+    </div>;
 }
 
 function JalaliDateTimeInput({ value, onChange, required = false }) {
-    const [text, setText] = useState(() => value ? toPersianDigits(gregorianDateTimeToJalali(value)) : '');
-    const [invalid, setInvalid] = useState(false);
-    useEffect(() => { setText(value ? toPersianDigits(gregorianDateTimeToJalali(value)) : ''); setInvalid(false); }, [value]);
-    return <div className="jalali-date-control"><input type="text" inputMode="numeric" autoComplete="off" required={required} placeholder="۱۴۰۵/۰۸/۰۷ ۱۸:۳۰" aria-label="تاریخ و ساعت شمسی" aria-invalid={invalid} value={text} onChange={event => { const next=event.target.value; setText(next); if (!next.trim()) { setInvalid(false); event.target.setCustomValidity(''); onChange(''); return; } const gregorian=jalaliDateTimeToGregorian(next); setInvalid(!gregorian); event.target.setCustomValidity(gregorian ? '' : 'تاریخ و ساعت شمسی را به شکل ۱۴۰۵/۰۸/۰۷ ۱۸:۳۰ وارد کن.'); if (gregorian) onChange(gregorian); }} />{invalid && <small role="alert">نمونه: ۱۴۰۵/۰۸/۰۷ ۱۸:۳۰</small>}</div>;
+    const selectedDate = value ? String(value).slice(0, 10) : '';
+    const [open, setOpen] = useState(false);
+    const [time, setTime] = useState(() => value && String(value).match(/[T ](\d{2}:\d{2})/)?.[1] || '18:00');
+
+    useEffect(() => {
+        setTime(value && String(value).match(/[T ](\d{2}:\d{2})/)?.[1] || '18:00');
+    }, [value]);
+
+    const displayDate = selectedDate ? toPersianDigits(gregorianDateToJalali(selectedDate)) : '';
+    return <div className="jalali-datetime-picker">
+        <div className="jalali-picker">
+            <input className="jalali-picker-trigger" type="text" readOnly required={required} value={displayDate} placeholder="انتخاب تاریخ شمسی" aria-label="تاریخ شمسی رزرو" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(current => !current)} />
+            {open && <JalaliCalendarPopover value={selectedDate} onSelect={date => onChange(date + 'T' + (time || '18:00'))} onClose={() => setOpen(false)} />}
+        </div>
+        <label className="jalali-time-field"><span>ساعت</span>
+            <input type="time" required={required} value={time} onChange={event => { const next = event.target.value; setTime(next); if (selectedDate && next) onChange(selectedDate + 'T' + next); }} />
+        </label>
+    </div>;
 }
 
 function InventoryModal({ product, products, onClose, onSubmit }) {
