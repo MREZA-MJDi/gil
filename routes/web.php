@@ -73,6 +73,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:access-admin'])
         Route::get('/recipes', [RecipesController::class, 'index'])->name('recipes.index');
         Route::post('/ingredients', [RecipesController::class, 'storeIngredient'])->name('ingredients.store');
         Route::patch('/ingredients/{ingredient}', [RecipesController::class, 'updateIngredient'])->name('ingredients.update');
+        Route::delete('/ingredients/{ingredient}', [RecipesController::class, 'destroyIngredient'])->name('ingredients.destroy');
         Route::post('/ingredients/{ingredient}/movements', [RecipesController::class, 'adjustIngredient'])->name('ingredients.movements.store');
         Route::put('/products/{product}/recipe', [RecipesController::class, 'saveRecipe'])->name('products.recipe.update');
         Route::get('/media', [MediaController::class, 'index'])->name('media.index');
