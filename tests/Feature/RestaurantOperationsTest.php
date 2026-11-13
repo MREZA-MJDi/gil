@@ -224,6 +224,38 @@ class RestaurantOperationsTest extends TestCase
         ]);
     }
 
+    public function test_pos_catalog_excludes_inactive_products_and_inactive_categories(): void
+    {
+        $inactiveCategory = Category::query()->create([
+            'name' => 'دسته غیرفعال',
+            'sort_order' => 2,
+            'is_active' => false,
+        ]);
+        $inactiveCategoryProduct = Product::query()->create([
+            'category_id' => $inactiveCategory->id,
+            'name' => 'محصول دسته غیرفعال',
+            'base_price' => 90000,
+            'status' => 'active',
+            'sort_order' => 1,
+        ]);
+        $inactiveProduct = Product::query()->create([
+            'category_id' => $this->category->id,
+            'name' => 'محصول غیرفعال',
+            'base_price' => 80000,
+            'status' => 'inactive',
+            'sort_order' => 2,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->getJson('/admin/api/products?available=1&per_page=100')
+            ->assertOk();
+
+        $returnedIds = collect($response->json('data'))->pluck('id')->all();
+        $this->assertContains($this->product->id, $returnedIds);
+        $this->assertNotContains($inactiveCategoryProduct->id, $returnedIds);
+        $this->assertNotContains($inactiveProduct->id, $returnedIds);
+    }
+
     public function test_order_creation_is_idempotent_and_consumes_stock_once(): void
     {
         $this->actingAs($this->admin);
