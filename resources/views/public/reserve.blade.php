@@ -69,7 +69,7 @@
                 <div class="reserve-row">
                     <div><label for="reserve-duration">مدت حضور</label>
                         <select name="duration_minutes" id="reserve-duration">
-                            <option value="60">۱ ساعت</option><option value="90" selected>۱ ساعت و نیم</option><option value="120">۲ ساعت</option><option value="180">۳ ساعت</option><option value="240">۴ ساعت</option><option value="360">۶ ساعت</option>
+                            <option value="60" @selected(old('duration_minutes', 90) == 60)>۱ ساعت</option><option value="90" @selected(old('duration_minutes', 90) == 90)>۱ ساعت و نیم</option><option value="120" @selected(old('duration_minutes') == 120)>۲ ساعت</option><option value="180" @selected(old('duration_minutes') == 180)>۳ ساعت</option><option value="240" @selected(old('duration_minutes') == 240)>۴ ساعت</option><option value="360" @selected(old('duration_minutes') == 360)>۶ ساعت</option>
                         </select>
                     </div>
                     <div><label for="reserve-email">ایمیل (اختیاری)</label><input id="reserve-email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" maxlength="150" placeholder="name@example.com"></div>
