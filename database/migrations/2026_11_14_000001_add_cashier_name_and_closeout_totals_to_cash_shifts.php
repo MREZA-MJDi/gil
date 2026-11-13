@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('card_payments_total')->default(0);
             $table->unsignedBigInteger('other_payments_total')->default(0);
             $table->unsignedBigInteger('refunds_total')->default(0);
-            $table->unsignedBigInteger('net_collections_total')->default(0);
+            $table->bigInteger('net_collections_total')->default(0);
         });
     }
 
