@@ -77,16 +77,16 @@
         @if($featuredProducts->isNotEmpty())
             <div class="fc" data-best-food-track aria-roledescription="carousel" aria-label="محصولات منتخب منو" tabindex="0">
                 @foreach($featuredProducts as $product)
-                    <button
+                    <a
                         class="fc__slide"
-                        type="button"
+                        href="{{ route('public.menu', ['product' => $product->id]) }}#category-{{ $product->category_id }}"
                         data-best-food-slide
                         data-index="{{ $loop->index }}"
                         data-name="{{ $product->name }}"
                         data-description="{{ $product->description ?: 'برای دیدن جزئیات و ثبت سفارش، محصول را در منوی کامل باز کن.' }}"
-                        data-url="{{ route('public.menu') }}#category-{{ $product->category_id }}"
-                        aria-label="نمایش {{ $product->name }}"
-                        aria-pressed="false"
+                        data-url="{{ route('public.menu', ['product' => $product->id]) }}#category-{{ $product->category_id }}"
+                        aria-label="مشاهده {{ $product->name }} در منوی کامل"
+                        aria-current="false"
                     >
                         <span class="fc__img">
                             @if($product->image_url)
@@ -99,18 +99,18 @@
                             <strong>{{ $product->name }}</strong>
                             <small>{{ number_format($product->base_price) }} {{ $settings->currency_label }}</small>
                         </span>
-                    </button>
+                    </a>
                 @endforeach
             </div>
 
             <div class="best-food__controls">
-                <button class="fc__arrow" type="button" data-best-food-prev aria-label="محصول قبلی">‹</button>
+                <button class="fc__arrow" type="button" data-best-food-next aria-label="محصول بعدی">‹</button>
                 <div class="fc__dots" data-best-food-dots aria-label="انتخاب محصول">
                     @foreach($featuredProducts as $product)
                         <button class="fc__dot" type="button" data-best-food-dot="{{ $loop->index }}" aria-label="نمایش {{ $product->name }}" aria-pressed="false"></button>
                     @endforeach
                 </div>
-                <button class="fc__arrow" type="button" data-best-food-next aria-label="محصول بعدی">›</button>
+                <button class="fc__arrow" type="button" data-best-food-prev aria-label="محصول قبلی">›</button>
             </div>
 
             <div class="best-food__selected" aria-live="polite">
