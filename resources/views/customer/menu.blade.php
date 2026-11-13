@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#fbf6ec">
     <title>منوی میز {{ $table->name }} | {{ $settings->name }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site kg-qr-page" id="top">
     <header class="kg-qr-header">

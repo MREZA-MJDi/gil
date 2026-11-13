@@ -187,4 +187,62 @@ class PublicSiteRenderingTest extends TestCase
             ->assertOk()
             ->assertSee('در انتظار تأیید');
     }
+    public function test_customer_and_public_pages_use_framework_free_assets_while_dashboard_keeps_react(): void
+    {
+        $publicViews = [
+            resource_path('views/public/home.blade.php'),
+            resource_path('views/public/menu.blade.php'),
+            resource_path('views/public/reserve.blade.php'),
+            resource_path('views/public/reservation-received.blade.php'),
+            resource_path('views/customer/menu.blade.php'),
+        ];
+
+        foreach ($publicViews as $viewPath) {
+            $source = file_get_contents($viewPath);
+            $this->assertIsString($source);
+            $this->assertStringContainsString("resources/css/public.css", $source);
+            $this->assertStringContainsString("resources/js/public-site.js", $source);
+            $this->assertStringNotContainsString("resources/js/app.jsx", $source);
+            $this->assertStringNotContainsString("resources/js/app.js", $source);
+        }
+
+        $dashboard = file_get_contents(resource_path('views/admin/dashboard.blade.php'));
+        $this->assertIsString($dashboard);
+        $this->assertStringContainsString("resources/js/app.jsx", $dashboard);
+        $this->assertStringContainsString("resources/css/app.css", $dashboard);
+
+
+        foreach ([
+            resource_path('views/admin/login.blade.php'),
+            resource_path('views/admin/register.blade.php'),
+        ] as $authViewPath) {
+            $authSource = file_get_contents($authViewPath);
+            $this->assertIsString($authSource);
+            $this->assertStringContainsString("resources/css/auth-entry.css", $authSource);
+            $this->assertStringNotContainsString("resources/js/app.jsx", $authSource);
+            $this->assertStringNotContainsString("resources/js/app.js", $authSource);
+        }
+
+        $publicEntry = file_get_contents(resource_path('js/public-site.js'));
+        $this->assertIsString($publicEntry);
+        $this->assertStringNotContainsString("react", strtolower($publicEntry));
+        $this->assertStringContainsString("./public/customer-qr-menu.js", $publicEntry);
+    }
+
+    public function test_public_design_system_uses_local_estedad_and_responsive_type_scale(): void
+    {
+        $fonts = file_get_contents(resource_path('css/fonts.css'));
+        $base = file_get_contents(resource_path('css/public-base.css'));
+        $entry = file_get_contents(resource_path('css/public.css'));
+
+        $this->assertIsString($fonts);
+        $this->assertIsString($base);
+        $this->assertIsString($entry);
+        $this->assertStringContainsString("font-family: 'Estedad'", $fonts);
+        $this->assertStringContainsString("--kg-fs-display", $base);
+        $this->assertStringContainsString("--kg-section-space", $base);
+        $this->assertStringContainsString("public-base.css", $entry);
+        $this->assertStringNotContainsString("dashboard.css", $entry);
+    }
+
 }

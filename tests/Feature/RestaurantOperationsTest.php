@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\CashMovement;
 use App\Models\Category;
+use App\Models\Ingredient;
 use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\Product;
@@ -168,6 +169,59 @@ class RestaurantOperationsTest extends TestCase
             ])
             ->assertJsonPath('data.orders_count', 0)
             ->assertJsonPath('data.low_stock_count', 1);
+    }
+
+    public function test_dashboard_aggregates_sales_collections_and_open_invoices_from_database(): void
+    {
+        $this->actingAs($this->admin);
+
+        $created = $this->postJson('/admin/api/orders', $this->orderPayload(1), [
+            'Idempotency-Key' => 'dashboard-order-aggregate-0001',
+        ])->assertCreated();
+
+        $orderId = $created->json('data.id');
+        $total = (int) $created->json('data.total');
+
+        $payment = $this->postJson('/admin/api/orders/'.$orderId.'/payments', [
+            'amount' => 50000,
+            'method' => 'card_terminal',
+        ], ['Idempotency-Key' => 'dashboard-payment-aggregate-01'])->assertCreated();
+
+        $this->postJson('/admin/api/payments/'.$payment->json('data.id').'/refunds', [
+            'amount' => 20000,
+            'reason' => 'بازپرداخت بخشی برای تست شاخص‌ها',
+        ], ['Idempotency-Key' => 'dashboard-refund-aggregate-01'])->assertCreated();
+
+        $this->getJson('/admin/api/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.orders_count', 1)
+            ->assertJsonPath('data.registered_sales', $total)
+            ->assertJsonPath('data.collections_gross', 50000)
+            ->assertJsonPath('data.refunds', 20000)
+            ->assertJsonPath('data.collections_net', 30000)
+            ->assertJsonPath('data.open_invoice_amount', $total - 30000);
+    }
+
+    public function test_product_with_recipe_cannot_be_deleted_and_returns_conflict(): void
+    {
+        $this->actingAs($this->admin);
+        $ingredient = Ingredient::query()->create([
+            'name' => 'ماده اولیه وابسته به رسپی',
+            'unit' => 'g',
+            'stock_quantity' => '100.000',
+            'cost_per_unit' => 10,
+            'is_active' => true,
+        ]);
+        $this->product->recipeIngredients()->attach($ingredient->id, ['quantity' => '10.000']);
+
+        $this->deleteJson('/admin/api/products/'.$this->product->id)
+            ->assertStatus(409);
+
+        $this->assertDatabaseHas('products', ['id' => $this->product->id]);
+        $this->assertDatabaseHas('product_recipe_ingredients', [
+            'product_id' => $this->product->id,
+            'ingredient_id' => $ingredient->id,
+        ]);
     }
 
     public function test_order_creation_is_idempotent_and_consumes_stock_once(): void

@@ -792,19 +792,6 @@ export default function DashboardApp() {
         return entries.length?'?'+entries.map(([key,value])=>encodeURIComponent(key)+'='+encodeURIComponent(String(value))).join('&'):'';
     };
 
-    useEffect(() => {
-        let active = true;
-        api('/settings').then(payload => {
-            const currencySettings = unwrapData(payload);
-            if (!active) return;
-            window.__restaurantCurrencyLabel = currencySettings?.currency_label || 'تومان';
-            setSettings(currencySettings);
-        }).catch(() => {
-            window.__restaurantCurrencyLabel = window.__restaurantCurrencyLabel || 'تومان';
-        });
-        return () => { active = false; };
-    }, []);
-
     useEffect(()=>{
         let alive=true;
         const load=async()=>{
@@ -871,7 +858,9 @@ export default function DashboardApp() {
 
     useEffect(() => {
         if (!['overview', 'orders', 'cashier'].includes(page)) return undefined;
-        const timer = window.setInterval(() => setReloadVersion(version => version + 1), 15000);
+        const timer = window.setInterval(() => {
+            if (!document.hidden) setReloadVersion(version => version + 1);
+        }, 15000);
         return () => window.clearInterval(timer);
     }, [page]);
 
