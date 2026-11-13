@@ -861,13 +861,74 @@ function escapeHtml(value) {
     return String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");
 }
 function printHtml(order, type, settings) {
-    const width=Number(settings?.paper_width) === 58 ? 58 : 80;
-    const kitchen=type==='kitchen';
-    const title=kitchen?'فیش آشپزخانه':type==='receipt'?'فیش مشتری':'فاکتور فروش';
-    const itemRows=(order.items||[]).map(item=>'<tr><td>'+escapeHtml(item.name)+(item.options?.length?'<small>'+escapeHtml(item.options.map(o=>o.name).join('، '))+'</small>':'')+'</td><td>'+numberFa(item.quantity)+'</td><td>'+money(item.line_total)+'</td></tr>').join('');
-    const paymentRows=(order.payments||[]).filter(p=>p.status==='succeeded').map(p=>'<p class="row"><span>'+escapeHtml(paymentMethodLabel[p.method]||p.method)+'</span><b>'+money(p.amount)+'</b></p>').join('');
-    const totals=kitchen?'':('<hr/><p class="row"><span>جمع اقلام</span><b>'+money(order.subtotal)+'</b></p><p class="row"><span>تخفیف</span><b>'+money(order.discount)+'</b></p><p class="row"><span>مالیات</span><b>'+money(order.tax)+'</b></p><p class="row"><span>سرویس</span><b>'+money(order.service)+'</b></p><p class="row total"><span>مبلغ نهایی</span><b>'+money(order.total)+'</b></p>');
-    return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+title+'</title><style>@page{size:'+width+'mm auto;margin:3mm}*{box-sizing:border-box}body{width:'+(width-6)+'mm;margin:0 auto;font:12px Tahoma,Arial,sans-serif;color:#111}h1{text-align:center;font-size:18px;margin:0 0 6px}h2{text-align:center;font-size:13px;margin:0 0 10px}p{margin:4px 0}.muted{text-align:center;color:#555;font-size:10px}.row{display:flex;justify-content:space-between;gap:6px}hr{border:0;border-top:1px dashed #777;margin:8px 0}table{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}th,td{text-align:right;padding:5px 1px;border-bottom:1px dashed #aaa;vertical-align:top}td small{display:block;font-size:9px;margin-top:2px}.total{font-size:14px;font-weight:bold;border-top:1px solid #222;padding-top:7px}.foot{text-align:center;margin-top:15px;font-size:10px;white-space:pre-wrap}@media screen{body{margin:12px auto}}</style></head><body><h1>'+escapeHtml(settings?.name||'خانه گیلاسی')+'</h1><h2>'+title+'</h2><p class="muted">'+escapeHtml(settings?.phone||'')+'</p><p class="row"><span>شماره</span><b>'+escapeHtml(order.number||order.id)+'</b></p><p class="row"><span>زمان</span><b>'+escapeHtml(dateTime(order.created_at))+'</b></p><p class="row"><span>کانال</span><b>'+escapeHtml(channelLabel(order))+'</b></p>'+(order.table?.name?'<p class="row"><span>میز</span><b>'+escapeHtml(order.table.name)+'</b></p>':'')+'<p class="row"><span>وضعیت سفارش</span><b>'+escapeHtml(order.status?.label||order.status||'ثبت‌شده')+'</b></p>'+(order.customer_name?'<p class="row"><span>مشتری</span><b>'+escapeHtml(order.customer_name)+'</b></p>':'')+(order.customer_phone?'<p class="row"><span>تلفن</span><b>'+escapeHtml(order.customer_phone)+'</b></p>':'')+(order.customer_note?'<p>یادداشت: '+escapeHtml(order.customer_note)+'</p>':'')+'<hr/><table><thead><tr><th>شرح</th><th>تعداد</th><th>مبلغ</th></tr></thead><tbody>'+itemRows+'</tbody></table>'+totals+(type==='receipt'?'<hr/><b>پرداخت‌های ثبت‌شده</b>'+paymentRows:'')+'<div class="foot">'+escapeHtml(settings?.receipt_footer||'با تشکر از انتخاب شما')+'</div></body></html>';
+    const width = Number(settings?.paper_width) === 58 ? 58 : 80;
+    const kitchen = type === 'kitchen';
+    const title = kitchen ? 'فیش آشپزخانه' : type === 'receipt' ? 'فیش مشتری' : 'فاکتور فروش';
+    const status = orderStatusLabel[order.status] || order.status || 'ثبت‌شده';
+    const paymentStatus = paymentStatusLabel[order.payment_status] || order.payment_status || 'تسویه‌نشده';
+
+    const itemRows = (order.items || []).map(item => {
+        const optionNames = (item.options || []).map(option => option.name).filter(Boolean);
+        const notes = [optionNames.join('، '), item.note].filter(Boolean).join(' · ');
+        return '<tr><td><b>' + escapeHtml(item.name) + '</b>' +
+            (notes ? '<small>' + escapeHtml(notes) + '</small>' : '') +
+            '</td><td>' + numberFa(item.quantity) + '</td>' +
+            (kitchen ? '' : '<td>' + money(item.line_total) + '</td>') +
+            '</tr>';
+    }).join('');
+
+    const itemHeaders = kitchen
+        ? '<th>شرح سفارش</th><th>تعداد</th>'
+        : '<th>شرح</th><th>تعداد</th><th>مبلغ</th>';
+
+    const totals = kitchen ? '' :
+        '<hr/><p class="row"><span>جمع اقلام</span><b>' + money(order.subtotal) + '</b></p>' +
+        '<p class="row"><span>تخفیف</span><b>' + money(order.discount) + '</b></p>' +
+        '<p class="row"><span>مالیات</span><b>' + money(order.tax) + '</b></p>' +
+        '<p class="row"><span>سرویس</span><b>' + money(order.service) + '</b></p>' +
+        '<p class="row total"><span>مبلغ نهایی</span><b>' + money(order.total) + '</b></p>' +
+        '<p class="row"><span>وضعیت پرداخت</span><b>' + escapeHtml(paymentStatus) + '</b></p>';
+
+    const paymentRows = (order.payments || [])
+        .filter(payment => payment.status === 'succeeded')
+        .map(payment => '<p class="row"><span>' +
+            escapeHtml(paymentMethodLabel[payment.method] || payment.method) +
+            '</span><b>' + money(payment.amount) + '</b></p>')
+        .join('');
+
+    const paymentSection = type === 'receipt'
+        ? '<hr/><b>پرداخت‌های ثبت‌شده</b>' +
+            (paymentRows || '<p class="muted">هنوز پرداختی ثبت نشده است.</p>') : '';
+
+    return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">' +
+        '<meta name="viewport" content="width=device-width,initial-scale=1"><title>' + title + '</title>' +
+        '<style>@page{size:' + width + 'mm auto;margin:3mm}*{box-sizing:border-box}' +
+        'body{width:' + (width - 6) + 'mm;margin:0 auto;font:12px Tahoma,Arial,sans-serif;color:#111}' +
+        'h1{text-align:center;font-size:18px;margin:0 0 6px}h2{text-align:center;font-size:13px;margin:0 0 10px}' +
+        'p{margin:4px 0}.muted{text-align:center;color:#555;font-size:10px}' +
+        '.row{display:flex;justify-content:space-between;gap:6px}hr{border:0;border-top:1px dashed #777;margin:8px 0}' +
+        'table{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}' +
+        'th,td{text-align:right;padding:5px 1px;border-bottom:1px dashed #aaa;vertical-align:top}' +
+        'td small{display:block;font-size:9px;margin-top:3px;line-height:1.7;color:#555}' +
+        '.total{font-size:14px;font-weight:bold;border-top:1px solid #222;padding-top:7px}' +
+        '.foot{text-align:center;margin-top:15px;font-size:10px;white-space:pre-wrap}' +
+        '.ticket-number{text-align:center;font-size:23px;font-weight:900;letter-spacing:.04em;margin:7px 0}' +
+        '.ticket-note{margin-top:8px;padding:7px;border:1px dashed #777;font-weight:700}' +
+        '@media screen{body{margin:12px auto}}</style></head><body>' +
+        '<h1>' + escapeHtml(settings?.name || 'خانه گیلاسی') + '</h1><h2>' + title + '</h2>' +
+        '<p class="muted">' + escapeHtml(settings?.phone || '') + '</p>' +
+        '<div class="ticket-number">' + escapeHtml(order.number || order.id) + '</div>' +
+        '<p class="row"><span>زمان ثبت</span><b>' + escapeHtml(dateTime(order.created_at)) + '</b></p>' +
+        '<p class="row"><span>کانال</span><b>' + escapeHtml(channelLabel(order)) + '</b></p>' +
+        (order.table?.name ? '<p class="row"><span>میز</span><b>' + escapeHtml(order.table.name) + '</b></p>' : '') +
+        '<p class="row"><span>وضعیت سفارش</span><b>' + escapeHtml(status) + '</b></p>' +
+        (order.customer_name ? '<p class="row"><span>مشتری</span><b>' + escapeHtml(order.customer_name) + '</b></p>' : '') +
+        (order.customer_phone ? '<p class="row"><span>تلفن</span><b>' + escapeHtml(order.customer_phone) + '</b></p>' : '') +
+        (order.customer_note ? '<p class="ticket-note">یادداشت: ' + escapeHtml(order.customer_note) + '</p>' : '') +
+        '<hr/><table><thead><tr>' + itemHeaders + '</tr></thead><tbody>' + itemRows + '</tbody></table>' +
+        totals + paymentSection +
+        '<div class="foot">' + escapeHtml(settings?.receipt_footer || 'با تشکر از انتخاب شما') + '</div>' +
+        '</body></html>';
 }
 
 export default function DashboardApp() {
