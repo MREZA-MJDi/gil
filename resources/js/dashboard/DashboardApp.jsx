@@ -950,7 +950,7 @@ export default function DashboardApp() {
                     next.settings=unwrapData(settingsPayload);
                 }
                 if(page==='orders'){
-                    const params={...listParams};
+                    const params={...listParams,sort:'latest'};
                     const filters=listFilters.orders;
                     if(filters.query?.trim()) params.q=filters.query.trim();
                     if(filters.status==='open') params.active=1;
@@ -960,7 +960,7 @@ export default function DashboardApp() {
                     next.orders=unwrapList(payload);next.ordersPagination=unwrapPagination(payload);
                 }
                 if(page==='cashier'){
-                    const [shift,orders]=await Promise.all([api('/cash-shift'),api('/orders'+queryString({...listParams,unsettled:1,active:1}))]);
+                    const [shift,orders]=await Promise.all([api('/cash-shift'),api('/orders'+queryString({...listParams,unsettled:1,active:1,sort:'latest'}))]);
                     next.cashShift=unwrapData(shift);next.orders=unwrapList(orders);next.cashierOrdersPagination=unwrapPagination(orders);
                 }
                 if(page==='menu'){
@@ -1026,10 +1026,6 @@ export default function DashboardApp() {
         catch(e){notify(e.message||'جزئیات سفارش بارگذاری نشد.');}
     };
     const showRefund=(payment,orderId)=>setModal({type:'refund',payment,orderId});
-    const createOrder=payload=>action(async()=>{
-        await api('/orders',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key});
-        setPage('orders');setListPage(1);setListFilters(current=>({...current,orders:{query:'',status:'all'}}));
-    },'سفارش در سرور ثبت شد؛ موجودی رهگیری‌شده هم کم شد.');
     const transition=(order,status)=>action(()=>api('/orders/'+order.id+'/status',{method:'PATCH',body:{status,reason:'تغییر وضعیت از داشبورد'}}),'وضعیت سفارش به‌روزرسانی شد.',{close:false});
     const cancelOrder=(order)=>setModal({type:'cancel',order});
     const submitCancel=(reason,id)=>action(()=>api('/orders/'+id+'/cancel',{method:'POST',body:{reason}}),'سفارش لغو و موجودی رهگیری‌شده بازگردانده شد.',{close:true});
