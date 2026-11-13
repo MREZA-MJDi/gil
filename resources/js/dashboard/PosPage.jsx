@@ -6,6 +6,11 @@ const formatNumber = value => new Intl.NumberFormat('fa-IR').format(Number(value
 const money = (value, currency) => formatMoney(value) + ' ' + (currency || 'تومان');
 const makeKey = () => globalThis.crypto?.randomUUID?.().replaceAll('-', '')
     || ('pos' + Date.now().toString(36) + Math.random().toString(36).slice(2, 22));
+const dateTime = value => value
+    ? new Intl.DateTimeFormat('fa-IR-u-ca-persian-nu-arabext', {
+        dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Tehran',
+    }).format(new Date(value))
+    : '—';
 
 function StockLabel({ product }) {
     if (product.stock_quantity === null || product.stock_quantity === undefined) {
@@ -17,6 +22,143 @@ function StockLabel({ product }) {
     </span>;
 }
 
+function ShiftPanel({ cashShift, currency, submitting, onOpenShift, onCloseShift, onMovement }) {
+    const shiftOpen = cashShift?.status === 'open';
+    const [cashierName, setCashierName] = useState('');
+    const [openingCash, setOpeningCash] = useState('0');
+    const [openingNote, setOpeningNote] = useState('');
+    const [countedCash, setCountedCash] = useState('');
+    const [closingNote, setClosingNote] = useState('');
+    const [movement, setMovement] = useState({ direction: 'out', amount: '', reason: '' });
+    const [movementKey, setMovementKey] = useState(makeKey);
+
+    const cashIn = Number(cashShift?.cash_in_total || 0);
+    const cashOut = Number(cashShift?.cash_out_total || 0);
+    const expectedCash = Number(cashShift?.expected_cash
+        ?? (Number(cashShift?.opening_cash || 0) + cashIn - cashOut));
+    const closingDifference = countedCash === '' ? null : Number(countedCash) - expectedCash;
+    const previousShift = cashShift?.status === 'closed';
+
+    const submitOpen = async event => {
+        event.preventDefault();
+        if (!cashierName.trim()) return;
+        await onOpenShift({
+            cashier_name: cashierName.trim(),
+            opening_cash: Number(openingCash || 0),
+            note: openingNote.trim() || null,
+        });
+    };
+
+    const submitClose = async event => {
+        event.preventDefault();
+        if (countedCash === '') return;
+        const ok = await onCloseShift(cashShift.id, {
+            counted_cash: Number(countedCash),
+            note: closingNote.trim() || null,
+        });
+        if (ok) {
+            setCountedCash('');
+            setClosingNote('');
+        }
+    };
+
+    const submitMovement = async event => {
+        event.preventDefault();
+        const payload = {
+            direction: movement.direction,
+            amount: Number(movement.amount),
+            reason: movement.reason.trim(),
+            idempotency_key: movementKey,
+        };
+        const ok = await onMovement(cashShift.id, payload);
+        if (ok) {
+            setMovement({ direction: 'out', amount: '', reason: '' });
+            setMovementKey(makeKey());
+        }
+    };
+
+    return <section className="pos-shift-panel panel" aria-label="مدیریت شیفت صندوق">
+        <div className="pos-shift-heading">
+            <div>
+                <span className="pos-section-kicker">صندوق و شیفت کاری</span>
+                <h2>{shiftOpen ? 'شیفت فعال' : 'شروع شیفت صندوق'}</h2>
+                <p>{shiftOpen
+                    ? 'فروش‌ها و دریافت‌های این نوبت به همین شیفت متصل می‌شوند.'
+                    : 'نام مسئول و پول نقد ابتدای شیفت را ثبت کن؛ بعد از آن سفارش‌گیری شروع می‌شود.'}</p>
+            </div>
+            <span className={'pos-shift-state ' + (shiftOpen ? 'is-open' : 'is-closed')}>
+                <i />{shiftOpen ? 'صندوق باز است' : 'صندوق بسته است'}
+            </span>
+        </div>
+
+        {previousShift && <div className="pos-last-shift">
+            <div className="pos-last-shift-heading">
+                <div><b>گزارش آخرین شیفت بسته‌شده</b><small>{cashShift.cashier_name || cashShift.opener?.name || 'مسئول ثبت‌نشده'} · {dateTime(cashShift.opened_at)} تا {dateTime(cashShift.closed_at)}</small></div>
+                <span>ثبت‌شده</span>
+            </div>
+            <div className="pos-shift-summary-grid">
+                <div><small>تعداد سفارش</small><b>{formatNumber(cashShift.orders_count)}</b></div>
+                <div><small>فروش ناخالص</small><b>{money(cashShift.gross_sales, currency)}</b></div>
+                <div><small>دریافت نقدی</small><b>{money(cashShift.cash_payments_total, currency)}</b></div>
+                <div><small>دریافت کارت‌خوان</small><b>{money(cashShift.card_payments_total, currency)}</b></div>
+                <div><small>سایر دریافت‌ها</small><b>{money(cashShift.other_payments_total, currency)}</b></div>
+                <div><small>بازپرداخت</small><b>{money(cashShift.refunds_total, currency)}</b></div>
+                <div><small>دریافتی خالص</small><b>{money(cashShift.net_collections_total, currency)}</b></div>
+                <div><small>سفارش لغوشده</small><b>{formatNumber(cashShift.cancelled_orders_count)}</b></div>
+            </div>
+            <div className="pos-shift-reconcile">
+                <span>وجه مورد انتظار: <b>{money(cashShift.expected_cash, currency)}</b></span>
+                <span>وجه شمارش‌شده: <b>{money(cashShift.counted_cash, currency)}</b></span>
+                <strong className={Number(cashShift.difference || 0) === 0 ? 'is-balanced' : 'is-different'}>
+                    {Number(cashShift.difference || 0) === 0
+                        ? 'صندوق بدون مغایرت بسته شد'
+                        : (Number(cashShift.difference) > 0 ? 'مازاد ' : 'کسری ') + money(Math.abs(Number(cashShift.difference)), currency)}
+                </strong>
+            </div>
+        </div>}
+
+        {shiftOpen ? <>
+            <div className="pos-active-shift-meta">
+                <span><small>مسئول شیفت</small><b>{cashShift.cashier_name || cashShift.opener?.name || 'ثبت نشده'}</b></span>
+                <span><small>شروع شیفت</small><b>{dateTime(cashShift.opened_at)}</b></span>
+                <span><small>ثبت‌کننده در سامانه</small><b>{cashShift.opener?.name || 'کاربر پنل'}</b></span>
+            </div>
+            <div className="pos-shift-live-grid">
+                <div><small>وجه آغازین</small><b>{money(cashShift.opening_cash, currency)}</b></div>
+                <div><small>ورودی نقدی</small><b>{money(cashIn, currency)}</b></div>
+                <div><small>خروجی نقدی</small><b>{money(cashOut, currency)}</b></div>
+                <div className="is-total"><small>وجه مورد انتظار در کشو</small><b>{money(expectedCash, currency)}</b></div>
+            </div>
+            <div className="pos-shift-actions-grid">
+                <form className="pos-shift-close-form" onSubmit={submitClose}>
+                    <div><b>پایان شیفت</b><small>وجه نقد داخل کشو را بشمار؛ سیستم اختلاف را محاسبه و گزارش شیفت را ثبت می‌کند.</small></div>
+                    <label><span>وجه نقد شمارش‌شده ({currency})</span><input type="number" min="0" step="1" value={countedCash} onChange={event => setCountedCash(event.target.value)} required /></label>
+                    <label><span>یادداشت پایان شیفت (اختیاری)</span><input value={closingNote} onChange={event => setClosingNote(event.target.value)} maxLength="500" placeholder="توضیح درباره اختلاف یا تحویل صندوق" /></label>
+                    {closingDifference !== null && <p className={'pos-shift-difference ' + (closingDifference === 0 ? 'is-balanced' : 'is-different')}>
+                        {closingDifference === 0 ? 'صندوق با مبلغ مورد انتظار برابر است.' : (closingDifference > 0 ? 'مازاد صندوق: ' : 'کسری صندوق: ') + money(Math.abs(closingDifference), currency)}
+                    </p>}
+                    <button type="submit" disabled={submitting || countedCash === ''}>بستن شیفت و ثبت گزارش</button>
+                </form>
+                <details className="pos-shift-movement">
+                    <summary>ثبت ورود یا خروج دستی وجه</summary>
+                    <form onSubmit={submitMovement}>
+                        <label><span>نوع گردش</span><select value={movement.direction} onChange={event => setMovement(value => ({ ...value, direction: event.target.value }))}><option value="in">ورودی به صندوق</option><option value="out">خروجی از صندوق</option></select></label>
+                        <label><span>مبلغ ({currency})</span><input type="number" min="1" step="1" value={movement.amount} onChange={event => setMovement(value => ({ ...value, amount: event.target.value }))} required /></label>
+                        <label><span>علت ثبت</span><input minLength="3" maxLength="500" value={movement.reason} onChange={event => setMovement(value => ({ ...value, reason: event.target.value }))} placeholder="مثلاً تنخواه یا شارژ صندوق" required /></label>
+                        <button type="submit" disabled={submitting}>ثبت گردش</button>
+                    </form>
+                </details>
+            </div>
+            <p className="pos-shift-footnote">مبالغ کارت‌خوان جزو پول نقد داخل کشو نیستند. جمع فروش، دریافتی‌ها و بازپرداخت‌ها جداگانه در گزارش پایان شیفت ثبت می‌شوند.</p>
+        </> : <form className="pos-shift-open-form" onSubmit={submitOpen}>
+            <label><span>نام مسئول این شیفت</span><input value={cashierName} onChange={event => setCashierName(event.target.value)} maxLength="150" autoComplete="name" placeholder="نام و نام خانوادگی" required /></label>
+            <label><span>پول نقد ابتدای شیفت ({currency})</span><input type="number" min="0" step="1" value={openingCash} onChange={event => setOpeningCash(event.target.value)} required /></label>
+            <label className="pos-shift-open-note"><span>یادداشت شروع (اختیاری)</span><input value={openingNote} onChange={event => setOpeningNote(event.target.value)} maxLength="500" placeholder="مثلاً شیفت صبح یا تحویل صندوق" /></label>
+            <button type="submit" disabled={submitting || !cashierName.trim()}>شروع شیفت و باز کردن صندوق</button>
+        </form>}
+    </section>;
+}
+
 export default function PosPage({
     products = [],
     categories = [],
@@ -25,7 +167,9 @@ export default function PosPage({
     settings,
     submitting = false,
     onSubmit,
-    onOpenCashier,
+    onOpenShift,
+    onCloseShift,
+    onMovement,
     onPrint,
     onViewOrders,
 }) {
@@ -49,7 +193,6 @@ export default function PosPage({
     const [discount, setDiscount] = useState('0');
     const [paymentMethod, setPaymentMethod] = useState('card_terminal');
     const [paymentReference, setPaymentReference] = useState('');
-    const [paymentNote, setPaymentNote] = useState('');
     const [orderKey, setOrderKey] = useState(makeKey);
     const [paymentKey, setPaymentKey] = useState(makeKey);
     const [message, setMessage] = useState('');
@@ -167,6 +310,10 @@ export default function PosPage({
     const handleSubmit = async event => {
         event.preventDefault();
         setMessage('');
+        if (!shiftOpen) {
+            setMessage('برای شروع سفارش‌گیری، ابتدا مسئول شیفت و موجودی آغازین صندوق را ثبت کن.');
+            return;
+        }
         if (!cart.length) {
             setMessage('برای ثبت سفارش، ابتدا حداقل یک محصول انتخاب کن.');
             return;
@@ -203,7 +350,6 @@ export default function PosPage({
         const payment = paymentMethod === 'later' ? null : {
             method: paymentMethod,
             reference: paymentReference.trim() || null,
-            note: paymentNote.trim() || null,
             idempotency_key: paymentKey,
         };
         const result = await onSubmit({ payload, payment });
@@ -217,7 +363,6 @@ export default function PosPage({
         setCart([]);
         setDiscount('0');
         setPaymentReference('');
-        setPaymentNote('');
         setOrderKey(makeKey());
         setPaymentKey(makeKey());
         setMessage(result.paymentPending
@@ -240,15 +385,28 @@ export default function PosPage({
             <div>
                 <span className="pos-eyebrow">خانه گیلاسی / نقطه فروش</span>
                 <h1>صندوق فروش و ثبت سفارش</h1>
-                <p>سفارش را مثل روند واقعی رستوران ثبت کن: انتخاب غذا، شخصی‌سازی، میز، تسویه و چاپ فیش.</p>
+                <p>ابتدا شیفت را شروع کن؛ سپس سفارش‌ها را ثبت، آماده‌سازی و تسویه کن.</p>
             </div>
             <div className="pos-heading-actions">
                 <span className={'pos-shift-state ' + (shiftOpen ? 'is-open' : 'is-closed')}>
-                    <i />{shiftOpen ? 'شیفت صندوق باز است' : 'شیفت صندوق بسته است'}
+                    <i />{shiftOpen ? 'شیفت فعال' : 'نیاز به شروع شیفت'}
                 </span>
                 <button type="button" className="pos-secondary-button" onClick={onViewOrders}>آخرین سفارش‌ها ↗</button>
             </div>
         </header>
+
+        <ShiftPanel
+            cashShift={cashShift}
+            currency={currency}
+            submitting={submitting}
+            onOpenShift={onOpenShift}
+            onCloseShift={onCloseShift}
+            onMovement={onMovement}
+        />
+
+        {!shiftOpen && <div className="pos-shift-lock-notice" role="status">
+            برای جلوگیری از ثبت فروش خارج از شیفت، تا زمان شروع شیفت دکمه ثبت سفارش غیرفعال است.
+        </div>}
 
         {lastOrder && <section className={'pos-success-banner ' + (paymentPending ? 'has-payment-warning' : '')}>
             <span className="pos-success-icon">{paymentPending ? '!' : '✓'}</span>
@@ -263,7 +421,7 @@ export default function PosPage({
             </div>
         </section>}
 
-        <div className="pos-layout">
+        <div className={'pos-layout ' + (!shiftOpen ? 'is-shift-locked' : '')}>
             <section className="pos-catalog panel">
                 <div className="pos-catalog-heading">
                     <div><span className="pos-section-kicker">مرحله ۱</span><h2>انتخاب از منو</h2><p>{formatNumber(activeProducts.length)} محصول فعال قابل سفارش</p></div>
@@ -298,7 +456,7 @@ export default function PosPage({
                         <div className="pos-builder-footer">
                             <label className="pos-quantity-field"><span>تعداد</span><input type="number" min="1" max={remainingStock === null ? 100 : Math.max(1, remainingStock)} value={selectedQuantity} onChange={event => setSelectedQuantity(event.target.value)} /></label>
                             <label className="pos-line-note"><span>یادداشت آشپزخانه (اختیاری)</span><input value={selectedLineNote} maxLength="500" onChange={event => setSelectedLineNote(event.target.value)} placeholder="مثلاً بدون پیاز، سس جدا…" /></label>
-                            <button type="button" className="pos-add-button" onClick={addSelectedProduct} disabled={!selectedProduct || remainingStock === 0 || (remainingStock !== null && Number(selectedQuantity) > remainingStock)}>افزودن به سفارش ＋</button>
+                            <button type="button" className="pos-add-button" onClick={addSelectedProduct} disabled={!shiftOpen || !selectedProduct || remainingStock === 0 || (remainingStock !== null && Number(selectedQuantity) > remainingStock)}>افزودن به سفارش ＋</button>
                         </div>
                     </div>
                 </section>}
@@ -306,7 +464,7 @@ export default function PosPage({
                 <div className="pos-product-grid">
                     {filteredProducts.length ? filteredProducts.map(product => {
                         const selected = String(product.id) === String(selectedProductId);
-                        return <button type="button" key={product.id} className={'pos-product-card ' + (selected ? 'is-selected' : '')} onClick={() => setProduct(product)} aria-pressed={selected}>
+                        return <button type="button" key={product.id} className={'pos-product-card ' + (selected ? 'is-selected' : '')} onClick={() => setProduct(product)} aria-pressed={selected} disabled={!shiftOpen}>
                             <span className="pos-product-photo">
                                 {product.image_url ? <img src={product.image_url} alt="" loading="lazy" /> : <span>🍽️</span>}
                                 <i>{product.category?.name || 'منو'}</i>
@@ -381,14 +539,12 @@ export default function PosPage({
                         <button type="button" className={paymentMethod === 'cash' ? 'is-active' : ''} disabled={!shiftOpen} onClick={() => setPaymentMethod('cash')}>نقدی</button>
                         <button type="button" className={paymentMethod === 'later' ? 'is-active' : ''} onClick={() => setPaymentMethod('later')}>بعداً تسویه</button>
                     </div>
-                    {paymentMethod === 'cash' && !shiftOpen && <div className="pos-cash-warning">برای دریافت نقدی، شیفت صندوق باید باز باشد. <button type="button" onClick={onOpenCashier}>بازکردن شیفت ←</button></div>}
-                    {paymentMethod === 'card_terminal' && <label className="pos-field"><span>شماره پیگیری کارت‌خوان (اختیاری)</span><input value={paymentReference} onChange={event => setPaymentReference(event.target.value)} maxLength="120" placeholder="شماره رسید یا پیگیری" /></label>}
-                    {paymentMethod === 'later' && <p className="pos-pay-later-note">سفارش ثبت می‌شود و مانده آن برای تسویه بعدی در صفحه صندوق باقی می‌ماند.</p>}
-                    <p className="pos-card-note">ثبت «کارت‌خوان» فقط تأیید دریافت توسط کارمند است؛ اتصال خودکار به دستگاه کارت‌خوان در این مرحله انجام نمی‌شود.</p>
+                    {paymentMethod === 'later' && <p className="pos-pay-later-note">سفارش ثبت می‌شود و مانده آن برای تسویه بعدی از بخش سفارش‌ها قابل پیگیری است.</p>}
+                    <p className="pos-card-note">ثبت «کارت‌خوان» یعنی کارمند دریافت وجه را تأیید می‌کند؛ اتصال خودکار به دستگاه در این نسخه فعال نیست.</p>
                 </div>
 
                 {message && <p className="pos-feedback" role="status">{message}</p>}
-                <button type="button" className="pos-checkout-submit" onClick={handleSubmit} disabled={submitting || !cart.length || (channel === 'dine_in' && !tableId) || Number(discount || 0) > subtotal || (paymentMethod === 'cash' && !shiftOpen)}>
+                <button type="button" className="pos-checkout-submit" onClick={handleSubmit} disabled={submitting || !shiftOpen || !cart.length || (channel === 'dine_in' && !tableId) || Number(discount || 0) > subtotal || (paymentMethod === 'cash' && !shiftOpen)}>
                     {submitting ? 'در حال ثبت سفارش…' : paymentMethod === 'later' ? 'ثبت سفارش و تسویه بعدی' : 'ثبت سفارش و ثبت دریافت وجه'}
                     <span>↗</span>
                 </button>
