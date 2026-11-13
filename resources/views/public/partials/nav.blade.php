@@ -24,7 +24,7 @@
         </a>
 
         <button class="kg-menu-toggle" type="button" data-kg-menu-toggle aria-expanded="false" aria-controls="kg-main-nav" aria-label="باز کردن منو">
-            
+            <span></span><span></span>
         </button>
 
         <nav class="kg-nav" id="kg-main-nav" data-kg-nav aria-label="ناوبری اصلی">
