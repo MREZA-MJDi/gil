@@ -267,8 +267,8 @@ function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
                 </div>
                 {recentReservations.length ? <div className="overview-monitor-list">
                     {recentReservations.map(reservation=><button type="button" className="overview-monitor-row" key={reservation.id} onClick={()=>onNavigate('reservations')}>
-                        <span className="overview-monitor-main"><strong>{reservation.customer_name}</strong><small>{numberFa(reservation.party_size)} نفر · {reservation.table?.name || 'بدون تخصیص میز'} · {reservation.reference || 'رزرو'}</small></span>
-                        <span className="overview-monitor-meta"><b>{dateTime(reservation.starts_at)}</b><Pill value={reservation.status} dictionary={reservationLabels} /></span>
+                        <span className="overview-monitor-main"><strong>{reservation.customer_name}</strong><small>{reservation.phone || 'بدون شماره تماس'} · {numberFa(reservation.party_size)} نفر · {reservation.table?.name || 'بدون تخصیص میز'}</small><small>{reservation.source === 'website' ? 'ثبت از سایت' : 'ثبت توسط پرسنل'} · {reservation.reference || 'رزرو'}</small></span>
+                        <span className="overview-monitor-meta"><b>وقت: {dateTime(reservation.starts_at)}</b><small>ثبت: {dateTime(reservation.created_at)}</small><Pill value={reservation.status} dictionary={reservationLabels} /></span>
                     </button>)}
                 </div> : <div className="overview-monitor-empty">هنوز درخواست رزروی ثبت نشده است.</div>}
             </article>
