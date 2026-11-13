@@ -3,6 +3,7 @@ import MediaManager from './MediaManager.jsx';
 import { MoneyInput } from '../shared/iranian-ui.jsx';
 import { api, idempotencyKey, unwrapData, unwrapList, unwrapPagination } from './api.js';
 import QRCode from 'qrcode';
+import { buildPrintHtml } from './receipt.js';
 import { currentJalaliDate, gregorianDateToJalali, jalaliDateToGregorian, jalaliMonthInfo, shiftJalaliMonth, toPersianDigits, JALALI_WEEKDAYS } from '../date-utils.js';
 
 const navItems = [
@@ -42,6 +43,19 @@ const money = value => new Intl.NumberFormat('fa-IR-u-nu-arabext', { maximumFrac
 const numberFa = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0));
 const dateTime = value => value ? new Intl.DateTimeFormat('fa-IR-u-ca-persian-nu-arabext', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Tehran' }).format(new Date(value)) : '—';
 const localDateTime = value => value ? String(value).replace('T', ' ') + ':00' : '';
+const tehranDateTimeInput = value => {
+    if (!value) return '';
+    const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Tehran',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(new Date(value)).reduce((result, part) => ({
+        ...result, [part.type]: part.value,
+    }), {});
+    return parts.year && parts.month && parts.day
+        ? parts.year + '-' + parts.month + '-' + parts.day + 'T' + parts.hour + ':' + parts.minute
+        : '';
+};
 const channelLabel = order => {
     if (order?.table?.name) return order.table.name;
     if (order?.source === 'snappfood') return 'اسنپ‌فود';
@@ -387,13 +401,13 @@ function TablesPage({ tables, pagination, onPageChange, onCreate, onUpdate, onEd
     </div>;
 }
 
-function ReservationsPage({ reservations, tables, pagination, onPageChange, onCreate, onTransition, onRefresh }) {
+function ReservationsPage({ reservations, tables, pagination, onPageChange, onCreate, onTransition, onRefresh, onEdit, onDelete }) {
     const emptyForm = { restaurant_table_id: '', customer_name: '', phone: '', party_size: '2', starts_at: '', duration_minutes: '90', notes: '' };
     const [form, setForm] = useState(emptyForm);
     const [requestKey, setRequestKey] = useState(() => idempotencyKey());
     const set = (key, value) => setForm(v => ({...v, [key]: value}));
     return <div className="page-content">
-        <PageHeader title="رزرو میز" subtitle="رزرو با بازه زمانی و کنترل هم‌پوشانی برای هر میز؛ تغییر وضعیت در تاریخچه حسابرسی می‌شود." />
+        <PageHeader title="رزرو میز" subtitle="اطلاعات رزرو قابل ویرایش است؛ تغییر وضعیت و حذف رزروهای نمونه با قواعد جداگانه کنترل می‌شود." />
         <section className="panel op-card"><div className="panel-heading"><div><h2>ثبت رزرو جدید</h2><p>اگر میز مشخص شود، برخورد زمانی روی سرور کنترل می‌شود.</p></div></div>
             <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onCreate({ ...form, restaurant_table_id: form.restaurant_table_id ? Number(form.restaurant_table_id) : null, party_size: Number(form.party_size), duration_minutes: Number(form.duration_minutes), starts_at: localDateTime(form.starts_at), idempotency_key: requestKey }).then(ok => { if (ok) { setForm(emptyForm); setRequestKey(idempotencyKey()); } }); }}>
                 <Field label="نام مشتری"><input value={form.customer_name} onChange={e => set('customer_name', e.target.value)} maxLength="150" required /></Field>
@@ -406,8 +420,14 @@ function ReservationsPage({ reservations, tables, pagination, onPageChange, onCr
                 <div className="op-form-actions"><Button kind="primary" type="submit">ثبت رزرو</Button></div>
             </form>
         </section>
-        <section className="panel orders-panel"><div className="panel-heading"><div><h2>رزروها</h2><p>وضعیت هر رزرو با قواعد گردش کار تغییر می‌کند.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
-            {reservations?.length ? <TableWrap><thead><tr><th>شناسه</th><th>نوع درخواست</th><th>مشتری</th><th>میز</th><th>زمان</th><th>نفرات</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>{reservations.map(r => <tr key={r.id}><td className="mono">{r.reference}<small className="op-subtext">{r.source==='website'?'ثبت از سایت':'ثبت توسط کارکنان'}</small></td><td><b>{reservationPurposeLabel[r.purpose] || 'رزرو میز'}</b>{r.occasion_name&&<small className="op-subtext">{r.occasion_name}</small>}</td><td>{r.customer_name}<small className="op-subtext">{r.phone}</small></td><td>{r.table?.name || 'تخصیص‌نیافته'}</td><td>{dateTime(r.starts_at)}</td><td>{numberFa(r.party_size)}</td><td><Pill value={r.status} dictionary={reservationStatusLabel} /></td><td><div className="op-actions">{reservationNext(r.status).map(s => <Button key={s} kind={s === 'cancelled' ? 'danger' : 'secondary'} onClick={() => onTransition(r, s)}>{reservationStatusLabel[s]}</Button>)}</div></td></tr>)}</tbody></TableWrap> : <Empty>رزروی ثبت نشده است.</Empty>}
+        <section className="panel orders-panel"><div className="panel-heading"><div><h2>رزروها</h2><p>رزروهای نمونه با برچسب مشخص، از همین جدول قابل ویرایش و حذف هستند.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
+            {reservations?.length ? <TableWrap><thead><tr><th>شناسه</th><th>نوع درخواست</th><th>مشتری</th><th>میز</th><th>زمان</th><th>نفرات</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>{reservations.map(r => <tr key={r.id}>
+                <td className="mono">{r.reference}<small className="op-subtext">{r.source==='website'?'ثبت از سایت':'ثبت توسط کارکنان'}{String(r.reference||'').startsWith('DEMO-RSV-')?' · نمونه':''}</small></td>
+                <td><b>{reservationPurposeLabel[r.purpose] || 'رزرو میز'}</b>{r.occasion_name&&<small className="op-subtext">{r.occasion_name}</small>}</td>
+                <td>{r.customer_name}<small className="op-subtext">{r.phone}</small></td><td>{r.table?.name || 'تخصیص‌نیافته'}</td><td>{dateTime(r.starts_at)}</td><td>{numberFa(r.party_size)}</td>
+                <td><Pill value={r.status} dictionary={reservationStatusLabel} /></td>
+                <td><div className="op-actions"><Button onClick={() => onEdit(r)}>ویرایش</Button>{reservationNext(r.status).map(s => <Button key={s} kind={s === 'cancelled' ? 'danger' : 'secondary'} onClick={() => onTransition(r, s)}>{reservationStatusLabel[s]}</Button>)}{String(r.reference||'').startsWith('DEMO-RSV-')&&<Button kind="danger" onClick={()=>onDelete(r)}>حذف نمونه</Button>}</div></td>
+            </tr>)}</tbody></TableWrap> : <Empty>رزروی ثبت نشده است.</Empty>}
             <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
     </div>;
@@ -415,6 +435,53 @@ function ReservationsPage({ reservations, tables, pagination, onPageChange, onCr
 function reservationNext(status) {
     return ({ pending: ['confirmed','cancelled'], confirmed: ['arrived','no_show','cancelled'], arrived: ['cancelled'], cancelled: [], no_show: [] })[status] || [];
 }
+
+function ReservationEditModal({ reservation, tables, onClose, onSubmit }) {
+    const [form, setForm] = useState(() => ({
+        restaurant_table_id: reservation.restaurant_table_id ? String(reservation.restaurant_table_id) : '',
+        customer_name: reservation.customer_name || '',
+        phone: reservation.phone || '',
+        email: reservation.email || '',
+        party_size: String(reservation.party_size || 2),
+        starts_at: tehranDateTimeInput(reservation.starts_at),
+        duration_minutes: String(reservation.duration_minutes || 90),
+        purpose: reservation.purpose || 'table',
+        occasion_name: reservation.occasion_name || '',
+        estimated_budget: reservation.estimated_budget == null ? '' : String(reservation.estimated_budget),
+        notes: reservation.notes || '',
+    }));
+    const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
+    return <Modal title={'ویرایش رزرو ' + (reservation.reference || '')} eyebrow="RESERVATION DETAILS" onClose={onClose} wide>
+        <form className="op-form op-form-grid" onSubmit={event => {
+            event.preventDefault();
+            onSubmit({
+                ...form,
+                restaurant_table_id: form.restaurant_table_id ? Number(form.restaurant_table_id) : null,
+                party_size: Number(form.party_size),
+                starts_at: localDateTime(form.starts_at),
+                duration_minutes: Number(form.duration_minutes),
+                estimated_budget: form.estimated_budget === '' ? null : Number(form.estimated_budget),
+                email: form.email.trim() || null,
+                occasion_name: form.occasion_name.trim() || null,
+                notes: form.notes.trim() || null,
+            });
+        }}>
+            <Field label="نام مشتری"><input value={form.customer_name} onChange={event=>set('customer_name',event.target.value)} maxLength="150" required /></Field>
+            <Field label="تلفن"><input value={form.phone} onChange={event=>set('phone',event.target.value)} maxLength="30" required /></Field>
+            <Field label="ایمیل"><input type="email" value={form.email} onChange={event=>set('email',event.target.value)} maxLength="150" /></Field>
+            <Field label="تعداد نفرات"><input type="number" min="1" max="50" value={form.party_size} onChange={event=>set('party_size',event.target.value)} required /></Field>
+            <Field label="میز"><select value={form.restaurant_table_id} onChange={event=>set('restaurant_table_id',event.target.value)}><option value="">بدون تخصیص میز</option>{(tables||[]).filter(table=>table.is_active || String(table.id)===form.restaurant_table_id).map(table=><option key={table.id} value={table.id}>{table.name}</option>)}</select></Field>
+            <Field label="تاریخ و ساعت"><JalaliDateTimeInput value={form.starts_at} onChange={value=>set('starts_at',value)} required /></Field>
+            <Field label="مدت"><select value={form.duration_minutes} onChange={event=>set('duration_minutes',event.target.value)}><option value="30">۳۰ دقیقه</option><option value="60">۶۰ دقیقه</option><option value="90">۹۰ دقیقه</option><option value="120">۱۲۰ دقیقه</option><option value="150">۱۵۰ دقیقه</option><option value="180">۱۸۰ دقیقه</option><option value="240">۲۴۰ دقیقه</option><option value="300">۳۰۰ دقیقه</option><option value="360">۳۶۰ دقیقه</option></select></Field>
+            <Field label="نوع درخواست"><select value={form.purpose} onChange={event=>set('purpose',event.target.value)}>{Object.entries(reservationPurposeLabel).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></Field>
+            <Field label="مناسبت"><input value={form.occasion_name} onChange={event=>set('occasion_name',event.target.value)} maxLength="150" /></Field>
+            <Field label={'بودجه تخمینی ('+currencyLabel()+')'}><input type="number" min="0" value={form.estimated_budget} onChange={event=>set('estimated_budget',event.target.value)} /></Field>
+            <Field label="یادداشت"><input value={form.notes} onChange={event=>set('notes',event.target.value)} maxLength="1000" /></Field>
+            <div className="op-form-actions"><Button onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ذخیره تغییرات</Button></div>
+        </form>
+    </Modal>;
+}
+
 
 function CustomersPage({ feedback, pagination, onPageChange, onRespond, onRefresh }) {
     const [drafts, setDrafts] = useState({});
@@ -436,27 +503,56 @@ function CustomersPage({ feedback, pagination, onPageChange, onRespond, onRefres
     </div>;
 }
 
-function ExpensesPage({ expenses, pagination, onPageChange, onCreate, onRefresh }) {
+function ExpensesPage({ expenses, pagination, onPageChange, onCreate, onEdit, onDelete, onRefresh }) {
     const [form, setForm] = useState({ title: '', category: 'ingredients', amount: '', payment_method: 'cash', is_paid: true, note: '' });
     const set = (key, value) => setForm(v => ({...v,[key]:value}));
     return <div className="page-content">
-        <PageHeader title="هزینه‌های عملیاتی" subtitle="ثبت هزینه همراه روش پرداخت؛ هزینه نقدی پرداخت‌شده در دفتر صندوق نیز ثبت می‌شود." />
+        <PageHeader title="هزینه‌های عملیاتی" subtitle="هزینه‌ها از این بخش قابل ثبت و ویرایش هستند؛ حذف مستقیم فقط برای رکوردهای نمونه مجاز است." />
         <section className="panel op-card"><div className="panel-heading"><div><h2>ثبت هزینه</h2><p>برای هزینه نقدی، شیفت صندوق باید باز باشد.</p></div></div>
             <form className="op-form op-form-grid" onSubmit={e => { e.preventDefault(); onCreate({ ...form, amount: Number(form.amount) }); }}>
                 <Field label="عنوان هزینه"><input value={form.title} onChange={e => set('title',e.target.value)} maxLength="150" required placeholder="مثلاً خرید شیر" /></Field>
                 <Field label="دسته"><select value={form.category} onChange={e => set('category',e.target.value)}>{Object.entries(expenseCategoryLabel).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
                 <Field label={'مبلغ ('+currencyLabel()+')'}><input type="number" min="1" value={form.amount} onChange={e => set('amount',e.target.value)} required /></Field>
-                <Field label="روش پرداخت"><select value={form.payment_method} onChange={e => set('payment_method',e.target.value)}><option value="cash">نقدی</option><option value="card_terminal">کارت‌خوان (ثبت‌شده)</option><option value="other">سایر</option></select></Field>
+                <Field label="روش پرداخت"><select value={form.payment_method} onChange={e => set('payment_method',e.target.value)}><option value="cash">نقدی</option><option value="card_terminal">کارت‌خوان (ثبت‌شده)</option><option value="online">آنلاین</option><option value="other">سایر</option></select></Field>
                 <Field label="وضعیت پرداخت"><select value={form.is_paid ? 'paid' : 'unpaid'} onChange={e => set('is_paid',e.target.value === 'paid')}><option value="paid">پرداخت شده</option><option value="unpaid">پرداخت نشده</option></select></Field>
                 <Field label="یادداشت"><input value={form.note} onChange={e => set('note',e.target.value)} maxLength="1000" /></Field>
                 <div className="op-form-actions"><Button kind="primary" type="submit">ثبت هزینه</Button></div>
             </form>
         </section>
-        <section className="panel orders-panel"><div className="panel-heading"><div><h2>آخرین هزینه‌ها</h2><p>هزینه‌ی پرداخت‌نشده با خروج وجه صندوق یکی نیست.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
-            {expenses?.length ? <TableWrap><thead><tr><th>زمان</th><th>عنوان</th><th>دسته</th><th>مبلغ</th><th>پرداخت</th><th>روش</th><th>ثبت‌کننده</th></tr></thead><tbody>{expenses.map(ex => <tr key={ex.id}><td>{dateTime(ex.created_at)}</td><td>{ex.title}</td><td>{expenseCategoryLabel[ex.category] || ex.category}</td><td>{money(ex.amount)}</td><td><Pill value={ex.is_paid ? 'paid' : 'unpaid'} dictionary={{paid:'پرداخت شده',unpaid:'پرداخت نشده'}} /></td><td>{paymentMethodLabel[ex.payment_method] || ex.payment_method}</td><td>{ex.user?.name || '—'}</td></tr>)}</tbody></TableWrap> : <Empty>هزینه‌ای ثبت نشده است.</Empty>}
+        <section className="panel orders-panel"><div className="panel-heading"><div><h2>آخرین هزینه‌ها</h2><p>هزینه‌ی پرداخت‌نشده با خروج وجه صندوق یکی نیست. رکوردهای DEMO برای تست ساخته شده‌اند.</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
+            {expenses?.length ? <TableWrap><thead><tr><th>زمان</th><th>عنوان</th><th>دسته</th><th>مبلغ</th><th>پرداخت</th><th>روش</th><th>ثبت‌کننده</th><th>عملیات</th></tr></thead><tbody>{expenses.map(ex => <tr key={ex.id}>
+                <td>{dateTime(ex.created_at)}</td><td>{ex.title}{String(ex.seed_key||'').startsWith('demo-expense:')&&<small className="op-subtext">داده نمونه</small>}</td><td>{expenseCategoryLabel[ex.category] || ex.category}</td><td>{money(ex.amount)}</td>
+                <td><Pill value={ex.is_paid ? 'paid' : 'unpaid'} dictionary={{paid:'پرداخت شده',unpaid:'پرداخت نشده'}} /></td><td>{paymentMethodLabel[ex.payment_method] || ex.payment_method}</td><td>{ex.user?.name || '—'}</td>
+                <td><div className="op-actions"><Button onClick={()=>onEdit(ex)}>ویرایش</Button>{String(ex.title||'').startsWith('DEMO ·')&&<Button kind="danger" onClick={()=>onDelete(ex)}>حذف نمونه</Button>}</div></td>
+            </tr>)}</tbody></TableWrap> : <Empty>هزینه‌ای ثبت نشده است.</Empty>}
             <Pagination meta={pagination} onPageChange={onPageChange} />
         </section>
     </div>;
+}
+
+function ExpenseEditModal({ expense, onClose, onSubmit }) {
+    const [form, setForm] = useState({
+        title: expense.title || '',
+        category: expense.category || 'other',
+        amount: String(expense.amount || ''),
+        payment_method: expense.payment_method || 'other',
+        is_paid: Boolean(expense.is_paid),
+        note: expense.note || '',
+    });
+    const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
+    const isDemo = String(expense.seed_key || '').startsWith('demo-expense:');
+    return <Modal title="ویرایش هزینه" eyebrow={isDemo ? 'SAMPLE EXPENSE' : 'EXPENSE DETAILS'} onClose={onClose}>
+        <form className="op-form" onSubmit={event => { event.preventDefault(); onSubmit({ ...form, title: form.title.trim(), amount: Number(form.amount), note: form.note.trim() || null }); }}>
+            <Field label="عنوان هزینه"><input value={form.title} onChange={event=>set('title',event.target.value)} maxLength="150" required /></Field>
+            <Field label="دسته"><select value={form.category} onChange={event=>set('category',event.target.value)}>{Object.entries(expenseCategoryLabel).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></Field>
+            <Field label={'مبلغ ('+currencyLabel()+')'}><input type="number" min="1" value={form.amount} onChange={event=>set('amount',event.target.value)} required /></Field>
+            <Field label="روش پرداخت"><select value={form.payment_method} onChange={event=>set('payment_method',event.target.value)}><option value="cash">نقدی</option><option value="card_terminal">کارت‌خوان</option><option value="online">آنلاین</option><option value="other">سایر</option></select></Field>
+            <Field label="وضعیت"><select value={form.is_paid?'paid':'unpaid'} onChange={event=>set('is_paid',event.target.value==='paid')}><option value="paid">پرداخت شده</option><option value="unpaid">پرداخت نشده</option></select></Field>
+            <Field label="یادداشت"><textarea value={form.note} onChange={event=>set('note',event.target.value)} maxLength="1000" rows="3" /></Field>
+            {expense.cash_shift_id&&<p className="op-note">این هزینه به دفتر صندوق متصل است؛ ویرایش مالی فقط تا زمانی مجاز است که شیفت مرتبط باز باشد.</p>}
+            <div className="op-form-actions"><Button onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ذخیره تغییرات</Button></div>
+        </form>
+    </Modal>;
 }
 
 function ReportsPage({ report, onRefresh }) {
@@ -857,80 +953,6 @@ function OrderDetailsModal({ order, onClose, onPrint, onRefund }) {
     </Modal>;
 }
 
-function escapeHtml(value) {
-    return String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");
-}
-function printHtml(order, type, settings) {
-    const width = Number(settings?.paper_width) === 58 ? 58 : 80;
-    const kitchen = type === 'kitchen';
-    const title = kitchen ? 'فیش آشپزخانه' : type === 'receipt' ? 'فیش مشتری' : 'فاکتور فروش';
-    const status = orderStatusLabel[order.status] || order.status || 'ثبت‌شده';
-    const paymentStatus = paymentStatusLabel[order.payment_status] || order.payment_status || 'تسویه‌نشده';
-
-    const itemRows = (order.items || []).map(item => {
-        const optionNames = (item.options || []).map(option => option.name).filter(Boolean);
-        const notes = [optionNames.join('، '), item.note].filter(Boolean).join(' · ');
-        return '<tr><td><b>' + escapeHtml(item.name) + '</b>' +
-            (notes ? '<small>' + escapeHtml(notes) + '</small>' : '') +
-            '</td><td>' + numberFa(item.quantity) + '</td>' +
-            (kitchen ? '' : '<td>' + money(item.line_total) + '</td>') +
-            '</tr>';
-    }).join('');
-
-    const itemHeaders = kitchen
-        ? '<th>شرح سفارش</th><th>تعداد</th>'
-        : '<th>شرح</th><th>تعداد</th><th>مبلغ</th>';
-
-    const totals = kitchen ? '' :
-        '<hr/><p class="row"><span>جمع اقلام</span><b>' + money(order.subtotal) + '</b></p>' +
-        '<p class="row"><span>تخفیف</span><b>' + money(order.discount) + '</b></p>' +
-        '<p class="row"><span>مالیات</span><b>' + money(order.tax) + '</b></p>' +
-        '<p class="row"><span>سرویس</span><b>' + money(order.service) + '</b></p>' +
-        '<p class="row total"><span>مبلغ نهایی</span><b>' + money(order.total) + '</b></p>' +
-        '<p class="row"><span>وضعیت پرداخت</span><b>' + escapeHtml(paymentStatus) + '</b></p>';
-
-    const paymentRows = (order.payments || [])
-        .filter(payment => payment.status === 'succeeded')
-        .map(payment => '<p class="row"><span>' +
-            escapeHtml(paymentMethodLabel[payment.method] || payment.method) +
-            '</span><b>' + money(payment.amount) + '</b></p>')
-        .join('');
-
-    const paymentSection = type === 'receipt'
-        ? '<hr/><b>پرداخت‌های ثبت‌شده</b>' +
-            (paymentRows || '<p class="muted">هنوز پرداختی ثبت نشده است.</p>') : '';
-
-    return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">' +
-        '<meta name="viewport" content="width=device-width,initial-scale=1"><title>' + title + '</title>' +
-        '<style>@page{size:' + width + 'mm auto;margin:3mm}*{box-sizing:border-box}' +
-        'body{width:' + (width - 6) + 'mm;margin:0 auto;font:12px Tahoma,Arial,sans-serif;color:#111}' +
-        'h1{text-align:center;font-size:18px;margin:0 0 6px}h2{text-align:center;font-size:13px;margin:0 0 10px}' +
-        'p{margin:4px 0}.muted{text-align:center;color:#555;font-size:10px}' +
-        '.row{display:flex;justify-content:space-between;gap:6px}hr{border:0;border-top:1px dashed #777;margin:8px 0}' +
-        'table{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}' +
-        'th,td{text-align:right;padding:5px 1px;border-bottom:1px dashed #aaa;vertical-align:top}' +
-        'td small{display:block;font-size:9px;margin-top:3px;line-height:1.7;color:#555}' +
-        '.total{font-size:14px;font-weight:bold;border-top:1px solid #222;padding-top:7px}' +
-        '.foot{text-align:center;margin-top:15px;font-size:10px;white-space:pre-wrap}' +
-        '.ticket-number{text-align:center;font-size:23px;font-weight:900;letter-spacing:.04em;margin:7px 0}' +
-        '.ticket-note{margin-top:8px;padding:7px;border:1px dashed #777;font-weight:700}' +
-        '@media screen{body{margin:12px auto}}</style></head><body>' +
-        '<h1>' + escapeHtml(settings?.name || 'خانه گیلاسی') + '</h1><h2>' + title + '</h2>' +
-        '<p class="muted">' + escapeHtml(settings?.phone || '') + '</p>' +
-        '<div class="ticket-number">' + escapeHtml(order.number || order.id) + '</div>' +
-        '<p class="row"><span>زمان ثبت</span><b>' + escapeHtml(dateTime(order.created_at)) + '</b></p>' +
-        '<p class="row"><span>کانال</span><b>' + escapeHtml(channelLabel(order)) + '</b></p>' +
-        (order.table?.name ? '<p class="row"><span>میز</span><b>' + escapeHtml(order.table.name) + '</b></p>' : '') +
-        '<p class="row"><span>وضعیت سفارش</span><b>' + escapeHtml(status) + '</b></p>' +
-        (order.customer_name ? '<p class="row"><span>مشتری</span><b>' + escapeHtml(order.customer_name) + '</b></p>' : '') +
-        (order.customer_phone ? '<p class="row"><span>تلفن</span><b>' + escapeHtml(order.customer_phone) + '</b></p>' : '') +
-        (order.customer_note ? '<p class="ticket-note">یادداشت: ' + escapeHtml(order.customer_note) + '</p>' : '') +
-        '<hr/><table><thead><tr>' + itemHeaders + '</tr></thead><tbody>' + itemRows + '</tbody></table>' +
-        totals + paymentSection +
-        '<div class="foot">' + escapeHtml(settings?.receipt_footer || 'با تشکر از انتخاب شما') + '</div>' +
-        '</body></html>';
-}
-
 export default function DashboardApp() {
     const [page,setPage]=useState('overview');
     const [data,setData]=useState({});
@@ -1086,7 +1108,7 @@ export default function DashboardApp() {
                 try{
                     if(!qz.websocket.isActive || !qz.websocket.isActive()) await qz.websocket.connect({retries:2,delay:1});
                     const printerConfig=qz.configs.create(targetPrinter);
-                    await qz.print(printerConfig,[{type:'pixel',format:'html',flavor:'plain',data:printHtml(order,type,unwrapData(settingPayload))}]);
+                    await qz.print(printerConfig,[{type:'pixel',format:'html',flavor:'plain',data:buildPrintHtml(order,type,unwrapData(settingPayload))}]);
                     sentToLocalPrinter=true;
                     notify('درخواست '+(type==='kitchen'?'فیش آشپزخانه':'فیش مشتری')+' به چاپگر «'+targetPrinter+'» ارسال شد. خروج واقعی کاغذ را بررسی کن.');
                 }catch(localError){
@@ -1097,7 +1119,7 @@ export default function DashboardApp() {
             if(!sentToLocalPrinter){
                 if(!popup){notify('چاپگر محلی متصل نیست و مرورگر نیز پنجره چاپ را مسدود کرده است.');return;}
                 popup.document.open();
-                popup.document.write(printHtml(order,type,unwrapData(settingPayload)));
+                popup.document.write(buildPrintHtml(order,type,unwrapData(settingPayload)));
                 popup.document.close();
                 popup.focus();
                 window.setTimeout(()=>{try{popup.focus();popup.print();}catch{}},400);
@@ -1153,9 +1175,23 @@ export default function DashboardApp() {
     const saveRecipe=(productId,ingredients)=>action(()=>api('/products/'+productId+'/recipe',{method:'PUT',body:{ingredients}}),'رسپی ذخیره شد؛ از این پس مصرف مواد این محصول در سفارش‌ها محاسبه می‌شود.',{close:false});
     const submitIngredientStock=(ingredient,payload)=>action(()=>api('/ingredients/'+ingredient.id+'/movements',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'گردش ماده اولیه ثبت شد.');
     const createReservation=payload=>action(()=>api('/reservations',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'رزرو ثبت شد.');
+    const updateReservation=(reservation,payload)=>action(()=>api('/reservations/'+reservation.id,{method:'PATCH',body:payload}),'اطلاعات رزرو به‌روزرسانی شد.');
+    const deleteReservation=reservation=>{
+        if(!window.confirm('رزرو نمونه «'+reservation.reference+'» حذف شود؟ این عملیات فقط برای رکوردهای DEMO مجاز است.')) return;
+        return action(()=>api('/reservations/'+reservation.id,{method:'DELETE'}),'رزرو نمونه حذف شد.');
+    };
     const transitionReservation=(item,status,tableId)=>action(()=>api('/reservations/'+item.id+'/status',{method:'PATCH',body:{status,restaurant_table_id:tableId}}),'وضعیت رزرو و تخصیص میز به‌روزرسانی شد.',{close:false});
     const respondFeedback=(item,payload)=>action(()=>api('/feedback/'+item.id+'/response',{method:'PATCH',body:payload}),'پاسخ بازخورد ذخیره شد.',{close:false});
     const createExpense=payload=>action(()=>api('/expenses',{method:'POST',body:payload}),'هزینه ثبت شد.');
+    const updateExpense=(expense,payload)=>action(()=>api('/expenses/'+expense.id,{method:'PATCH',body:payload}),'هزینه به‌روزرسانی شد.');
+    const deleteExpense=expense=>{
+        if(!window.confirm('هزینه نمونه «'+expense.title+'» حذف شود؟ اگر به شیفت باز متصل باشد، گردش صندوق آن نیز حذف می‌شود.')) return;
+        return action(()=>api('/expenses/'+expense.id,{method:'DELETE'}),'هزینه نمونه حذف شد.');
+    };
+    const deleteIngredient=ingredient=>{
+        if(!window.confirm('ماده اولیه «'+ingredient.name+'» حذف شود؟ فقط ماده‌ای بدون رسپی و گردش انبار قابل حذف است.')) return;
+        return action(()=>api('/ingredients/'+ingredient.id,{method:'DELETE'}),'ماده اولیه حذف شد.');
+    };
     const openShift=payload=>action(()=>api('/cash-shift/open',{method:'POST',body:payload}),'شیفت صندوق باز شد.');
     const closeShift=(id,payload)=>action(()=>api('/cash-shift/'+id+'/close',{method:'POST',body:payload}),'شیفت بسته و مغایرت محاسبه شد.');
     const cashMovement=(id,payload)=>action(()=>api('/cash-shift/'+id+'/movements',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'حرکت صندوق ثبت شد.',{close:false});
@@ -1172,11 +1208,11 @@ export default function DashboardApp() {
         if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} pagination={data.cashierOrdersPagination} onPageChange={setListPage} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} onPrint={printDocument} />;
         if(page==='menu') return <MenuPage products={data.products} categories={data.categories} filters={listFilters.products} onFiltersChange={patch=>updateListFilters('products',patch)} pagination={data.productsPagination} onPageChange={setListPage} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onProductDelete={deleteProduct} onCategory={category=>setModal({type:'category',category})} onCategoryDelete={deleteCategory} />;
         if(page==='inventory') return <InventoryPage products={data.products} movements={data.movements} pagination={data.movementsPagination} onPageChange={setListPage} onRefresh={refresh} onAdjust={product=>setModal({type:'inventory',product})} />;
-        if(page==='recipes') return <RecipesPage recipeData={data.recipes} onRefresh={refresh} onCreateIngredient={createIngredient} onUpdateIngredient={updateIngredient} onAdjustIngredient={ingredient=>setModal({type:'ingredient-stock',ingredient})} onSaveRecipe={saveRecipe} />;
+        if(page==='recipes') return <RecipesPage recipeData={data.recipes} onRefresh={refresh} onCreateIngredient={createIngredient} onUpdateIngredient={updateIngredient} onEditIngredient={ingredient=>setModal({type:'ingredient-edit',ingredient})} onDeleteIngredient={deleteIngredient} onAdjustIngredient={ingredient=>setModal({type:'ingredient-stock',ingredient})} onSaveRecipe={saveRecipe} />;
         if(page==='tables') return <TablesPage tables={data.tables} pagination={data.tablesPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createTable} onUpdate={updateTable} onEdit={table=>setModal({type:'table-edit',table})} onDelete={archiveTable} onRotate={rotateTable} onShowQr={table=>setModal({type:'qr',table})} />;
-        if(page==='reservations') return <ReservationsPage reservations={data.reservations} tables={data.tables} pagination={data.reservationsPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createReservation} onTransition={transitionReservation} />;
+        if(page==='reservations') return <ReservationsPage reservations={data.reservations} tables={data.tables} pagination={data.reservationsPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createReservation} onEdit={reservation=>setModal({type:'reservation-edit',reservation})} onDelete={deleteReservation} onTransition={transitionReservation} />;
         if(page==='customers') return <CustomersPage feedback={data.feedback} pagination={data.feedbackPagination} onPageChange={setListPage} onRefresh={refresh} onRespond={respondFeedback} />;
-        if(page==='expenses') return <ExpensesPage expenses={data.expenses} pagination={data.expensesPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createExpense} />;
+        if(page==='expenses') return <ExpensesPage expenses={data.expenses} pagination={data.expensesPagination} onPageChange={setListPage} onRefresh={refresh} onCreate={createExpense} onEdit={expense=>setModal({type:'expense-edit',expense})} onDelete={deleteExpense} />;
         if(page==='reports') return <ReportsPage report={data.report} onRefresh={runReport} />;
         if(page==='settings') return <SettingsPage settings={data.settings} onRefresh={refresh} onSave={saveSettings} />;
         if(page==='media') return <MediaManager onNavigate={navigate} />;
@@ -1209,13 +1245,16 @@ export default function DashboardApp() {
         {modal?.type==='details'&&<OrderDetailsModal order={detailOrder} onClose={()=>setModal(null)} onPrint={printDocument} onRefund={showRefund}/>}
         {modal?.type==='inventory'&&<InventoryModal product={modal.product} products={data.products||[]} onClose={()=>setModal(null)} onSubmit={adjustInventory}/>}
         {modal?.type==='ingredient-stock'&&<IngredientStockModal ingredient={modal.ingredient} onClose={()=>setModal(null)} onSubmit={payload=>submitIngredientStock(modal.ingredient,payload)}/>}
+        {modal?.type==='ingredient-edit'&&<IngredientEditModal ingredient={modal.ingredient} onClose={()=>setModal(null)} onSubmit={payload=>updateIngredient(modal.ingredient,payload)}/>}
+        {modal?.type==='reservation-edit'&&<ReservationEditModal reservation={modal.reservation} tables={data.tables||[]} onClose={()=>setModal(null)} onSubmit={payload=>updateReservation(modal.reservation,payload)}/>}
+        {modal?.type==='expense-edit'&&<ExpenseEditModal expense={modal.expense} onClose={()=>setModal(null)} onSubmit={payload=>updateExpense(modal.expense,payload)}/>} 
         {modal?.type==='qr'&&<QRCodeModal table={modal.table} onClose={()=>setModal(null)} />}
         {notice&&<div className="toast-message" role="status"><span>✓</span>{notice}<button type="button" aria-label="بستن پیام" onClick={()=>setNotice('')}>×</button></div>}
         {busy&&<div className="op-busy" aria-live="polite"><span className="op-spinner"/>در حال ثبت عملیات…</div>}
     </div>;
 }
 
-function RecipesPage({ recipeData, onRefresh, onCreateIngredient, onUpdateIngredient, onAdjustIngredient, onSaveRecipe }) {
+function RecipesPage({ recipeData, onRefresh, onCreateIngredient, onUpdateIngredient, onEditIngredient, onDeleteIngredient, onAdjustIngredient, onSaveRecipe }) {
     const ingredients = recipeData?.ingredients || [];
     const products = recipeData?.products || [];
     const [ingredientForm, setIngredientForm] = useState({ name: '', unit: 'g', stock_quantity: '0', low_stock_threshold: '', cost_per_unit: '0' });
@@ -1289,7 +1328,7 @@ function RecipesPage({ recipeData, onRefresh, onCreateIngredient, onUpdateIngred
         <section className="panel">
             <div className="panel-heading"><div><h2>مواد اولیه ثبت‌شده</h2><p>{numberFa(ingredients.length)} ماده · هزینه بر اساس واحد پایه ثبت‌شده</p></div><Button onClick={onRefresh}>↻ تازه‌سازی</Button></div>
             {ingredients.length ? <TableWrap><thead><tr><th>ماده</th><th>واحد پایه</th><th>موجودی فعلی</th><th>هشدار کمبود</th><th>هزینه واحد</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>
-                {ingredients.map(item=><tr key={item.id}><td><b>{item.name}</b></td><td>{({g:'گرم',ml:'میلی‌لیتر',pcs:'عدد'})[item.unit]||item.unit}</td><td>{numberFa(item.stock_quantity)}</td><td>{item.low_stock_threshold===null?'تعریف نشده':numberFa(item.low_stock_threshold)}</td><td>{money(item.cost_per_unit)}</td><td><Pill value={item.is_active?'active':'inactive'} dictionary={{active:'فعال',inactive:'غیرفعال'}} /></td><td><div className="op-actions"><Button onClick={()=>onAdjustIngredient(item)}>ورود / خروج</Button><Button onClick={()=>toggleIngredient(item)}>{item.is_active?'غیرفعال‌کردن':'فعال‌کردن'}</Button></div></td></tr>)}
+                {ingredients.map(item=><tr key={item.id}><td><b>{item.name}</b>{String(item.seed_key||'').startsWith('demo-ingredient:')&&<small className="op-subtext">داده نمونه</small>}</td><td>{({g:'گرم',ml:'میلی‌لیتر',pcs:'عدد'})[item.unit]||item.unit}</td><td>{numberFa(item.stock_quantity)}</td><td>{item.low_stock_threshold===null?'تعریف نشده':numberFa(item.low_stock_threshold)}</td><td>{money(item.cost_per_unit)}</td><td><Pill value={item.is_active?'active':'inactive'} dictionary={{active:'فعال',inactive:'غیرفعال'}} /></td><td><div className="op-actions"><Button onClick={()=>onAdjustIngredient(item)}>ورود / خروج</Button><Button onClick={()=>onEditIngredient(item)}>ویرایش</Button><Button onClick={()=>toggleIngredient(item)}>{item.is_active?'غیرفعال‌کردن':'فعال‌کردن'}</Button>{String(item.seed_key||'').startsWith('demo-ingredient:')&&<Button kind="danger" disabled={Number(item.products_count||0)>0||Number(item.movements_count||0)>0} onClick={()=>onDeleteIngredient(item)}>حذف</Button>}</div></td></tr>)}
             </tbody></TableWrap> : <Empty>هنوز ماده‌ای ثبت نشده است. مواد را از فرم بالا اضافه کن.</Empty>}
         </section>
         <section className="panel recipe-editor-panel">
@@ -1316,6 +1355,37 @@ function RecipesPage({ recipeData, onRefresh, onCreateIngredient, onUpdateIngred
             </>}
         </section>
     </div>;
+}
+
+function IngredientEditModal({ ingredient, onClose, onSubmit }) {
+    const [form, setForm] = useState({
+        name: ingredient.name || '',
+        unit: ingredient.unit || 'g',
+        low_stock_threshold: ingredient.low_stock_threshold == null ? '' : String(ingredient.low_stock_threshold),
+        cost_per_unit: String(ingredient.cost_per_unit || 0),
+        is_active: Boolean(ingredient.is_active),
+    });
+    const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
+    const hasHistory = Number(ingredient.products_count || 0) > 0 || Number(ingredient.movements_count || 0) > 0;
+    return <Modal title={'ویرایش ماده اولیه · '+ingredient.name} eyebrow="INGREDIENT DETAILS" onClose={onClose}>
+        <form className="op-form" onSubmit={event => {
+            event.preventDefault();
+            onSubmit({
+                ...form,
+                name: form.name.trim(),
+                low_stock_threshold: form.low_stock_threshold === '' ? null : Number(form.low_stock_threshold),
+                cost_per_unit: Number(form.cost_per_unit),
+            });
+        }}>
+            <Field label="نام ماده"><input value={form.name} onChange={event=>set('name',event.target.value)} maxLength="150" required /></Field>
+            <Field label="واحد پایه"><select value={form.unit} onChange={event=>set('unit',event.target.value)}><option value="g">گرم (g)</option><option value="ml">میلی‌لیتر (ml)</option><option value="pcs">عدد (pcs)</option></select></Field>
+            <Field label="هشدار کمبود"><input type="number" min="0" step="0.001" value={form.low_stock_threshold} onChange={event=>set('low_stock_threshold',event.target.value)} /></Field>
+            <Field label={'هزینه هر واحد ('+currencyLabel()+')'}><input type="number" min="0" max="1000000000" value={form.cost_per_unit} onChange={event=>set('cost_per_unit',event.target.value)} required /></Field>
+            <Field label="وضعیت"><select value={form.is_active?'active':'inactive'} onChange={event=>set('is_active',event.target.value==='active')}><option value="active">فعال</option><option value="inactive">غیرفعال</option></select></Field>
+            <p className="op-note">موجودی فقط از مسیر ورود و خروج اصلاح می‌شود. {hasHistory?'این ماده سابقه رسپی یا گردش انبار دارد؛ حذف آن برای حفظ تاریخچه غیرفعال است.':'این ماده در حال حاضر سابقه وابسته‌ای ندارد و در صورت نیاز قابل حذف است.'}</p>
+            <div className="op-form-actions"><Button onClick={onClose}>انصراف</Button><Button kind="primary" type="submit">ذخیره تغییرات</Button></div>
+        </form>
+    </Modal>;
 }
 
 function IngredientStockModal({ ingredient, onClose, onSubmit }) {

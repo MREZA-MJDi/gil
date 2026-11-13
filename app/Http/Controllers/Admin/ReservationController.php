@@ -180,4 +180,99 @@ class ReservationController extends Controller
             return response()->json(['data' => $locked->load('table:id,name')]);
         }, attempts: 3);
     }
+
+    public function update(Request $request, Reservation $reservation, AuditLogger $audit): JsonResponse
+    {
+        $data = $request->validate([
+            'restaurant_table_id' => ['nullable', 'integer', 'exists:restaurant_tables,id'],
+            'customer_name' => ['required', 'string', 'max:150'],
+            'phone' => ['required', 'string', 'max:30'],
+            'email' => ['nullable', 'email', 'max:150'],
+            'party_size' => ['required', 'integer', 'min:1', 'max:50'],
+            'starts_at' => ['required', 'date'],
+            'duration_minutes' => ['required', 'integer', 'min:30', 'max:360'],
+            'purpose' => ['required', Rule::in(['table','birthday','consultation','private_event','catering'])],
+            'occasion_name' => ['nullable', 'string', 'max:150'],
+            'estimated_budget' => ['nullable', 'integer', 'min:0', 'max:1000000000000'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        return DB::transaction(function () use ($data, $reservation, $audit, $request) {
+            $locked = Reservation::query()->whereKey($reservation->id)->lockForUpdate()->firstOrFail();
+            $startsAt = Carbon::parse($data['starts_at']);
+            $duration = (int) $data['duration_minutes'];
+            $endsAt = $startsAt->copy()->addMinutes($duration);
+            $tableId = isset($data['restaurant_table_id']) ? (int) $data['restaurant_table_id'] : null;
+
+            if ($tableId) {
+                $table = RestaurantTable::query()->whereKey($tableId)->lockForUpdate()->first();
+                if (! $table || ! $table->is_active) {
+                    throw ValidationException::withMessages(['restaurant_table_id' => 'میز انتخاب‌شده فعال نیست.']);
+                }
+
+                if (in_array($locked->status->value, [
+                    ReservationStatus::Pending->value,
+                    ReservationStatus::Confirmed->value,
+                    ReservationStatus::Arrived->value,
+                ], true)) {
+                    $conflict = Reservation::query()
+                        ->where('id', '!=', $locked->id)
+                        ->where('restaurant_table_id', $tableId)
+                        ->whereIn('status', [
+                            ReservationStatus::Pending->value,
+                            ReservationStatus::Confirmed->value,
+                            ReservationStatus::Arrived->value,
+                        ])
+                        ->where('starts_at', '<', $endsAt)
+                        ->where('ends_at', '>', $startsAt)
+                        ->exists();
+
+                    if ($conflict) {
+                        throw ValidationException::withMessages(['restaurant_table_id' => 'این میز در بازه زمانی رزرو دیگری قرار دارد.']);
+                    }
+                }
+            }
+
+            $before = $locked->only([
+                'restaurant_table_id', 'customer_name', 'phone', 'email', 'party_size',
+                'starts_at', 'duration_minutes', 'ends_at', 'purpose', 'occasion_name',
+                'estimated_budget', 'notes',
+            ]);
+
+            $locked->fill([
+                'restaurant_table_id' => $tableId,
+                'customer_name' => trim($data['customer_name']),
+                'phone' => trim($data['phone']),
+                'email' => isset($data['email']) ? trim($data['email']) : null,
+                'party_size' => (int) $data['party_size'],
+                'starts_at' => $startsAt,
+                'duration_minutes' => $duration,
+                'ends_at' => $endsAt,
+                'purpose' => $data['purpose'],
+                'occasion_name' => $data['occasion_name'] ?? null,
+                'estimated_budget' => $data['estimated_budget'] ?? null,
+                'notes' => $data['notes'] ?? null,
+            ])->save();
+
+            $audit->record('reservation.updated', $locked, $before, $locked->only(array_keys($before)), null, $request->user()->id);
+
+            return response()->json(['data' => $locked->load('table:id,name')]);
+        }, attempts: 3);
+    }
+
+    public function destroy(Request $request, Reservation $reservation, AuditLogger $audit): JsonResponse
+    {
+        if (! str_starts_with((string) $reservation->reference, 'DEMO-RSV-')) {
+            throw ValidationException::withMessages(['reservation' => 'حذف مستقیم فقط برای رزروهای نمونه مجاز است؛ رزرو واقعی را از مسیر لغو مدیریت کن.']);
+        }
+
+        $audit->record('reservation.demo_deleted', $reservation, $reservation->only([
+            'reference', 'customer_name', 'phone', 'starts_at', 'status',
+        ]), [], 'حذف رزرو نمونه', $request->user()->id);
+
+        $reservation->delete();
+
+        return response()->json(['message' => 'رزرو نمونه حذف شد.']);
+    }
+
 }

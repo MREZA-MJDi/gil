@@ -73,6 +73,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:access-admin'])
         Route::get('/recipes', [RecipesController::class, 'index'])->name('recipes.index');
         Route::post('/ingredients', [RecipesController::class, 'storeIngredient'])->name('ingredients.store');
         Route::patch('/ingredients/{ingredient}', [RecipesController::class, 'updateIngredient'])->name('ingredients.update');
+        Route::delete('/ingredients/{ingredient}', [RecipesController::class, 'destroyIngredient'])->name('ingredients.destroy');
         Route::post('/ingredients/{ingredient}/movements', [RecipesController::class, 'adjustIngredient'])->name('ingredients.movements.store');
         Route::put('/products/{product}/recipe', [RecipesController::class, 'saveRecipe'])->name('products.recipe.update');
         Route::get('/media', [MediaController::class, 'index'])->name('media.index');
@@ -107,8 +108,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:access-admin'])
 
         Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
         Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+        Route::patch('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
         Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
         Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+        Route::patch('/reservations/{reservation}', [ReservationController::class, 'update'])->name('reservations.update');
+        Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
         Route::patch('/reservations/{reservation}/status', [ReservationController::class, 'transition'])->name('reservations.transition');
         Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
         Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');

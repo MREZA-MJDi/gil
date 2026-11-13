@@ -28,7 +28,7 @@ class PrintController extends Controller
     public function kitchen(Order $order): JsonResponse
     {
         $order->load(['table:id,name', 'items']);
-        return response()->json(['type' => PrintType::Kitchen->value, 'data' => $order->only(['number','channel','status','customer_name','customer_phone','customer_note','created_at']) + ['table' => $order->table, 'items' => $order->items]]);
+        return response()->json(['type' => PrintType::Kitchen->value, 'data' => $order->only(['number','channel','source','status','customer_name','customer_phone','customer_note','created_at']) + ['table' => $order->table, 'items' => $order->items]]);
     }
 
     public function log(Request $request, Order $order): JsonResponse

@@ -30,4 +30,12 @@ For a completely fresh/demo environment, the regular `DatabaseSeeder` runs the a
 ALLOW_PRODUCTION_DEMO_SEED=true php artisan db:seed --force
 ```
 
+The current demo-management migration adds a stable `seed_key` to sample expenses. Apply ordinary pending migrations before the first seed run:
+
+```bash
+php artisan migrate --force
+```
+
+Expense seed identities remain stable when their visible title is edited, so the dashboard can still identify and safely remove sample expenses.
+
 Do not run `migrate:fresh`, `migrate:refresh` or drop the database to apply this dataset.

@@ -50,6 +50,7 @@ class RestaurantDemoSeederTest extends TestCase
         $this->assertTrue(Reservation::query()->where('purpose', 'birthday')->exists());
         $this->assertTrue(Reservation::query()->where('purpose', 'consultation')->exists());
         $this->assertGreaterThan(0, Expense::query()->count());
+        $this->assertTrue(Expense::query()->where('seed_key', 'demo-expense:ingredients-weekly')->exists());
         $this->assertGreaterThan(0, CustomerFeedback::query()->count());
         $this->assertTrue(CashMovement::query()->where('type', 'expense')->exists());
 
