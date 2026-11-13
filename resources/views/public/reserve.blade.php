@@ -79,7 +79,7 @@
                                     <div class="jalali-calendar-days" data-jalali-days></div>
                                 </div>
                             </div>
-                            <label class="kg-jalali-time-field"><span>ساعت</span><input type="time" data-jalali-time required value="{{ old('starts_at') ? substr((string) old('starts_at'), 11, 5) : '18:00' }}"></label>
+                            <div class="kg-jalali-time-field"><span>ساعت</span><input type="time" data-jalali-time required value="{{ old('starts_at') ? substr((string) old('starts_at'), 11, 5) : '18:00' }}"></div>
                         </div>
                         <small>تاریخ شمسی و ساعت به وقت تهران ثبت می‌شود؛ ظرفیت هنگام بررسی درخواست کنترل خواهد شد.</small>
                     </label>
