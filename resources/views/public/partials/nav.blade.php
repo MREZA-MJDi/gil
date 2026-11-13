@@ -32,6 +32,7 @@
             <a href="{{ route('public.menu') }}" @if(request()->routeIs('public.menu')) aria-current="page" @endif>منو و سفارش</a>
             <a href="{{ route('public.reservations.create') }}" @if(request()->routeIs('public.reservations.create')) aria-current="page" @endif>رزرو و مناسبت‌ها</a>
             <a href="{{ route('home') }}#about">درباره ما</a>
+            @if($settings->phone)<a href="tel:{{ preg_replace('/[^0-9+]/', '', $settings->phone) }}">تماس با ما</a>@endif
             @auth
                 @if (auth()->user()->is_admin)
                     <a class="kg-nav-admin" href="{{ route('admin.dashboard') }}">پنل مدیریت <span>↗</span></a>
