@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import MediaManager from './MediaManager.jsx';
+import PosPage from './PosPage.jsx';
 import { MoneyInput } from '../shared/iranian-ui.jsx';
 import { api, idempotencyKey, unwrapData, unwrapList, unwrapPagination } from './api.js';
 import QRCode from 'qrcode';
@@ -8,8 +9,9 @@ import { currentJalaliDate, gregorianDateToJalali, jalaliDateToGregorian, jalali
 
 const navItems = [
     ['overview', 'نمای کلی', '◫'],
+    ['pos', 'صندوق فروش / ثبت سفارش', '◈'],
     ['orders', 'سفارش‌ها و تحویل', '▤'],
-    ['cashier', 'صندوق و پرداخت', '◈'],
+    ['cashier', 'مدیریت صندوق و شیفت', '▣'],
     ['menu', 'منو و محصولات', '▦'],
     ['inventory', 'موجودی و انبار', '▧'],
     ['recipes', 'رسپی و مواد اولیه', '♨'],
@@ -752,67 +754,6 @@ function SettingsPage({ settings, onSave, onRefresh }) {
     </div>;
 }
 
-function OrderModal({ products, tables, onClose, onSubmit }) {
-    const activeProducts = (products || []).filter(p => p.status === 'active');
-    const [channel, setChannel] = useState('dine_in');
-    const [tableId, setTableId] = useState('');
-    const [customerName, setCustomerName] = useState('');
-    const [customerPhone, setCustomerPhone] = useState('');
-    const [customerNote, setCustomerNote] = useState('');
-    const [discount, setDiscount] = useState('0');
-    const [requestKey] = useState(() => idempotencyKey());
-    const [productId, setProductId] = useState(activeProducts[0] ? String(activeProducts[0].id) : '');
-    const [optionIds, setOptionIds] = useState([]);
-    const [cart, setCart] = useState([]);
-    const selectedProduct = activeProducts.find(p => String(p.id) === productId);
-    const selectedProductQuantity = cart.filter(line => Number(line.product_id) === Number(selectedProduct?.id)).reduce((sum, line) => sum + Number(line.quantity || 0), 0);
-    const stockRemaining = selectedProduct?.stock_quantity === null || selectedProduct?.stock_quantity === undefined ? null : Math.max(0, Number(selectedProduct.stock_quantity) - selectedProductQuantity);
-    const canAddSelectedProduct = Boolean(selectedProduct) && (stockRemaining === null || stockRemaining > 0);
-    const subtotal = cart.reduce((sum,line) => {
-        const product = activeProducts.find(p => Number(p.id) === Number(line.product_id));
-        const optionTotal = (line.options || []).reduce((s,id) => s + Number(product?.options?.find(o => Number(o.id) === Number(id))?.price || 0), 0);
-        return sum + (Number(product?.base_price || 0) + optionTotal) * Number(line.quantity || 0);
-    },0);
-    const add = () => {
-        if (!canAddSelectedProduct) return;
-        const options = [...optionIds].sort((a,b) => a-b);
-        const signature = options.join(',');
-        setCart(lines => {
-            const existing = lines.find(line => Number(line.product_id) === Number(selectedProduct.id) && [...line.options].sort((a,b)=>a-b).join(',') === signature);
-            if (existing) return lines.map(line => line === existing ? {...line,quantity:line.quantity+1} : line);
-            return [...lines,{product_id:Number(selectedProduct.id),quantity:1,options,note:''}];
-        });
-        setOptionIds([]);
-    };
-    return <Modal title="ثبت سفارش" eyebrow="سفارش جدید / سامانه زنده" onClose={onClose} wide>
-        <p className="op-note">قیمت نهایی و مالیات را سرور محاسبه می‌کند. این فرم فقط اقلام و تخفیف را می‌فرستد؛ پرداخت جدا ثبت می‌شود.</p>
-        {activeProducts.length === 0 ? <Empty>برای ثبت سفارش، ابتدا یک محصول فعال بساز.</Empty> : <form className="op-form" onSubmit={e => { e.preventDefault(); onSubmit({ channel, restaurant_table_id: channel === 'dine_in' && tableId ? Number(tableId) : null, customer_name: customerName || null, customer_phone: customerPhone || null, customer_note: customerNote || null, discount: Number(discount || 0), idempotency_key: requestKey, items: cart.map(line => ({...line,options:line.options.map(id => ({id}))})) }); }}>
-            <div className="op-form-grid">
-                <Field label="کانال سفارش"><select value={channel} onChange={e => { setChannel(e.target.value); if (e.target.value !== 'dine_in') setTableId(''); }}><option value="dine_in">میز / حضوری</option><option value="counter">صندوق / حضوری</option><option value="takeaway">بیرون‌بر</option><option value="online">آنلاین</option></select></Field>
-                {channel === 'dine_in' && <Field label="میز"><select value={tableId} onChange={e=>setTableId(e.target.value)}><option value="">بدون تخصیص میز</option>{(tables || []).filter(t=>t.is_active).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>}
-                <Field label="نام مشتری (اختیاری)"><input value={customerName} onChange={e=>setCustomerName(e.target.value)} maxLength="150" /></Field>
-                <Field label="تلفن (اختیاری)"><input value={customerPhone} onChange={e=>setCustomerPhone(e.target.value)} maxLength="30" /></Field>
-                <Field label={"تخفیف (" + currencyLabel() + ')'}><input type="number" min="0" max={subtotal} value={discount} onChange={e=>setDiscount(e.target.value)} required /></Field>
-                <Field label="یادداشت سفارش"><input value={customerNote} onChange={e=>setCustomerNote(e.target.value)} maxLength="2000" /></Field>
-            </div>
-            <div className="op-picker">
-                <Field label="محصول"><select value={productId} onChange={e=>{setProductId(e.target.value);setOptionIds([]);}}>{activeProducts.map(p=><option key={p.id} value={p.id}>{p.name} — {money(p.base_price)}{p.stock_quantity !== null ? (' · موجودی '+numberFa(p.stock_quantity)) : ''}</option>)}</select></Field>
-                {selectedProduct?.options?.filter(o=>o.is_active).length > 0 && <div className="op-option-list"><b>سایز / افزودنی</b><small className="op-option-help">برای سایز فقط یک گزینه انتخاب کن؛ افزودنی‌ها را می‌توانی ترکیب کنی.</small>{selectedProduct.options.filter(o=>o.is_active).map(opt=><label key={opt.id}><input type="checkbox" checked={optionIds.includes(Number(opt.id))} onChange={e=>setOptionIds(ids=>{const id=Number(opt.id);if(!e.target.checked)return ids.filter(value=>value!==id);if(opt.type==='size'){const sizeIds=selectedProduct.options.filter(item=>item.type==='size').map(item=>Number(item.id));return [...ids.filter(value=>!sizeIds.includes(value)),id];}return ids.includes(id)?ids:[...ids,id];})} /><span>{opt.type==='size'?'سایز · ': 'افزودنی · '}{opt.name}</span><small>{Number(opt.price) ? '+'+money(opt.price) : 'رایگان'}</small></label>)}</div>}
-                <Button kind="primary" type="button" disabled={!canAddSelectedProduct} onClick={add}>{canAddSelectedProduct ? 'افزودن به سفارش ＋' : 'موجودی کافی نیست'}</Button>
-            </div>
-            <div className="op-cart">
-                <div className="panel-heading"><div><h3>اقلام سفارش</h3><p>{numberFa(cart.length)} ردیف</p></div><b>{money(subtotal)}</b></div>
-                {cart.length ? cart.map((line,index)=>{
-                    const product=activeProducts.find(p=>Number(p.id)===Number(line.product_id));
-                    const optionNames=(line.options||[]).map(id=>product?.options?.find(o=>Number(o.id)===Number(id))?.name).filter(Boolean);
-                    return <div className="op-cart-line" key={line.product_id+'-'+line.options.join('-')+'-'+index}><div><b>{product?.name}</b><small>{optionNames.join('، ') || 'بدون افزودنی'}</small></div><input aria-label="تعداد" type="number" min="1" max={product?.stock_quantity == null ? 100 : Math.max(1, Math.min(100, Number(product.stock_quantity)))} value={line.quantity} onChange={e=>setCart(lines=>lines.map((entry,i)=>{if(i!==index)return entry;const max=product?.stock_quantity==null?100:Math.max(1,Math.min(100,Number(product.stock_quantity)));return {...entry,quantity:Math.max(1,Math.min(max,Number(e.target.value)||1))};}))}/><Button type="button" kind="danger" onClick={()=>setCart(lines=>lines.filter((_,i)=>i!==index))}>حذف</Button></div>;
-                }) : <Empty>برای شروع، یک محصول به سفارش اضافه کن.</Empty>}
-            </div>
-            <div className="op-form-actions"><Button type="button" onClick={onClose}>انصراف</Button><Button kind="primary" type="submit" disabled={!cart.length || Number(discount) > subtotal}>ثبت در سرور و کم‌کردن موجودی رهگیری‌شده</Button></div>
-        </form>}
-    </Modal>;
-}
-
 function ProductModal({ product, categories, onClose, onSave }) {
     const [imageFile,setImageFile]=useState(null);
     const [form,setForm]=useState({category_id:String(product?.category_id || categories?.[0]?.id || ''),name:product?.name || '',description:product?.description || '',ingredients:product?.ingredients || '',allergens:(product?.allergens || []).join('، '),dietary_tags:(product?.dietary_tags || []).join('، '),calories:product?.calories === null || product?.calories === undefined ? '' : String(product.calories),preparation_time_minutes:product?.preparation_time_minutes === null || product?.preparation_time_minutes === undefined ? '' : String(product.preparation_time_minutes),base_price:String(product?.base_price ?? ''),status:product?.status || 'active',stock_quantity:product?.stock_quantity === null || product?.stock_quantity === undefined ? '' : String(product.stock_quantity),low_stock_threshold:product?.low_stock_threshold === null || product?.low_stock_threshold === undefined ? '' : String(product.low_stock_threshold), options:(product?.options || []).map(o=>({id:o.id,name:o.name,type:o.type,price:String(o.price),is_active:Boolean(o.is_active)}))});
@@ -994,6 +935,20 @@ export default function DashboardApp() {
                     const [dashboardPayload, settingsPayload] = await Promise.all([api('/dashboard'), api('/settings')]);
                     next.dashboard=unwrapData(dashboardPayload);next.settings=unwrapData(settingsPayload);
                 }
+                if(page==='pos'){
+                    const [products,categories,tables,shift,settingsPayload]=await Promise.all([
+                        api('/products?per_page=100'),
+                        api('/categories?per_page=100'),
+                        api('/tables?per_page=100'),
+                        api('/cash-shift'),
+                        settings ? Promise.resolve({data:settings}) : api('/settings'),
+                    ]);
+                    next.posProducts=unwrapList(products);
+                    next.posCategories=unwrapList(categories);
+                    next.posTables=unwrapList(tables);
+                    next.posCashShift=unwrapData(shift);
+                    next.settings=unwrapData(settingsPayload);
+                }
                 if(page==='orders'){
                     const params={...listParams};
                     const filters=listFilters.orders;
@@ -1065,16 +1020,7 @@ export default function DashboardApp() {
         catch(e){notify(e?.message||'عملیات ناموفق بود.');return false;}
         finally{setBusy(false);}
     };
-    const ensureProductsAndTables=async()=>{
-        const [productPayload,tablePayload]=await Promise.all([api('/products?per_page=100'),api('/tables?per_page=100')]);
-        const products=unwrapList(productPayload),tables=unwrapList(tablePayload);
-        setData(previous=>({...previous,products,tables}));
-        return {products,tables};
-    };
-    const newOrder=async()=>{
-        try{const resources=await ensureProductsAndTables();setModal({type:'order',...resources});}
-        catch(e){notify(e.message||'دریافت فهرست محصولات ناموفق بود.');}
-    };
+    const newOrder=()=>navigate('pos');
     const orderDetails=async id=>{
         try{const payload=await api('/orders/'+id);setDetailOrder(unwrapData(payload));setModal({type:'details'});}
         catch(e){notify(e.message||'جزئیات سفارش بارگذاری نشد.');}
@@ -1092,6 +1038,42 @@ export default function DashboardApp() {
         catch(e){notify(e.message||'جزئیات سفارش بارگیری نشد.');}
     };
     const submitPayment=(payload,id)=>action(()=>api('/orders/'+id+'/payments',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'پرداخت ثبت شد؛ فاکتور را می‌توانی چاپ کنی.');
+    const submitPosOrder=async ({payload,payment})=>{
+        if(busy)return {ok:false,error:'یک عملیات دیگر در حال ثبت است.'};
+        setBusy(true);setError('');
+        let savedOrder=null;
+        try{
+            savedOrder=unwrapData(await api('/orders',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}));
+            if(payment){
+                try{
+                    await api('/orders/'+savedOrder.id+'/payments',{
+                        method:'POST',
+                        body:{
+                            amount:Number(savedOrder.total),
+                            method:payment.method,
+                            reference:payment.reference||null,
+                            note:payment.note||null,
+                            idempotency_key:payment.idempotency_key,
+                        },
+                        idempotent:true,
+                        idempotencyKey:payment.idempotency_key,
+                    });
+                }catch(paymentError){
+                    notify('سفارش '+(savedOrder.number||'')+' ثبت شد، اما پرداخت ثبت نشد: '+(paymentError?.message||'خطای نامشخص')+'. از صفحه سفارش‌ها تسویه را ادامه بده.');
+                    refresh();
+                    return {ok:true,order:savedOrder,paymentPending:true};
+                }
+            }
+            notify('سفارش '+(savedOrder.number||'')+' در سامانه ثبت شد.'+(payment?' دریافت وجه هم ثبت شد.':' برای تسویه بعدی در فهرست مانده‌ها قرار گرفت.'));
+            refresh();
+            return {ok:true,order:savedOrder,paymentPending:false};
+        }catch(operationError){
+            notify(operationError?.message||'ثبت سفارش ناموفق بود.');
+            return {ok:false,error:operationError?.message||'ثبت سفارش ناموفق بود.'};
+        }finally{
+            setBusy(false);
+        }
+    };
     const submitRefund=(payload,paymentId,orderId)=>action(()=>api('/payments/'+paymentId+'/refunds',{method:'POST',body:payload,idempotent:true,idempotencyKey:payload.idempotency_key}),'بازپرداخت ثبت شد. اگر روش وجه نقد باشد، حرکت خروجی صندوق هم ثبت می‌شود.',{close:true});
     const printDocument=async(id,type)=>{
         const popup=window.open('about:blank','_blank','width=460,height=800');
@@ -1204,6 +1186,7 @@ export default function DashboardApp() {
 
     const renderPage=()=>{
         if(page==='overview') return data.dashboard ? <OverviewPage dashboard={data.dashboard} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} /> : (loading ? <OverviewSkeleton /> : <OverviewPage dashboard={{}} onNavigate={navigate} onNewOrder={newOrder} onOrderOpen={orderDetails} />);
+        if(page==='pos') return <PosPage products={data.posProducts||[]} categories={data.posCategories||[]} tables={data.posTables||[]} cashShift={data.posCashShift} settings={data.settings||settings} submitting={busy} onSubmit={submitPosOrder} onOpenCashier={()=>navigate('cashier')} onPrint={printDocument} onViewOrders={()=>navigate('orders')} />;
         if(page==='orders') return <OrdersPage orders={data.orders} filters={listFilters.orders} onFiltersChange={patch=>updateListFilters('orders',patch)} pagination={data.ordersPagination} onPageChange={setListPage} onRefresh={refresh} onDetails={orderDetails} onPrint={printDocument} onNewOrder={newOrder} onTransition={transition} onCancel={cancelOrder} />;
         if(page==='cashier') return <CashierPage cashShift={data.cashShift} orders={data.orders} pagination={data.cashierOrdersPagination} onPageChange={setListPage} onRefresh={refresh} onOpenShift={openShift} onCloseShift={closeShift} onMovement={cashMovement} onPayment={openPayment} onDetails={orderDetails} onPrint={printDocument} />;
         if(page==='menu') return <MenuPage products={data.products} categories={data.categories} filters={listFilters.products} onFiltersChange={patch=>updateListFilters('products',patch)} pagination={data.productsPagination} onPageChange={setListPage} onRefresh={refresh} onProduct={product=>setModal({type:'product',product})} onProductStatus={changeProductStatus} onProductDelete={deleteProduct} onCategory={category=>setModal({type:'category',category})} onCategoryDelete={deleteCategory} />;
@@ -1235,7 +1218,6 @@ export default function DashboardApp() {
             {renderPage()}
             <footer className="app-footer"><span>خانه گیلاسی <span className="footer-dot">·</span> پنل عملیات رستوران</span><span>نسخه متصل به API · مالی و موجودی با تاریخچه رویداد</span></footer>
         </main>
-        {modal?.type==='order'&&<OrderModal products={modal.products} tables={modal.tables} onClose={()=>setModal(null)} onSubmit={createOrder}/>}
         {modal?.type==='product'&&<ProductModal key={modal.product?.id||'new'} product={modal.product} categories={data.categories||[]} onClose={()=>setModal(null)} onSave={createProduct}/>}
         {modal?.type==='category'&&<CategoryModal key={modal.category?.id || 'new'} category={modal.category} onClose={()=>setModal(null)} onSave={(payload,category)=>category?updateCategory(category,payload):createCategory(payload)}/>}
         {modal?.type==='table-edit'&&<TableEditModal key={modal.table?.id} table={modal.table} onClose={()=>setModal(null)} onSave={(payload)=>editTable(modal.table,payload)}/>}
