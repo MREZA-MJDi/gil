@@ -39,7 +39,11 @@ Route::prefix('customer')->name('customer.')->middleware('guest')->group(functio
 Route::middleware(['auth', 'can:access-customer'])->group(function (): void {
     Route::get('/account', [CustomerAccountController::class, 'show'])->name('customer.dashboard');
     Route::post('/customer/logout', [CustomerAuthController::class, 'destroy'])->name('customer.logout');
-            });
+    Route::get('/reserve', [PublicReservationController::class, 'create'])->name('public.reservations.create');
+    Route::post('/reserve', [PublicReservationController::class, 'store'])->middleware('throttle:5,1')->name('public.reservations.store');
+    Route::get('/reserve/received', [PublicReservationController::class, 'received'])->name('public.reservations.received');
+});
+
 Route::get('/menu', [PublicHomeController::class, 'menu'])->name('public.menu');
 Route::get('/reserve', [PublicReservationController::class, 'create'])->name('public.reservations.create');
 Route::post('/reserve', [PublicReservationController::class, 'store'])->middleware('throttle:5,1')->name('public.reservations.store');

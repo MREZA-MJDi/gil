@@ -90,7 +90,6 @@ class PublicReservationController extends Controller
             'estimated_budget' => isset($data['estimated_budget']) ? (int) $data['estimated_budget'] : null,
             'notes' => isset($data['notes']) ? trim($data['notes']) : null,
         ];
-        $canonical['customer_id'] = (int) $customer->id;
         $hash = hash('sha256', json_encode($canonical, JSON_THROW_ON_ERROR));
 
         $result = DB::transaction(function () use ($data, $startsAt, $endsAt, $duration, $hash, $canonical, $request, $audit, $customer) {

@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\SiteMediaAsset;
 use App\Models\User;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -223,7 +224,8 @@ class PublicSiteRenderingTest extends TestCase
 
     public function test_reservation_pages_render_and_describe_pending_confirmation(): void
     {
-        $this->get(route('public.reservations.create'))
+        $customer = User::factory()->create(['name' => 'مشتری تست', 'phone' => '+989121234567', 'email' => null, 'is_admin' => false]);
+        $this->actingAs($customer)->get(route('public.reservations.create'))
             ->assertOk()
             ->assertSee('درخواست پس از بررسی ظرفیت')
             ->assertSee('name="starts_at"', false)
