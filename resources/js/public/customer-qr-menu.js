@@ -43,7 +43,7 @@ if (qrRoot) {
         const first = products[activePage * pageSize] || products[0];
         const cards = visible.map(product =>
             '<button type="button" class="card ' + (first && product.id === first.id ? 'is-active' : '') + '" data-qr-select="' + Number(product.id) + '" aria-pressed="' + (first && product.id === first.id ? 'true' : 'false') + '">' +
-            (product.image_url ? '<img src="' + escapeHtml(product.image_url) + '" alt="' + escapeHtml(product.name) + '" loading="lazy">' : '') +
+            (product.image_url ? '<img data-menu-image src="' + escapeHtml(product.image_url) + '" alt="' + escapeHtml(product.name) + '" loading="lazy"><span data-menu-image-fallback hidden>🍒</span>' : '<span data-menu-image-fallback>🍒</span>') +
             '<span class="p">' + new Intl.NumberFormat('fa-IR').format(Number(product.base_price || 0)) + '</span>' +
             '<span class="n">' + escapeHtml(product.name) + '</span><span class="s">' + escapeHtml(product.preparation_time_minutes ? product.preparation_time_minutes + ' دقیقه آماده‌سازی' : 'پیشنهاد خانه گیلاسی') + '</span></button>'
         ).join('');
@@ -92,20 +92,6 @@ if (qrRoot) {
         }
         if (totalEl) totalEl.textContent = money(sum);
         if (submit) submit.disabled = cart.size === 0;
-    }
-
-    async function loadQrMenu() {
-        try {
-            const response = await fetch(qrRoot.dataset.dataUrl, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result?.message || 'منوی این میز در دسترس نیست.');
-            const data = result.data || {};
-            currency = data.settings?.currency_label || 'تومان';
-            renderQrCatalog(data.categories || [], data.table?.name || qrRoot.dataset.tableName || '');
-            renderQrCart();
-        } catch (error) {
-            qrRoot.innerHTML = '<div class="kg-empty-state"><span>🍒</span><b>' + escapeHtml(error?.message || 'دریافت منو انجام نشد.') + '</b><p>صفحه را تازه کن یا با کارکنان مجموعه هماهنگ کن.</p></div>';
-        }
     }
 
     qrRoot.addEventListener('click', event => {
@@ -178,6 +164,14 @@ if (qrRoot) {
         }
     });
 
+    qrRoot.addEventListener('error', event => {
+        const image = event.target;
+        if (!image.matches?.('[data-menu-image]')) return;
+        image.hidden = true;
+        const fallback = image.nextElementSibling;
+        if (fallback?.matches('[data-menu-image-fallback]')) fallback.hidden = false;
+    }, true);
+
     qrRoot.addEventListener('submit', async event => {
         if (event.target.id !== 'kg-qr-order-form') return;
         event.preventDefault();
@@ -188,7 +182,7 @@ if (qrRoot) {
         if (!qrPendingPayload) {
             const fields = new FormData(form);
             qrPendingPayload = {
-                channel: 'dine_in', payment_preference: 'at_counter', discount: 0,
+                channel: 'dine_in', payment_preference: 'at_counter',
                 customer_name: String(fields.get('customer_name') || '').trim() || null,
                 customer_phone: String(fields.get('customer_phone') || '').trim() || null,
                 items: [...cart.values()].map(item => ({ product_id: item.product_id, quantity: item.quantity, options: item.options.map(option => ({ id: option.id })) })),
