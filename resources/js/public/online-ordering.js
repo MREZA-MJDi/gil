@@ -8,6 +8,7 @@ if (orderingRoot) {
     const totalEl = document.getElementById('online-cart-total');
     const submitButton = document.getElementById('online-checkout-submit');
     const message = document.getElementById('online-checkout-message');
+    const successPanel = document.getElementById('online-order-success');
     const currency = document.querySelector('meta[name="currency-label"]')?.content || 'تومان';
     const money = value => new Intl.NumberFormat('fa-IR').format(Number(value || 0)) + ' ' + currency;
     const escapeHtml = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
@@ -33,6 +34,25 @@ if (orderingRoot) {
         return sum + (item.price + optionsTotal) * item.quantity;
     }, 0);
 
+    function hideOrderSuccess() {
+        if (!successPanel) return;
+        successPanel.hidden = true;
+        successPanel.classList.remove('is-visible');
+    }
+
+    function showOrderSuccess(order) {
+        if (!successPanel) return;
+        const number = successPanel.querySelector('[data-online-order-number]');
+        const total = successPanel.querySelector('[data-online-order-total]');
+        if (number) number.textContent = order.number || 'ثبت شد';
+        if (total) total.textContent = money(order.total);
+        successPanel.hidden = false;
+        successPanel.classList.remove('is-visible');
+        void successPanel.offsetWidth;
+        successPanel.classList.add('is-visible');
+        successPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     function renderCart() {
         if (itemsEl) {
             itemsEl.innerHTML = [...cart.values()].map(item => {
@@ -56,11 +76,19 @@ if (orderingRoot) {
     }
 
     orderingRoot.addEventListener('click', event => {
+        const newOrderButton = event.target.closest('[data-online-new-order]');
+        if (newOrderButton) {
+            hideOrderSuccess();
+            document.querySelector('.menu-intro')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+        }
+
         const addButton = event.target.closest('[data-add-online-product]');
         if (addButton) {
             if (uncertainRequest) return;
             const card = addButton.closest('[data-product-card]');
             if (!card) return;
+            hideOrderSuccess();
             const selected = [...card.querySelectorAll('[data-online-option]:checked')].map(input => ({
                 id: Number(input.dataset.onlineOption),
                 type: input.dataset.optionType || 'addon',
@@ -94,6 +122,7 @@ if (orderingRoot) {
 
         const qtyButton = event.target.closest('[data-cart-qty], [data-cart-remove]');
         if (!qtyButton || uncertainRequest) return;
+        hideOrderSuccess();
         const key = qtyButton.dataset.cartKey;
         const item = cart.get(key);
         if (!item) return;
@@ -160,7 +189,8 @@ if (orderingRoot) {
             pendingPayload = null;
             setLocked(false);
             renderCart();
-            if (message) message.textContent = 'سفارش ' + (order.number || '') + ' ثبت شد. مبلغ نهایی: ' + money(order.total) + '. پرداخت هنوز ثبت نشده است.';
+            if (message) message.textContent = 'سفارش با موفقیت ثبت شد. پرداخت هنگام دریافت انجام می‌شود.';
+            showOrderSuccess(order);
         } catch (error) {
             const definiteClientError = response && response.status >= 400 && response.status < 500 && response.status !== 429;
             if (definiteClientError) {
