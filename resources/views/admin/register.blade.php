@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#2a2722">
-    <title>ثبت‌نام کارکنان | خانه گیلاسی</title>
+    <title>ثبت‌نام کارکنان | Q Food</title>
     @vite(['resources/css/auth-entry.css'])
 </head>
 @php($loginBackground = \App\Models\SiteMediaAsset::urlFor('login_background', asset('images/login-background.webp')))
@@ -38,8 +38,8 @@
             <div class="auth-links"><a href="{{ route('admin.login') }}">بازگشت به ورود</a><span>ثبت‌نام با موبایل</span></div>
             <footer class="auth-legal">تا زمانی که سرویس پیامک OTP متصل نشده، مالکیت شماره موبایل با پیامک تأیید نمی‌شود.</footer>
         </section>
-        <aside class="auth-brand-panel" aria-label="خانه گیلاسی">
-            <div class="auth-brand-top"><span class="auth-mark">خ</span><span><b>خانه گیلاسی</b><small>کافه و رستوران</small></span></div>
+        <aside class="auth-brand-panel" aria-label="Q Food">
+            <div class="auth-brand-top"><span><b>Q Food</b><small>کافه و رستوران</small></span></div>
             <div class="auth-brand-copy">
                 <span class="auth-brand-kicker">محیط کاری امن</span>
                 <h2>حساب‌های کاری، با دسترسی کنترل‌شده.</h2>
