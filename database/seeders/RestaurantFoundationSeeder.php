@@ -19,7 +19,7 @@ class RestaurantFoundationSeeder extends Seeder
     public function run(): void
     {
         RestaurantSetting::query()->firstOrCreate(['singleton_key' => 'main'], [
-            'name' => config('restaurant.name', 'خانه گیلاسی'),
+            'name' => config('restaurant.name', 'نام مجموعه'),
             'phone' => config('restaurant.phone'),
             'address' => config('restaurant.address'),
             'currency_label' => config('restaurant.currency_label', 'تومان'),
@@ -29,7 +29,7 @@ class RestaurantFoundationSeeder extends Seeder
             'paper_width' => (int) config('restaurant.paper_width', 80),
             'customer_menu_enabled' => (bool) config('restaurant.customer_menu_enabled', true),
             'homepage_content' => [
-                'hero_eyebrow' => 'کافه و رستوران خانه گیلاسی',
+                'hero_eyebrow' => 'به مجموعه خوش آمدید',
                 'hero_title_line1' => 'طعم خوب،',
                 'hero_title_line2' => 'حال خوب.',
                 'hero_description' => 'برای یک قهوه کوتاه، یک وعده خوش‌طعم یا یک دورهمی دوست‌داشتنی؛ انتخاب و سفارش را ساده کرده‌ایم تا وقتت برای لذت‌بردن بماند.',
@@ -37,7 +37,7 @@ class RestaurantFoundationSeeder extends Seeder
                 'hero_secondary_cta' => 'درخواست رزرو',
                 'hero_badge_title' => 'با عشق پخته‌شده',
                 'hero_badge_description' => 'از آشپزخانه تا میز تو',
-                'showcase_eyebrow' => 'انتخاب‌های خانه گیلاسی',
+                'showcase_eyebrow' => 'انتخاب‌های امروز',
                 'showcase_title' => 'بهترین طعم‌ها برای تو',
                 'showcase_description' => 'محصولات فعال و تصاویر ثبت‌شده در منوی مجموعه؛ برای دیدن جزئیات و سفارش، انتخابشان کن.',
             ],

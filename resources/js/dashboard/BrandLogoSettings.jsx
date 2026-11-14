@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api, unwrapData, unwrapList } from './api.js';
 
-export default function BrandLogoSettings({ restaurantName }) {
+export default function BrandLogoSettings({ restaurantName, onNameChange, onNameSave, onLogoSaved }) {
     const [asset, setAsset] = useState(null);
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState('');
@@ -71,7 +71,8 @@ export default function BrandLogoSettings({ restaurantName }) {
             setAsset(saved);
             setFile(null);
             setPreview(saved?.url || '');
-            setNotice('لوگو ذخیره شد و در سایت اعمال شد.');
+            onLogoSaved?.(saved?.url || '');
+            setNotice('لوگو ذخیره شد و در سایت و فیش اعمال شد.');
         } catch (exception) {
             setError(exception?.message || 'ذخیره لوگو انجام نشد.');
         } finally {
@@ -82,8 +83,8 @@ export default function BrandLogoSettings({ restaurantName }) {
     return <section className="panel op-card settings-brand-card">
         <div className="panel-heading">
             <div>
-                <h2>لوگوی اصلی سایت</h2>
-                <p>پیش‌نمایش دقیقاً با قاب دایره‌ای لوگو در صفحه عمومی هماهنگ است.</p>
+                <h2>هویت برند و لوگو</h2>
+                <p>نام و نشان این مجموعه از همین بخش در سایت، پنل مدیریت و فیش‌ها استفاده می‌شود.</p>
             </div>
         </div>
         <div className="settings-brand-layout">
@@ -91,11 +92,13 @@ export default function BrandLogoSettings({ restaurantName }) {
                 <div className="settings-brand-preview-frame" aria-label="پیش‌نمایش لوگو در اندازه سایت">
                     {preview
                         ? <img src={preview} alt={asset?.alt_text || restaurantName || 'لوگوی مجموعه'} />
-                        : <span aria-hidden="true">{(restaurantName || 'خانه گیلاسی').slice(0, 1)}</span>}
+                        : <span aria-hidden="true">{(restaurantName || 'مجموعه').trim().slice(0, 1)}</span>}
                 </div>
                 <small className="settings-brand-size-note">دسکتاپ ۶۰ · موبایل ۵۲ پیکسل</small>
             </div>
             <div className="settings-brand-controls">
+                <label className="op-field settings-brand-name-field"><span>نام برند / مجموعه</span><input type="text" value={restaurantName || ''} onChange={event => onNameChange?.(event.target.value)} maxLength="150" required /></label>
+                <button type="button" className="primary-button" onClick={onNameSave}>ذخیره نام برند</button>
                 <b>{file ? 'پیش‌نمایش تصویر انتخاب‌شده' : asset ? 'لوگوی فعلی سایت' : 'هنوز لوگویی بارگذاری نشده'}</b>
                 <p>PNG شفاف پیشنهاد می‌شود. تصویر بدون برش و با حفظ نسبت اصلی داخل دایره قرار می‌گیرد.</p>
                 <div className="settings-brand-actions">

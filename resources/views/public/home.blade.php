@@ -21,7 +21,7 @@
 
             @include('public.partials.reference-nav')
 
-            <div class="home-hero-signature" aria-label="کافه و رستوران خانه گیلاسی">
+            <div class="home-hero-signature" aria-label="کافه و رستوران {{ $settings->name }}">
                 <span>کافه و رستوران</span>
                 <strong>یک مکث خوش‌طعم.</strong>
             </div>
@@ -33,7 +33,7 @@
         <div class="side" data-home-carousel-stage>
             <a href="{{ route('public.menu') }}" class="slot tile" data-home-carousel-card data-home-index="0">
                 @if(!empty($media['menu_cover']['url']))
-                    <img src="{{ $media['menu_cover']['url'] }}" alt="{{ $media['menu_cover']['alt_text'] ?: 'منوی خانه گیلاسی' }}" loading="lazy">
+                    <img src="{{ $media['menu_cover']['url'] }}" alt="{{ $media['menu_cover']['alt_text'] ?: 'منوی '.$settings->name }}" loading="lazy">
                 @elseif($featuredProducts->get(0)?->image_url)
                     <img src="{{ $featuredProducts->get(0)->image_url }}" alt="{{ $featuredProducts->get(0)->name }}" loading="lazy">
                 @endif
@@ -141,7 +141,7 @@
 
     @if(collect(['gallery_1','gallery_2','gallery_3'])->contains(fn ($slot) => !empty($media[$slot]['url'])))
         <section class="home-photo-gallery kg-photo-gallery">
-            <header><span>نگاهی به خانه گیلاسی</span><h2>فضای ما، از نزدیک</h2></header>
+            <header><span>نگاهی به {{ $settings->name }}</span><h2>فضای ما، از نزدیک</h2></header>
             <div>
                 @foreach(['gallery_1'=>'فضای کافه','gallery_2'=>'غذا و نوشیدنی','gallery_3'=>'مناسبت‌ها و دورهمی'] as $slot=>$label)
                     @if(!empty($media[$slot]['url']))

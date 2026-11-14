@@ -9,7 +9,7 @@ const slots = [
     { key: 'reservation_cover', title: 'تصویر صفحه رزرو', detail: 'تصویر اصلی کنار فرم رزرو میز و مناسبت‌ها.', ratio: '۴:۵', aspect: '4 / 5', crop: 4/5, className: 'portrait' },
     { key: 'login_background', title: 'پس‌زمینه ورود کارکنان', detail: 'تصویر پشت فرم ورود مدیر و کارکنان.', ratio: '۱۶:۹', aspect: '16 / 9', crop: 16/9, className: 'wide' },
     { key: 'brand_logo', title: 'لوگوی مجموعه', detail: 'برای نمایش لوگو در سربرگ و پایین صفحه؛ PNG شفاف مناسب است.', ratio: '۱:۱', aspect: '1 / 1', crop: 1, className: 'square' },
-    { key: 'story_main', title: 'تصویر داستان ما', detail: 'تصویر اصلی بخش معرفی خانه گیلاسی.', ratio: '۴:۵', aspect: '4 / 5', crop: 4/5, className: 'portrait' },
+    { key: 'story_main', title: 'تصویر داستان ما', detail: 'تصویر اصلی بخش معرفی مجموعه.', ratio: '۴:۵', aspect: '4 / 5', crop: 4/5, className: 'portrait' },
     { key: 'story_small', title: 'تصویر دوم داستان / رزرو', detail: 'تصویر مکمل برای معرفی مجموعه و جایگزین تصویر رزرو.', ratio: '۴:۵', aspect: '4 / 5', crop: 4/5, className: 'portrait' },
     { key: 'gallery_1', title: 'گالری — فضای کافه', detail: 'عکس فضای داخلی، میزها و پذیرایی.', ratio: '۴:۳', aspect: '4 / 3', crop: 4/3, className: 'wide' },
     { key: 'gallery_2', title: 'گالری — غذا و نوشیدنی', detail: 'عکس غذا، نوشیدنی یا نمای نزدیک محصولات.', ratio: '۴:۳', aspect: '4 / 3', crop: 4/3, className: 'wide' },
@@ -247,7 +247,7 @@ export default function MediaManager({ onNavigate }) {
 
     return <div className="page-content media-manager">
         <header className="media-page-header">
-            <span className="media-page-eyebrow">کتابخانه بصری خانه گیلاسی</span>
+            <span className="media-page-eyebrow">کتابخانه بصری مجموعه</span>
             <h1>رسانه و تصاویر سایت</h1>
             <p>تمام تصویرهای ثابت و بنرهای صفحه خانه، منو، رزرو، ورود و گالری از اینجا مدیریت می‌شوند. عکس محصول و دسته از «منو و محصولات» قابل تغییر است.</p>
         </header>

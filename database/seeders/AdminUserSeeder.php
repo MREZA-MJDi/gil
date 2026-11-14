@@ -14,7 +14,7 @@ class AdminUserSeeder extends Seeder
         $phone = PhoneNumber::normalize((string) config('admin.phone'));
         $email = trim((string) config('admin.email'));
         $password = (string) config('admin.password');
-        $name = trim((string) config('admin.name', 'مدیر خانه گیلاسی'));
+        $name = trim((string) config('admin.name', 'مدیر سامانه'));
 
         if (! $phone || ! PhoneNumber::isValid($phone) || strlen($password) < 14) {
             throw new RuntimeException(
@@ -39,7 +39,7 @@ class AdminUserSeeder extends Seeder
 
         $user = $phoneUser ?: $emailUser;
         $attributes = [
-            'name' => $name !== '' ? $name : 'مدیر خانه گیلاسی',
+            'name' => $name !== '' ? $name : 'مدیر سامانه',
             'email' => $email !== '' ? $email : null,
             'phone' => $phone,
             'password' => $password,

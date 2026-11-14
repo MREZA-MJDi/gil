@@ -81,6 +81,11 @@
 @media(max-width:560px){.op-pagination{align-items:stretch;flex-direction:column}.op-pagination>div{justify-content:space-between}.op-pagination>div>*{flex:1}.op-pagination b{min-width:0}}
 
 
+.settings-brand-name-field { display:grid; gap:7px; margin:0 0 12px; }
+.settings-brand-name-field input { width:100%; min-height:40px; padding:9px 11px; border:1px solid #e5ddd3; border-radius:8px; color:#302923; background:#fff; font:inherit; }
+.settings-brand-name-field input:focus { outline:2px solid #d9a08e; outline-offset:1px; }
+.brand-symbol-image { display:block; object-fit:contain; padding:3px; background:#fff; }
+
 /* Image crop workflow */
 .media-asset-preview.is-pending { outline: 3px solid #b77b3e; outline-offset: -3px; }
 .media-asset-status.is-pending { background: #a56b2c; }

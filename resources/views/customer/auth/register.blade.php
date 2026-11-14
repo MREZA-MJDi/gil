@@ -30,11 +30,11 @@
         </div>
         <div class="slot hero account-auth-art">
             @if(!empty($media['login_background']['url']))
-                <img src="{{ $media['login_background']['url'] }}" alt="{{ $media['login_background']['alt_text'] ?: 'خانه گیلاسی' }}">
+                <img src="{{ $media['login_background']['url'] }}" alt="{{ $media['login_background']['alt_text'] ?: $settings->name }}">
             @elseif(!empty($media['hero']['url']))
-                <img src="{{ $media['hero']['url'] }}" alt="{{ $media['hero']['alt_text'] ?: 'خانه گیلاسی' }}">
+                <img src="{{ $media['hero']['url'] }}" alt="{{ $media['hero']['alt_text'] ?: $settings->name }}">
             @endif
-            <div class="account-art-copy"><span>خانه گیلاسی</span><h2>رزروت را<br>با خیال راحت دنبال کن.</h2><p>هر زمان وضعیت درخواستت تغییر کند، نتیجه را در حساب کاربری خودت می‌بینی.</p></div>
+            <div class="account-art-copy"><span>{{ $settings->name }}</span><h2>رزروت را<br>با خیال راحت دنبال کن.</h2><p>هر زمان وضعیت درخواستت تغییر کند، نتیجه را در حساب کاربری خودت می‌بینی.</p></div>
         </div>
     </section>
 </div>

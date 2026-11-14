@@ -10,7 +10,11 @@
 <div class="m">
     <header class="top menu-top" data-kg-header>
         <button type="button" class="burger2" data-kg-menu-toggle aria-expanded="false" aria-controls="kg-qr-nav" aria-label="باز کردن منو"><i></i><i></i></button>
-        <a class="brand" href="{{ route('home') }}"><span>{{ $settings->name }}</span></a>
+        <a class="brand" href="{{ route('home') }}">
+            @php($brandLogo = \App\Models\SiteMediaAsset::urlFor('brand_logo'))
+            @if($brandLogo)<img src="{{ $brandLogo }}" alt="{{ $settings->name }}" style="width:40px;height:40px;object-fit:contain;border-radius:50%">@else<span aria-hidden="true">{{ \Illuminate\Support\Str::substr($settings->name, 0, 1) }}</span>@endif
+            <span>{{ $settings->name }}</span>
+        </a>
         <nav class="menu-nav" id="kg-qr-nav" data-kg-nav aria-label="ناوبری اصلی"><a href="{{ route('home') }}">خانه</a><a href="{{ route('public.menu') }}">منوی بیرون‌بر</a><a href="{{ route('public.reservations.create') }}">رزرو میز</a></nav>
         @include('public.partials.profile-link')
         <span class="kg-table-badge">میز {{ $table->name }}</span>

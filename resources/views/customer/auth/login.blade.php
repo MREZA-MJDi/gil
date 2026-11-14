@@ -28,9 +28,9 @@
         </div>
         <div class="slot hero account-auth-art">
             @if(!empty($media['login_background']['url']))
-                <img src="{{ $media['login_background']['url'] }}" alt="{{ $media['login_background']['alt_text'] ?: 'خانه گیلاسی' }}">
+                <img src="{{ $media['login_background']['url'] }}" alt="{{ $media['login_background']['alt_text'] ?: $settings->name }}">
             @elseif(!empty($media['hero']['url']))
-                <img src="{{ $media['hero']['url'] }}" alt="{{ $media['hero']['alt_text'] ?: 'خانه گیلاسی' }}">
+                <img src="{{ $media['hero']['url'] }}" alt="{{ $media['hero']['alt_text'] ?: $settings->name }}">
             @endif
             <div class="account-art-copy"><span>همه رزروها، یک‌جا</span><h2>قرار بعدی‌ات<br>نزدیک است.</h2><p>درخواست رزرو ثبت کن و نتیجه بررسی مجموعه را از حساب خودت دنبال کن.</p></div>
         </div>

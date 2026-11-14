@@ -132,7 +132,10 @@ export function buildPrintHtml(order, type, settings = {}) {
     const customer = order?.customer_name ? '<div class="meta-row"><span>مشتری</span><b>' + escapeHtml(order.customer_name) + '</b></div>' : '';
     const customerPhone = order?.customer_phone ? '<div class="meta-row"><span>شماره تماس</span><b dir="ltr">' + escapeHtml(order.customer_phone) + '</b></div>' : '';
     const note = order?.customer_note ? '<div class="customer-note"><b>توضیحات سفارش</b><p>' + escapeHtml(order.customer_note) + '</p></div>' : '';
-    const footer = settings?.receipt_footer || 'از اینکه خانه گیلاسی را انتخاب کردید سپاسگزاریم.';
+    const footer = settings?.receipt_footer || 'با سپاس از همراهی شما.';
+    const logoUrl = String(settings?.brand_logo_url || '').trim();
+    const safeLogoUrl = /^(https?:\/\/|\/storage\/)/i.test(logoUrl) ? logoUrl : '';
+    const logoMarkup = safeLogoUrl ? '<img class="store-logo" src="' + escapeHtml(safeLogoUrl) + '" alt="">' : '';
 
     return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">' +
         '<meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -144,7 +147,7 @@ export function buildPrintHtml(order, type, settings = {}) {
         'body{width:' + (paperWidth - 4) + 'mm;margin:0 auto;font-family:Tahoma,Arial,sans-serif;font-size:11px;line-height:1.8}' +
         '.ticket{width:100%;padding:2mm 0}' +
         '.store{text-align:center;border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:8px}' +
-        '.store-name{font-size:17px;font-weight:900;line-height:1.7}' +
+        '.store-name{font-size:17px;font-weight:900;line-height:1.7}.store-logo{display:block;width:auto;max-width:32mm;max-height:18mm;object-fit:contain;margin:0 auto 4px}' +
         '.store-address,.store-phone{font-size:9px;color:#333}' +
         '.ticket-title{text-align:center;font-size:14px;font-weight:900;margin:7px 0 3px}' +
         '.order-number-label{text-align:center;font-size:10px;color:#333}' +
@@ -164,7 +167,7 @@ export function buildPrintHtml(order, type, settings = {}) {
         '.print-meta{text-align:center;margin-top:8px;color:#555;font-size:8px}' +
         '@media screen{body{margin:12px auto;box-shadow:0 0 0 1px #ddd;padding:8px}.ticket{padding:8px}}' +
         '</style></head><body><main class="ticket">' +
-        '<header class="store"><div class="store-name">' + escapeHtml(settings?.name || 'خانه گیلاسی') + '</div>' +
+        '<header class="store">' + logoMarkup + '<div class="store-name">' + escapeHtml(settings?.name || 'مجموعه') + '</div>' +
         address + phone + '<div class="ticket-title">' + title + '</div>' +
         '<div class="order-number-label">شماره سفارش</div><div class="order-number">' + escapeHtml(orderNumber) + '</div></header>' +
         '<section class="meta">' +

@@ -95,7 +95,7 @@ class RestaurantDemoSeederTest extends TestCase
         $category->update(['name' => 'قهوه‌های منتخب']);
         $ingredient->update(['name' => 'دانه قهوه ویژه', 'stock_quantity' => 321, 'cost_per_unit' => 987]);
         $table->update(['name' => 'میز پنجره', 'description' => 'تغییر داده شده از پنل']);
-        RestaurantSetting::current()->update(['name' => 'خانه گیلاسی ویرایش‌شده']);
+        RestaurantSetting::current()->update(['name' => 'مجموعه آزمایشی ویرایش‌شده']);
 
         Artisan::call('db:seed', [
             '--class' => \Database\Seeders\RestaurantDemoSeeder::class,
@@ -110,7 +110,7 @@ class RestaurantDemoSeederTest extends TestCase
         $this->assertSame(987, (int) $ingredient->fresh()->cost_per_unit);
         $this->assertSame('میز پنجره', $table->fresh()->name);
         $this->assertSame('تغییر داده شده از پنل', $table->fresh()->description);
-        $this->assertSame('خانه گیلاسی ویرایش‌شده', RestaurantSetting::current()->name);
+        $this->assertSame('مجموعه آزمایشی ویرایش‌شده', RestaurantSetting::current()->name);
     }
 
     public function test_demo_seeder_respects_rial_as_the_chosen_currency_unit(): void

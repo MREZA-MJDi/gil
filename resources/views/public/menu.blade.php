@@ -15,6 +15,11 @@
     <div class="top menu-top" data-kg-header>
         <button type="button" class="burger2" data-kg-menu-toggle aria-expanded="false" aria-controls="kg-menu-nav" aria-label="باز کردن منو"><i></i><i></i></button>
         <a class="brand" href="{{ route('home') }}" aria-label="صفحه اصلی {{ $settings->name }}">
+            @if(!empty($media['brand_logo']['url']))
+                <img src="{{ $media['brand_logo']['url'] }}" alt="{{ $media['brand_logo']['alt_text'] ?: $settings->name }}" style="width:42px;height:42px;object-fit:contain;border-radius:50%">
+            @else
+                <span aria-hidden="true">{{ \Illuminate\Support\Str::substr($settings->name, 0, 1) }}</span>
+            @endif
             <span>{{ $settings->name }}</span>
         </a>
         <nav class="menu-nav" id="kg-menu-nav" data-kg-nav aria-label="ناوبری اصلی">

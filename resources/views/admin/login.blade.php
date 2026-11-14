@@ -4,10 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#2a2722">
-    <title>ورود مدیر | خانه گیلاسی</title>
+    <title>ورود مدیر | {{ $brandSettings->name }}</title>
     @vite(['resources/css/auth-entry.css'])
 </head>
 @php($loginBackground = \App\Models\SiteMediaAsset::urlFor('login_background', asset('images/login-background.webp')))
+@php($brandSettings = \App\Models\RestaurantSetting::current())
+@php($brandLogo = \App\Models\SiteMediaAsset::urlFor('brand_logo'))
 <body class="admin-auth-body" style="--login-image: url('{{ $loginBackground }}')">
     <main class="auth-layout">
         <section class="auth-form-panel" aria-labelledby="login-title">
@@ -33,8 +35,8 @@
             </form>
             <footer class="auth-legal">همه افراد مجاز از همین حساب مشترک استفاده می‌کنند؛ نشست هر مرورگر و دستگاه جداگانه است.</footer>
         </section>
-        <aside class="auth-brand-panel" aria-label="خانه گیلاسی">
-            <div class="auth-brand-top"><span class="auth-mark">خ</span><span><b>خانه گیلاسی</b><small>کافه و رستوران</small></span></div>
+        <aside class="auth-brand-panel" aria-label="{{ $brandSettings->name }}">
+            <div class="auth-brand-top"><span class="auth-mark">@if($brandLogo)<img src="{{ $brandLogo }}" alt="{{ $brandSettings->name }}" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">@else{{ \Illuminate\Support\Str::substr($brandSettings->name, 0, 1) }}@endif</span><span><b>{{ $brandSettings->name }}</b><small>پنل مدیریت مجموعه</small></span></div>
             <div class="auth-brand-copy">
                 <span class="auth-brand-kicker">تمام عملیات، در یک پنل</span>
                 <h2>از سفارش تا صندوق، همه‌چیز مرتب.</h2>

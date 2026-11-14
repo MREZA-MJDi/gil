@@ -179,14 +179,14 @@ class PublicSiteRenderingTest extends TestCase
         SiteMediaAsset::query()->create([
             'slot' => 'brand_logo',
             'path' => 'site-media/brand-logo.png',
-            'alt_text' => 'نشان خانه گیلاسی',
+            'alt_text' => 'نشان مجموعه آزمایشی',
         ]);
 
         $this->get(route('home'))
             ->assertOk()
             ->assertSee('class="logo"', false)
             ->assertSee('site-media/brand-logo.png')
-            ->assertSee('نشان خانه گیلاسی');
+            ->assertSee('نشان مجموعه آزمایشی');
 
         foreach ([
             resource_path('views/public/home.blade.php'),

@@ -18,7 +18,7 @@
                 @endif
             </span>
             <span class="kg-brand-copy">
-                <strong>{{ $settings->name ?: 'خانه گیلاسی' }}</strong>
+                <strong>{{ $settings->name ?: 'مجموعه' }}</strong>
                 <small>کافه و رستوران</small>
             </span>
         </a>

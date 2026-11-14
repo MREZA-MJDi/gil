@@ -387,7 +387,7 @@ export default function PosPage({
     return <div className="page-content pos-page">
         <header className="pos-page-heading">
             <div>
-                <span className="pos-eyebrow">خانه گیلاسی / نقطه فروش</span>
+                <span className="pos-eyebrow">نقطه فروش</span>
                 <h1>صندوق فروش و ثبت سفارش</h1>
                 <p>ابتدا شیفت را شروع کن؛ سپس سفارش‌ها را ثبت، آماده‌سازی و تسویه کن.</p>
             </div>
