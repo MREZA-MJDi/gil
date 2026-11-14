@@ -82,7 +82,7 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 ### External order intake bridge
 - Signed normalized intake endpoints are available at \`POST /api/integrations/orders/snappfood\` and \`POST /api/integrations/orders/partner\`. This is a trusted adapter contract, **not a claim that Snappfood's live/private API has already been connected**.
-- Configure a private \`ORDER_WEBHOOK_SECRET\` with at least 32 characters. Send \`X-QFood-Signature: sha256=<hex HMAC-SHA256 of the exact raw request body>\`.
+- Configure a private \`ORDER_WEBHOOK_SECRET\` with at least 32 characters. Send \`X-Gil-Signature: sha256=<hex HMAC-SHA256 of the exact raw request body>\`.
 - External product IDs must be mapped by the adapter to this system's \`product_id\`. The app recalculates prices using its own catalog, deduplicates by external order ID, and does not assume marketplace payment is settled. Production status/refund/settlement synchronization needs official API access and a dedicated adapter.
 
 
