@@ -18,8 +18,7 @@
     <main>
         <section class="kg-hero kg-reference-hero" aria-labelledby="kg-home-title">
             <div class="kg-hero-brand">
-                <span class="kg-hero-brand-symbol">🍒</span>
-                <span><b>{{ $settings->name }}</b><small>کافه و رستوران</small></span>
+                <span><b>Q Food</b><small>کافه و رستوران</small></span>
             </div>
             <div class="kg-hero-follow"><span>انتخاب تازه‌ی امروز</span><i></i><i></i><i></i></div>
 
@@ -58,7 +57,7 @@
             </div>
 
             <div class="kg-hero-bottom">
-                <span><b>01</b><i></i> انتخاب از منوی واقعی خانه گیلاسی</span>
+                <span><b>01</b><i></i> انتخاب از منوی واقعی Q Food</span>
                 <a href="#home-showcase">برای کشف طعم‌ها پایین برو <b>↓</b></a>
             </div>
             <span class="kg-hero-decoration kg-hero-decoration-one" aria-hidden="true">✳</span>
@@ -147,7 +146,7 @@
         <section class="kg-story" id="about">
             <div class="kg-story-visual">
                 @if(!empty($media['story_main']['url']))
-                    <img src="{{ $media['story_main']['url'] }}" alt="{{ $media['story_main']['alt_text'] ?: 'فضای خانه گیلاسی' }}" loading="lazy">
+                    <img src="{{ $media['story_main']['url'] }}" alt="{{ $media['story_main']['alt_text'] ?: 'فضای Q Food' }}" loading="lazy">
                 @elseif($featuredProducts->first()?->image_url)
                     <img src="{{ $featuredProducts->first()->image_url }}" alt="{{ $featuredProducts->first()->name }}" loading="lazy">
                 @else
@@ -156,7 +155,7 @@
                 <div class="kg-story-sticker">با عشق<br>برای حال خوب</div>
             </div>
             <div class="kg-story-copy">
-                <span class="kg-eyebrow">خانه گیلاسی، برای لحظه‌های تو</span>
+                <span class="kg-eyebrow">Q Food، برای لحظه‌های تو</span>
                 <h2>یک فنجان،<br>یک میز،<br><em>یک حال خوب.</em></h2>
                 <p>برای یک قرار کوتاه یا یک دورهمی طولانی، جزئیات مهم‌اند. منو را با اطلاعات ثبت‌شده ببین، سفارش بیرون‌بر را آنلاین بفرست یا برای زمان دلخواهت درخواست رزرو ثبت کن.</p>
                 <div class="kg-story-links">
@@ -170,7 +169,7 @@
         @if(collect(['gallery_1', 'gallery_2', 'gallery_3'])->contains(fn ($slot) => !empty($media[$slot]['url'])))
             <section class="kg-photo-gallery" aria-labelledby="kg-photo-gallery-title">
                 <header class="kg-photo-gallery-heading">
-                    <span class="kg-eyebrow">نگاهی به خانه گیلاسی</span>
+                    <span class="kg-eyebrow">نگاهی به Q Food</span>
                     <h2 id="kg-photo-gallery-title">فضای ما، <em>از نزدیک</em></h2>
                     <p>تصویرهای مجموعه از بخش رسانه داشبورد مدیریت می‌شوند.</p>
                 </header>
@@ -189,7 +188,7 @@
 
         <section class="kg-reserve-banner">
             @if(!empty($media['home_reservation_banner']['url']))
-                <img src="{{ $media['home_reservation_banner']['url'] }}" alt="{{ $media['home_reservation_banner']['alt_text'] ?: 'بنر رزرو خانه گیلاسی' }}" loading="lazy">
+                <img src="{{ $media['home_reservation_banner']['url'] }}" alt="{{ $media['home_reservation_banner']['alt_text'] ?: 'بنر رزرو Q Food' }}" loading="lazy">
             @elseif(!empty($media['gallery_3']['url']))
                 <img src="{{ $media['gallery_3']['url'] }}" alt="{{ $media['gallery_3']['alt_text'] ?: 'چیدمان میز' }}" loading="lazy">
             @elseif($featuredProducts->last()?->image_url)
