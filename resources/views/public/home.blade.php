@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#171313">
-    <meta name="description" content="{{ $settings->name }}؛ منو، سفارش بیرون‌بر و درخواست رزرو میز و مناسبت‌ها.">
-    <title>{{ $settings->name }} | کافه و رستوران</title>
+    <meta name="description" content="Q Food؛ منو، سفارش بیرون‌بر و درخواست رزرو میز و مناسبت‌ها.">
+    <title>Q Food | کافه و رستوران</title>
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site kg-home" id="top">
