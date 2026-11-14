@@ -1,4 +1,4 @@
-# خانه گیلاسی - پنل عملیات کافه و رستوران
+# Q Food - پنل عملیات کافه و رستوران
 
 سامانه Laravel + React برای مدیریت منو، سفارش‌ها، پرداخت و صندوق، موجودی، میز و QR، رزروها، هزینه‌ها، بازخورد و گزارش‌های عملیاتی. تجربه عمومی سایت فارسی و راست‌چین است. تقویم ورودی رزرو و گزارش‌ها شمسی نمایش داده می‌شود و تاریخ استاندارد برای backend ارسال می‌شود.
 
@@ -19,14 +19,14 @@
 
 در فایل .env شماره موبایل و رمز مدیر را تنظیم کن:
 
-    APP_NAME="خانه گیلاسی"
+    APP_NAME="Q Food"
     APP_ENV=local
     APP_DEBUG=true
     APP_URL=http://localhost:8086
     APP_TIMEZONE=Asia/Tehran
     DB_CONNECTION=sqlite
 
-    ADMIN_NAME="مدیر خانه گیلاسی"
+    ADMIN_NAME="مدیر Q Food"
     ADMIN_PHONE=09121234567
     ADMIN_PASSWORD="replace-with-a-unique-password-14-chars-or-more"
     # Optional: only enable staff registration if an invitation key is required.
@@ -82,7 +82,7 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 ### External order intake bridge
 - Signed normalized intake endpoints are available at \`POST /api/integrations/orders/snappfood\` and \`POST /api/integrations/orders/partner\`. This is a trusted adapter contract, **not a claim that Snappfood's live/private API has already been connected**.
-- Configure a private \`ORDER_WEBHOOK_SECRET\` with at least 32 characters. Send \`X-Gil-Signature: sha256=<hex HMAC-SHA256 of the exact raw request body>\`.
+- Configure a private \`ORDER_WEBHOOK_SECRET\` with at least 32 characters. Send \`X-QFood-Signature: sha256=<hex HMAC-SHA256 of the exact raw request body>\`.
 - External product IDs must be mapped by the adapter to this system's \`product_id\`. The app recalculates prices using its own catalog, deduplicates by external order ID, and does not assume marketplace payment is settled. Production status/refund/settlement synchronization needs official API access and a dedicated adapter.
 
 
