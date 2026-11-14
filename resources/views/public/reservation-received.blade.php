@@ -4,11 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#fbf6ec">
-    <title>درخواست دریافت شد | {{ $settings->name }}</title>
+    <title>درخواست دریافت شد | Q Food</title>
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site kg-reservation-received" id="top">
-    <div class="kg-topline"><span>🍒 {{ $settings->name }}</span><span>دریافت درخواست رزرو</span></div>
+    <div class="kg-topline"><span>🍒 Q Food</span><span>دریافت درخواست رزرو</span></div>
     @include('public.partials.nav')
     <main class="kg-received-main">
         <div class="kg-received-icon">✓</div>
