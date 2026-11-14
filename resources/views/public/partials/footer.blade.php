@@ -2,7 +2,14 @@
     <div class="kg-footer-main">
         <div class="kg-footer-brand">
             <a class="kg-brand kg-brand-footer" href="{{ route('home') }}">
-                <span class="kg-brand-copy"><strong>Q Food</strong><small>کافه و رستوران</small></span>
+                <span class="kg-brand-mark" aria-hidden="true">
+                    @if(!empty($media['brand_logo']['url']))
+                        <img class="kg-brand-logo" src="{{ $media['brand_logo']['url'] }}" alt="">
+                    @else
+                        🍒
+                    @endif
+                </span>
+                <span class="kg-brand-copy"><strong>{{ $settings->name }}</strong><small>کافه و رستوران</small></span>
             </a>
             <p>یک مکث خوش‌طعم، یک گفت‌وگوی خوب و لحظه‌ای که برای خودت نگه می‌داری.</p>
         </div>
@@ -26,7 +33,7 @@
         </div>
     </div>
     <div class="kg-footer-bottom">
-        <span>© {{ now()->year }} Q Food. تمامی حقوق محفوظ است.</span>
+        <span>© {{ now()->year }} {{ $settings->name }}. تمامی حقوق محفوظ است.</span>
         <a href="#top">بازگشت به بالا ↑</a>
     </div>
 </footer>

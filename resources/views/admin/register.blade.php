@@ -4,10 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#2a2722">
-    <title>ثبت‌نام کارکنان | Q Food</title>
+    <title>ثبت‌نام کارکنان | {{ $brandSettings->name }}</title>
     @vite(['resources/css/auth-entry.css'])
 </head>
 @php($loginBackground = \App\Models\SiteMediaAsset::urlFor('login_background', asset('images/login-background.webp')))
+@php($brandSettings = \App\Models\RestaurantSetting::current())
+@php($brandLogo = \App\Models\SiteMediaAsset::urlFor('brand_logo'))
 <body class="admin-auth-body" style="--login-image: url('{{ $loginBackground }}')">
     <main class="auth-layout">
         <section class="auth-form-panel" aria-labelledby="register-title">
@@ -38,8 +40,8 @@
             <div class="auth-links"><a href="{{ route('admin.login') }}">بازگشت به ورود</a><span>ثبت‌نام با موبایل</span></div>
             <footer class="auth-legal">تا زمانی که سرویس پیامک OTP متصل نشده، مالکیت شماره موبایل با پیامک تأیید نمی‌شود.</footer>
         </section>
-        <aside class="auth-brand-panel" aria-label="Q Food">
-            <div class="auth-brand-top"><span><b>Q Food</b><small>کافه و رستوران</small></span></div>
+        <aside class="auth-brand-panel" aria-label="{{ $brandSettings->name }}">
+            <div class="auth-brand-top"><span class="auth-mark">@if($brandLogo)<img src="{{ $brandLogo }}" alt="{{ $brandSettings->name }}" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">@else{{ \Illuminate\Support\Str::substr($brandSettings->name, 0, 1) }}@endif</span><span><b>{{ $brandSettings->name }}</b><small>پنل مدیریت مجموعه</small></span></div>
             <div class="auth-brand-copy">
                 <span class="auth-brand-kicker">محیط کاری امن</span>
                 <h2>حساب‌های کاری، با دسترسی کنترل‌شده.</h2>

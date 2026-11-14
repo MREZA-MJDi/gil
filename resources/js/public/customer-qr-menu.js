@@ -36,8 +36,15 @@ if (qrRoot) {
             (category.products || []).map(qrCard).join('') + '</div></section>'
         ).join('');
         qrRoot.innerHTML =
+            '<section class="kg-qr-success" id="kg-qr-success" role="status" aria-live="polite" hidden>' +
+                '<div class="kg-qr-success-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13"></circle><path d="M9 16.5l4.5 4.5L23 11.5"></path></svg></div>' +
+                '<div class="kg-qr-success-copy"><small>ثبت سفارش موفق</small><strong>سفارشت با موفقیت ثبت شد</strong>' +
+                '<p data-qr-success-message>سفارش برای میز ثبت شد. پرداخت هنوز انجام نشده است.</p>' +
+                '<span class="kg-qr-success-number" data-qr-success-number></span></div>' +
+                '<button type="button" data-qr-new-order>ثبت سفارش جدید</button>' +
+            '</section>' +
             '<div class="kg-qr-catalog"><div class="kg-qr-catalog-list">' +
-            (sections || '<div class="kg-empty-state"><span>🍒</span><b>منو در حال تکمیل است.</b></div>') +
+            (sections || '<div class="kg-empty-state"><b>منوی این میز هنوز تکمیل نشده است.</b><p>برای راهنمایی با کارکنان مجموعه هماهنگ کن.</p></div>') +
             '</div><aside class="kg-qr-cart"><h2>سفارش میز ' + escapeHtml(tableName) + '</h2>' +
             '<div class="kg-qr-cart-lines" id="kg-qr-cart-lines"><p class="kg-cart-empty">هنوز محصولی انتخاب نشده است.</p></div>' +
             '<div class="kg-qr-cart-total"><span>جمع تخمینی</span><b id="kg-qr-total">۰ ' + escapeHtml(currency) + '</b></div>' +
@@ -45,6 +52,25 @@ if (qrRoot) {
             '<input name="customer_phone" maxlength="30" inputmode="tel" placeholder="شماره تماس (اختیاری)">' +
             '<button type="submit" id="kg-qr-submit" disabled>ثبت سفارش برای این میز</button>' +
             '<p class="kg-qr-status" id="kg-qr-status" role="status"></p></form></aside></div>';
+    }
+
+    function showQrSuccess(orderNumber, tableName) {
+        const panel = document.getElementById('kg-qr-success');
+        if (!panel) return;
+
+        const message = panel.querySelector('[data-qr-success-message]');
+        const number = panel.querySelector('[data-qr-success-number]');
+        if (message) {
+            message.textContent = 'سفارش برای میز ' + (tableName || qrRoot.dataset.tableName || '') +
+                ' به مجموعه ارسال شد؛ پرداخت هنوز انجام نشده و هنگام تسویه در صندوق انجام می‌شود.';
+        }
+        if (number) number.textContent = orderNumber ? 'شماره سفارش: ' + orderNumber : 'شماره سفارش ثبت شد';
+
+        panel.hidden = false;
+        panel.classList.remove('is-visible');
+        void panel.offsetWidth;
+        panel.classList.add('is-visible');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function renderQrCart() {
@@ -73,11 +99,20 @@ if (qrRoot) {
             renderQrCatalog(data.categories || [], data.table?.name || qrRoot.dataset.tableName || '');
             renderQrCart();
         } catch (error) {
-            qrRoot.innerHTML = '<div class="kg-empty-state"><span>🍒</span><b>' + escapeHtml(error?.message || 'دریافت منو انجام نشد.') + '</b><p>صفحه را تازه کن یا با کارکنان مجموعه هماهنگ کن.</p></div>';
+            qrRoot.innerHTML = '<div class="kg-empty-state"><b>' + escapeHtml(error?.message || 'دریافت منو انجام نشد.') + '</b><p>صفحه را تازه کن یا با کارکنان مجموعه هماهنگ کن.</p></div>';
         }
     }
 
     qrRoot.addEventListener('click', event => {
+        const newOrder = event.target.closest('[data-qr-new-order]');
+        if (newOrder) {
+            const panel = document.getElementById('kg-qr-success');
+            panel?.classList.remove('is-visible');
+            if (panel) panel.hidden = true;
+            document.getElementById('kg-qr-order-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
         const add = event.target.closest('[data-qr-add]');
         if (add) {
             if (qrUncertainRequest) return;
@@ -99,6 +134,9 @@ if (qrRoot) {
             if (existing) existing.quantity = Math.min(100, existing.quantity + 1);
             else cart.set(key, { key, product_id: productId, name: add.dataset.productName || '', price: Number(add.dataset.productPrice || 0), quantity: 1, options });
             renderQrCart();
+            add.classList.remove('is-added');
+            void add.offsetWidth;
+            add.classList.add('is-added');
             const status = document.getElementById('kg-qr-status');
             if (status) status.textContent = 'به سفارش اضافه شد.';
             return;
@@ -163,7 +201,8 @@ if (qrRoot) {
             form.reset();
             qrRoot.querySelectorAll('[data-qr-add], [data-qr-option], #kg-qr-order-form input').forEach(control => { control.disabled = false; });
             renderQrCart();
-            if (status) status.textContent = 'سفارش ' + (result?.data?.number || '') + ' برای میز ثبت شد. پرداخت هنوز ثبت نشده است.';
+            if (status) status.textContent = 'سفارش با موفقیت ثبت شد.';
+            showQrSuccess(result?.data?.number || '', qrRoot.dataset.tableName || '');
         } catch (error) {
             const definiteClientError = response && response.status >= 400 && response.status < 500 && response.status !== 429;
             if (definiteClientError) {

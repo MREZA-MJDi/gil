@@ -103,6 +103,9 @@ class MenuController extends Controller
         $data['restaurant_table_id'] = $table->id;
         $data['channel'] = 'dine_in';
         $data['source'] = 'qr';
+        $data['customer_id'] = $request->user() && ! $request->user()->is_admin
+            ? (int) $request->user()->id
+            : null;
 
         return response()->json([
             'data' => tap($orders->create($data, null), fn ($order) => $order->load('items'))

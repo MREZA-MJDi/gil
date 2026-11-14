@@ -14,7 +14,9 @@ use App\Models\SiteMediaAsset;
 use App\Models\RestaurantTable;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class RestaurantOperationsTest extends TestCase
@@ -71,15 +73,19 @@ class RestaurantOperationsTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('طعم خوب')
+            ->assertSee('home-hero-signature', false)
+            ->assertSee('یک مکث خوش‌طعم.')
+            ->assertSee('data-best-food-carousel', false)
             ->assertSee('لاته تست')
-            ->assertSee('ورود کارکنان');
+            ->assertDontSee('طعم خوب')
+            ->assertDontSee('ورود کارکنان');
 
         $this->actingAs($this->admin)->get('/')
             ->assertOk()
-            ->assertSee('پنل مدیریت')
-            ->assertSee('خروج')
-            ->assertSee(route('admin.logout'), false);
+            ->assertSee('class="profile-link"', false)
+            ->assertSee(route('admin.dashboard'))
+            ->assertDontSee('پنل مدیریت')
+            ->assertDontSee('خروج');
 
         $this->get('/menu')->assertOk()->assertSee('طعم دلخواهت')->assertSee('لاته تست');
     }
@@ -103,10 +109,54 @@ class RestaurantOperationsTest extends TestCase
             ->assertOk()
             ->assertSee('/storage/site-media/hero/dashboard-hero.webp', false);
 
-        $this->get('/reserve')
+        $customer = User::query()->create(['name' => 'مشتری رزرو تست', 'phone' => '+989121234567', 'email' => null, 'password' => 'customer-test-password-12345', 'is_admin' => false]);
+        $this->actingAs($customer)->get('/reserve')
             ->assertOk()
             ->assertSee('/storage/site-media/gallery_1/reservation.webp', false)
-            ->assertSee('رزرو و برنامه‌ریزی');
+            ->assertSee('رزرو میز');
+    }
+
+    public function test_dashboard_settings_has_a_live_brand_logo_uploader_with_public_sized_preview(): void
+    {
+        $dashboard = file_get_contents(resource_path('js/dashboard/DashboardApp.jsx'));
+        $logoSettings = file_get_contents(resource_path('js/dashboard/BrandLogoSettings.jsx'));
+        $styles = file_get_contents(resource_path('css/dashboard.css'));
+
+        $this->assertIsString($dashboard);
+        $this->assertIsString($logoSettings);
+        $this->assertIsString($styles);
+        $this->assertStringContainsString("import BrandLogoSettings from './BrandLogoSettings.jsx';", $dashboard);
+        $this->assertStringContainsString('<BrandLogoSettings restaurantName={form.name} />', $dashboard);
+        $this->assertStringContainsString('لوگوی اصلی سایت', $logoSettings);
+        $this->assertStringContainsString("body.append('slot', 'brand_logo')", $logoSettings);
+        $this->assertStringContainsString('settings-brand-preview-frame', $logoSettings);
+        $compactStyles = preg_replace('/\\s+/', '', $styles);
+        $this->assertStringContainsString('width:60px;height:60px;', $compactStyles);
+        $this->assertStringContainsString('width:52px;height:52px;', $compactStyles);
+        $this->assertStringContainsString('object-fit:contain', $compactStyles);
+    }
+
+    public function test_admin_can_upload_brand_logo_and_public_homepage_uses_the_saved_asset(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->admin)
+            ->post('/admin/api/media', [
+                'slot' => 'brand_logo',
+                'image' => UploadedFile::fake()->image('brand-logo.png', 320, 320),
+                'alt_text' => 'لوگوی اصلی خانه گیلاسی',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.slot', 'brand_logo')
+            ->assertJsonPath('data.alt_text', 'لوگوی اصلی خانه گیلاسی');
+
+        $asset = SiteMediaAsset::query()->where('slot', 'brand_logo')->firstOrFail();
+        Storage::disk('public')->assertExists($asset->path);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee($asset->url, false)
+            ->assertSee('لوگوی اصلی خانه گیلاسی');
     }
 
     public function test_local_admin_seeder_uses_mobile_and_strong_password_credentials(): void
@@ -162,13 +212,96 @@ class RestaurantOperationsTest extends TestCase
                     'orders_by_status',
                     'open_invoice_amount',
                     'low_stock_count',
+                    'low_stock_products' => [['id', 'name', 'stock_quantity', 'low_stock_threshold']],
+                    'popular_products',
+                    'pending_orders_count',
+                    'pending_reservations_count',
+                    'pending_feedback_count',
+                    'recent_reservations',
                     'today_reservations_count',
                     'active_cash_shift',
                     'recent_orders',
                 ],
             ])
             ->assertJsonPath('data.orders_count', 0)
-            ->assertJsonPath('data.low_stock_count', 1);
+            ->assertJsonPath('data.low_stock_count', 1)
+            ->assertJsonPath('data.low_stock_products.0.id', $this->product->id)
+            ->assertJsonPath('data.pending_orders_count', 0)
+            ->assertJsonPath('data.pending_reservations_count', 0)
+            ->assertJsonPath('data.pending_feedback_count', 0);
+    }
+
+    public function test_dashboard_overview_renders_reservation_order_and_product_attention_panels(): void
+    {
+        $dashboard = file_get_contents(resource_path('js/dashboard/DashboardApp.jsx'));
+        $this->assertIsString($dashboard);
+
+        foreach ([
+            'سفارش جدید در انتظار تأیید',
+            'بازخورد در انتظار رسیدگی',
+            'بررسی بازخوردها',
+            'آخرین درخواست‌های رزرو',
+            'محصولات نزدیک به اتمام',
+            'محصولات پرطرفدار',
+            'ثبت از سایت',
+            'overview-monitor-grid',
+        ] as $content) {
+            $this->assertStringContainsString($content, $dashboard);
+        }
+    }
+
+    public function test_dashboard_exposes_recent_reservation_requests_low_stock_and_seven_day_top_sellers(): void
+    {
+        $this->actingAs($this->admin);
+
+        $order = $this->postJson('/admin/api/orders', $this->orderPayload(2), [
+            'Idempotency-Key' => 'dashboard-signals-order-0001',
+        ])->assertCreated();
+        $orderId = $order->json('data.id');
+
+        $startsAt = now()->addDays(3)->setTime(18, 30);
+        $reservation = $this->postJson('/admin/api/reservations', [
+            'customer_name' => 'مهمان داشبورد',
+            'phone' => '09121234567',
+            'party_size' => 4,
+            'starts_at' => $startsAt->format('Y-m-d H:i:s'),
+            'duration_minutes' => 90,
+            'notes' => 'درخواست نمونه داشبورد',
+        ], ['Idempotency-Key' => 'dashboard-signals-reservation-01'])->assertCreated();
+        $reservationReference = $reservation->json('data.reference');
+
+        $this->getJson('/admin/api/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.pending_orders_count', 1)
+            ->assertJsonPath('data.pending_reservations_count', 1)
+            ->assertJsonPath('data.recent_reservations.0.reference', $reservationReference)
+            ->assertJsonPath('data.low_stock_products.0.id', $this->product->id)
+            ->assertJsonPath('data.popular_products.0.product_id', $this->product->id)
+            ->assertJsonPath('data.popular_products.0.units_sold', 2);
+
+        $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => 'new']);
+    }
+
+    public function test_admin_order_list_is_sorted_by_latest_created_order_first(): void
+    {
+        $this->actingAs($this->admin);
+
+        $first = $this->postJson('/admin/api/orders', $this->orderPayload(1), [
+            'Idempotency-Key' => 'order-latest-sort-first-0001',
+        ])->assertCreated();
+        $second = $this->postJson('/admin/api/orders', $this->orderPayload(1), [
+            'Idempotency-Key' => 'order-latest-sort-second-01',
+        ])->assertCreated();
+
+        $firstId = $first->json('data.id');
+        $secondId = $second->json('data.id');
+        Order::query()->whereKey($firstId)->update(['created_at' => now()->subHours(2)]);
+        Order::query()->whereKey($secondId)->update(['created_at' => now()->subMinute()]);
+
+        $this->getJson('/admin/api/orders?sort=latest&per_page=10')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $secondId)
+            ->assertJsonPath('data.1.id', $firstId);
     }
 
     public function test_dashboard_aggregates_sales_collections_and_open_invoices_from_database(): void
@@ -224,6 +357,38 @@ class RestaurantOperationsTest extends TestCase
         ]);
     }
 
+    public function test_pos_catalog_excludes_inactive_products_and_inactive_categories(): void
+    {
+        $inactiveCategory = Category::query()->create([
+            'name' => 'دسته غیرفعال',
+            'sort_order' => 2,
+            'is_active' => false,
+        ]);
+        $inactiveCategoryProduct = Product::query()->create([
+            'category_id' => $inactiveCategory->id,
+            'name' => 'محصول دسته غیرفعال',
+            'base_price' => 90000,
+            'status' => 'active',
+            'sort_order' => 1,
+        ]);
+        $inactiveProduct = Product::query()->create([
+            'category_id' => $this->category->id,
+            'name' => 'محصول غیرفعال',
+            'base_price' => 80000,
+            'status' => 'inactive',
+            'sort_order' => 2,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->getJson('/admin/api/products?available=1&per_page=100')
+            ->assertOk();
+
+        $returnedIds = collect($response->json('data'))->pluck('id')->all();
+        $this->assertContains($this->product->id, $returnedIds);
+        $this->assertNotContains($inactiveCategoryProduct->id, $returnedIds);
+        $this->assertNotContains($inactiveProduct->id, $returnedIds);
+    }
+
     public function test_order_creation_is_idempotent_and_consumes_stock_once(): void
     {
         $this->actingAs($this->admin);
@@ -237,6 +402,34 @@ class RestaurantOperationsTest extends TestCase
         $this->assertSame(3, $this->product->fresh()->stock_quantity);
         $this->assertSame(1, InventoryMovement::query()->where('movement_type', 'order')->count());
         $this->assertSame(1, Order::query()->count());
+    }
+
+    public function test_order_and_cashier_lists_put_the_newest_order_first(): void
+    {
+        $this->actingAs($this->admin);
+
+        $createdIds = [];
+        foreach (['pos-list-order-0001', 'pos-list-order-0002', 'pos-list-order-0003'] as $key) {
+            $response = $this->postJson('/admin/api/orders', $this->orderPayload(1), [
+                'Idempotency-Key' => $key,
+            ])->assertCreated();
+
+            $createdIds[] = $response->json('data.id');
+        }
+
+        $expectedNewestFirst = array_reverse($createdIds);
+
+        $this->getJson('/admin/api/orders?sort=latest&per_page=25')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $expectedNewestFirst[0])
+            ->assertJsonPath('data.1.id', $expectedNewestFirst[1])
+            ->assertJsonPath('data.2.id', $expectedNewestFirst[2]);
+
+        $this->getJson('/admin/api/orders?sort=latest&unsettled=1&active=1&per_page=25')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $expectedNewestFirst[0])
+            ->assertJsonPath('data.1.id', $expectedNewestFirst[1])
+            ->assertJsonPath('data.2.id', $expectedNewestFirst[2]);
     }
 
     public function test_order_rejects_more_than_one_size_option_for_a_product_line(): void
@@ -600,6 +793,93 @@ class RestaurantOperationsTest extends TestCase
         $this->assertSame(1, \App\Models\Reservation::query()->count());
     }
 
+    public function test_cashier_name_and_shift_closeout_summary_are_persisted_and_returned(): void
+    {
+        $this->actingAs($this->admin);
+
+        $opened = $this->postJson('/admin/api/cash-shift/open', [
+            'cashier_name' => 'مسئول شیفت آزمایشی',
+            'opening_cash' => 10000,
+            'note' => 'شروع شیفت صبح',
+        ])->assertCreated()
+            ->assertJsonPath('data.cashier_name', 'مسئول شیفت آزمایشی');
+
+        $shiftId = $opened->json('data.id');
+
+        $this->getJson('/admin/api/cash-shift')
+            ->assertOk()
+            ->assertJsonPath('data.status', 'open')
+            ->assertJsonPath('data.cashier_name', 'مسئول شیفت آزمایشی')
+            ->assertJsonPath('data.opener.name', $this->admin->name);
+
+        $order = $this->postJson('/admin/api/orders', $this->orderPayload(1), [
+            'Idempotency-Key' => 'cashier-closeout-order-0001',
+        ])->assertCreated();
+
+        $orderId = $order->json('data.id');
+        $total = (int) $order->json('data.total');
+        $this->assertGreaterThanOrEqual(65000, $total);
+
+        $this->postJson('/admin/api/orders/'.$orderId.'/payments', [
+            'amount' => 50000,
+            'method' => 'cash',
+        ], ['Idempotency-Key' => 'cashier-closeout-cash-payment-01'])->assertCreated();
+
+        $cardPayment = $this->postJson('/admin/api/orders/'.$orderId.'/payments', [
+            'amount' => 15000,
+            'method' => 'card_terminal',
+        ], ['Idempotency-Key' => 'cashier-closeout-card-payment-01'])->assertCreated();
+
+        $this->postJson('/admin/api/payments/'.$cardPayment->json('data.id').'/refunds', [
+            'amount' => 5000,
+            'reason' => 'بازپرداخت آزمایشی کارت‌خوان',
+        ], ['Idempotency-Key' => 'cashier-closeout-refund-01'])->assertCreated();
+
+        $this->postJson('/admin/api/cash-shift/'.$shiftId.'/close', [
+            'counted_cash' => 60000,
+            'note' => 'تحویل کامل صندوق',
+        ])->assertOk()
+            ->assertJsonPath('data.status', 'closed')
+            ->assertJsonPath('data.cashier_name', 'مسئول شیفت آزمایشی')
+            ->assertJsonPath('data.orders_count', 1)
+            ->assertJsonPath('data.cancelled_orders_count', 0)
+            ->assertJsonPath('data.gross_sales', $total)
+            ->assertJsonPath('data.payments_total', 65000)
+            ->assertJsonPath('data.cash_payments_total', 50000)
+            ->assertJsonPath('data.card_payments_total', 15000)
+            ->assertJsonPath('data.cash_in_total', 50000)
+            ->assertJsonPath('data.cash_out_total', 0)
+            ->assertJsonPath('data.cash_movements_count', 1)
+            ->assertJsonPath('data.refunds_total', 5000)
+            ->assertJsonPath('data.net_collections_total', 60000)
+            ->assertJsonPath('data.expected_cash', 60000)
+            ->assertJsonPath('data.counted_cash', 60000)
+            ->assertJsonPath('data.difference', 0);
+
+        $this->assertDatabaseHas('cash_shifts', [
+            'id' => $shiftId,
+            'cashier_name' => 'مسئول شیفت آزمایشی',
+            'orders_count' => 1,
+            'gross_sales' => $total,
+            'cash_payments_total' => 50000,
+            'card_payments_total' => 15000,
+            'cash_in_total' => 50000,
+            'cash_out_total' => 0,
+            'cash_movements_count' => 1,
+            'refunds_total' => 5000,
+            'net_collections_total' => 60000,
+            'counted_cash' => 60000,
+            'difference' => 0,
+        ]);
+
+        $this->getJson('/admin/api/cash-shift')
+            ->assertOk()
+            ->assertJsonPath('data.id', $shiftId)
+            ->assertJsonPath('data.status', 'closed')
+            ->assertJsonPath('data.cashier_name', 'مسئول شیفت آزمایشی')
+            ->assertJsonPath('data.net_collections_total', 60000);
+    }
+
     public function test_cash_shift_close_reconciles_opening_balance_and_movements(): void
     {
         $this->actingAs($this->admin);
@@ -688,7 +968,15 @@ class RestaurantOperationsTest extends TestCase
 
     public function test_public_birthday_request_is_recorded_as_pending_for_staff_confirmation(): void
     {
-        $this->post('/reserve', [
+        $reservationCustomer = User::query()->create([
+            'name' => 'مشتری جشن',
+            'email' => 'birthday-customer@example.test',
+            'phone' => '+989121111111',
+            'password' => 'birthday-customer-test-password',
+            'is_admin' => false,
+        ]);
+
+        $this->actingAs($reservationCustomer)->post('/reserve', [
             'customer_name' => 'مشتری جشن',
             'phone' => '09121111111',
             'email' => 'birthday@example.test',

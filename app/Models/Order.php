@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     protected $fillable = [
-        'number', 'restaurant_table_id', 'channel', 'source', 'external_provider', 'external_order_id', 'payment_preference', 'status', 'payment_status',
+        'number', 'customer_id', 'restaurant_table_id', 'channel', 'source', 'external_provider', 'external_order_id', 'payment_preference', 'status', 'payment_status',
         'subtotal', 'discount', 'tax', 'service', 'total', 'customer_name',
         'customer_phone', 'customer_note', 'internal_note', 'idempotency_key',
         'idempotency_hash', 'cancel_reason', 'cancelled_at', 'status_changed_at',
@@ -30,6 +30,8 @@ class Order extends Model
     }
 
     public function table(): BelongsTo { return $this->belongsTo(RestaurantTable::class, 'restaurant_table_id'); }
+    public function customer(): BelongsTo { return $this->belongsTo(User::class, 'customer_id'); }
+    public function customerFeedback(): HasMany { return $this->hasMany(CustomerFeedback::class, 'order_id'); }
     public function items(): HasMany { return $this->hasMany(OrderItem::class)->orderBy('id'); }
     public function payments(): HasMany { return $this->hasMany(Payment::class)->orderBy('paid_at')->orderBy('id'); }
     public function refunds(): HasMany { return $this->hasMany(Refund::class)->orderBy('refunded_at')->orderBy('id'); }

@@ -4,7 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\RestaurantSetting;
+use App\Models\RestaurantTable;
+use Illuminate\Support\Str;
 use App\Models\SiteMediaAsset;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -17,8 +21,16 @@ class PublicSiteRenderingTest extends TestCase
     {
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('طعم خوب')
-            ->assertSee(route('public.menu'));
+            ->assertSee('پیشنهادهای')
+            ->assertDontSee('طعم خوب')
+            ->assertDontSee('حال خوب')
+            ->assertDontSee('خوش‌آمدی به')
+            ->assertDontSee('برای یک قهوه کوتاه')
+            ->assertSee('class="logo"', false)
+            ->assertSee('home-hero-signature', false)
+            ->assertSee('یک مکث خوش‌طعم.')
+            ->assertSee(route('public.menu'))
+            ->assertSee('data-best-food-carousel', false);
     }
 
 
@@ -52,6 +64,7 @@ class PublicSiteRenderingTest extends TestCase
             ->assertOk()
             ->assertSee('data-home-carousel', false)
             ->assertSee('data-home-carousel-card', false)
+            ->assertSee('data-best-food-slide', false)
             ->assertSee('غذای تصویر اول')
             ->assertSee('غذای تصویر دوم')
             ->assertSee(e($first->image_url), false)
@@ -79,9 +92,9 @@ class PublicSiteRenderingTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('صبح دلنشین،')
-            ->assertSee('طعم تازه.')
-            ->assertSee('متن ویرایش‌شده از داشبورد')
+            ->assertDontSee('صبح دلنشین،')
+            ->assertDontSee('طعم تازه.')
+            ->assertDontSee('متن ویرایش‌شده از داشبورد')
             ->assertSee('انتخاب‌های تازه');
     }
 
@@ -126,7 +139,6 @@ class PublicSiteRenderingTest extends TestCase
         $assets = [
             'hero' => 'site-media/hero.webp',
             'brand_logo' => 'site-media/logo.png',
-            'home_showcase_background' => 'site-media/showcase.webp',
             'home_reservation_banner' => 'site-media/home-reservation.webp',
             'gallery_1' => 'site-media/gallery-one.webp',
             'menu_cover' => 'site-media/menu-cover.webp',
@@ -146,19 +158,103 @@ class PublicSiteRenderingTest extends TestCase
             ->assertOk()
             ->assertSee('site-media/hero.webp')
             ->assertSee('site-media/logo.png')
-            ->assertSee('site-media/showcase.webp')
             ->assertSee('site-media/home-reservation.webp')
             ->assertSee('site-media/gallery-one.webp')
-            ->assertSee('kg-photo-gallery', false);
+            ->assertSee('kg-photo-gallery', false)
+            ->assertSee('data-best-food-carousel', false);
 
         $this->get(route('public.menu'))
             ->assertOk()
             ->assertSee('site-media/menu-cover.webp')
             ->assertSee('kg-menu-cover', false);
 
-        $this->get(route('public.reservations.create'))
+        $customer = User::factory()->create(['phone' => '+989121234567', 'email' => null, 'is_admin' => false]);
+        $this->actingAs($customer)->get(route('public.reservations.create'))
             ->assertOk()
             ->assertSee('site-media/reservation-cover.webp');
+    }
+
+    public function test_dashboard_logo_asset_uses_a_compact_round_brand_mark(): void
+    {
+        SiteMediaAsset::query()->create([
+            'slot' => 'brand_logo',
+            'path' => 'site-media/brand-logo.png',
+            'alt_text' => 'نشان مجموعه آزمایشی',
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('class="logo"', false)
+            ->assertSee('site-media/brand-logo.png')
+            ->assertSee('نشان مجموعه آزمایشی');
+
+        foreach ([
+            resource_path('views/public/home.blade.php'),
+            resource_path('views/public/reserve.blade.php'),
+            resource_path('views/public/reservation-received.blade.php'),
+            resource_path('views/customer/auth/login.blade.php'),
+            resource_path('views/customer/auth/register.blade.php'),
+        ] as $viewPath) {
+            $source = file_get_contents($viewPath);
+            $this->assertIsString($source);
+            $this->assertStringContainsString("public.partials.site-logo", $source);
+        }
+    }
+
+    public function test_best_food_cards_open_their_product_and_rtl_controls_match_carousel_direction(): void
+    {
+        $category = Category::query()->create([
+            'name' => 'دسته اسلایدر',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+        $product = Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'محصول قابل کلیک',
+            'base_price' => 78000,
+            'status' => 'active',
+            'stock_quantity' => 5,
+            'sort_order' => 1,
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('href="'.route('public.menu', ['product' => $product->id]).'#category-'.$category->id.'"', false)
+            ->assertSee('aria-label="مشاهده محصول قابل کلیک در منوی کامل"', false)
+            ->assertSee('data-best-food-next aria-label="محصول بعدی"', false)
+            ->assertSee('data-best-food-prev aria-label="محصول قبلی"', false);
+
+        $carousel = file_get_contents(resource_path('js/public/best-food-carousel.js'));
+        $menu = file_get_contents(resource_path('js/public/menu-showcase.js'));
+
+        $this->assertIsString($carousel);
+        $this->assertIsString($menu);
+        $this->assertStringContainsString("next?.addEventListener('click', () => go(active + 1))", $carousel);
+        $this->assertStringContainsString("previous?.addEventListener('click', () => go(active - 1))", $carousel);
+        $this->assertStringContainsString("new URLSearchParams(window.location.search).get('product')", $menu);
+        $this->assertStringContainsString("window.location.hash.match(/^#category-([0-9]+)$/)", $menu);
+        $this->assertStringContainsString('setSelectedProduct(initialPanel, requestedProductId)', $menu);
+    }
+
+    public function test_mobile_navigation_has_inset_popovers_and_dismiss_controls(): void
+    {
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('aria-controls="kg-reference-nav"', false);
+
+        $this->get(route('public.menu'))
+            ->assertOk()
+            ->assertSee('aria-controls="kg-menu-nav"', false);
+
+        $navigation = file_get_contents(resource_path('js/public/navigation.js'));
+        $styles = file_get_contents(resource_path('css/public-reference.css'));
+
+        $this->assertIsString($navigation);
+        $this->assertIsString($styles);
+        $this->assertStringContainsString("event.key === 'Escape'", $navigation);
+        $this->assertStringContainsString("document.addEventListener('pointerdown'", $navigation);
+        $this->assertStringContainsString('.top .menu-nav.is-open', $styles);
+        $this->assertStringContainsString('calc(100vw - 32px)', $styles);
     }
 
     public function test_public_menu_hides_products_with_zero_tracked_stock(): void
@@ -216,20 +312,93 @@ class PublicSiteRenderingTest extends TestCase
             ->assertSee('data-menu-product-select', false)
             ->assertSee('data-menu-product-template="'.$product->id.'"', false)
             ->assertSee('data-add-online-product', false)
+            ->assertSee('data-product-card', false)
+            ->assertSee('value="card_terminal"', false)
+            ->assertDontSee('value="online"', false)
             ->assertSee('غذای ویژه تست');
+    }
+
+    public function test_menu_page_refines_featured_plate_categories_brand_and_takeaway_form(): void
+    {
+        $response = $this->get(route('public.menu'));
+
+        $response->assertOk()
+            ->assertSee('class="brand"', false)
+            ->assertDontSee('class="menu-brand-logo"', false)
+            ->assertSee('class="checkout-heading"', false)
+            ->assertSee('placeholder="مثلاً علی رضایی"', false)
+            ->assertSee('placeholder="0912 123 4567"', false)
+            ->assertSee('id="online-checkout-submit"', false);
+
+        $styles = file_get_contents(resource_path('css/public-reference.css'));
+        $this->assertIsString($styles);
+        $this->assertStringContainsString('translate(8px,-24px)rotate(2.2deg)', preg_replace('/\\s+/', '', $styles));
+        $this->assertStringContainsString('top:calc(50%-18px)', preg_replace('/\\s+/', '', $styles));
+        $this->assertStringContainsString('#online-checkout-form', $styles);
+        $this->assertStringContainsString('#online-checkout-submit:not(:disabled):hover', $styles);
+    }
+
+    public function test_public_menu_accepts_and_persists_a_takeaway_order(): void
+    {
+        $category = Category::query()->create([
+            'name' => 'سفارش‌های تست',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $product = Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'ساندویچ تست',
+            'base_price' => 125000,
+            'status' => 'active',
+            'sort_order' => 1,
+        ]);
+
+        $this->postJson(route('public.orders.store'), [
+            'items' => [[
+                'product_id' => $product->id,
+                'quantity' => 2,
+                'options' => [],
+            ]],
+            'customer_name' => 'مشتری تست',
+            'customer_phone' => '09121234567',
+            'customer_note' => 'بدون پیاز',
+            'payment_preference' => 'card_terminal',
+            'idempotency_key' => Str::random(32),
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.status', 'new')
+            ->assertJsonPath('data.payment_status', 'unpaid')
+            ->assertJsonPath('data.total', 250000)
+            ->assertJsonStructure(['data' => ['number', 'status', 'payment_status', 'total']]);
+
+        $this->assertDatabaseHas('orders', [
+            'channel' => 'takeaway',
+            'customer_name' => 'مشتری تست',
+            'customer_phone' => '09121234567',
+            'payment_preference' => 'card_terminal',
+            'payment_status' => 'unpaid',
+        ]);
+        $this->assertDatabaseHas('order_items', [
+            'product_id' => $product->id,
+            'name' => 'ساندویچ تست',
+            'quantity' => 2,
+            'line_total' => 250000,
+        ]);
     }
 
     public function test_reservation_pages_render_and_describe_pending_confirmation(): void
     {
-        $this->get(route('public.reservations.create'))
+        $customer = User::factory()->create(['name' => 'مشتری تست', 'phone' => '+989121234567', 'email' => null, 'is_admin' => false]);
+        $this->actingAs($customer)->get(route('public.reservations.create'))
             ->assertOk()
             ->assertSee('درخواست پس از بررسی ظرفیت')
             ->assertSee('name="starts_at"', false)
             ->assertSee('name="idempotency_key"', false);
 
-        $this->get(route('public.reservations.received'))
+        $this->actingAs($customer)->get(route('public.reservations.received'))
             ->assertOk()
-            ->assertSee('در انتظار تأیید');
+            ->assertSee('در انتظار بررسی');
     }
     public function test_customer_and_public_pages_use_framework_free_assets_while_dashboard_keeps_react(): void
     {
@@ -244,7 +413,7 @@ class PublicSiteRenderingTest extends TestCase
         foreach ($publicViews as $viewPath) {
             $source = file_get_contents($viewPath);
             $this->assertIsString($source);
-            $this->assertStringContainsString("resources/css/public.css", $source);
+            $this->assertStringContainsString("resources/css/public-reference.css", $source);
             $this->assertStringContainsString("resources/js/public-site.js", $source);
             $this->assertStringNotContainsString("resources/js/app.jsx", $source);
             $this->assertStringNotContainsString("resources/js/app.js", $source);
@@ -287,6 +456,31 @@ class PublicSiteRenderingTest extends TestCase
         $this->assertStringContainsString("--kg-section-space", $base);
         $this->assertStringContainsString("public-base.css", $entry);
         $this->assertStringNotContainsString("dashboard.css", $entry);
+    }
+
+
+    public function test_qr_scan_opens_the_selected_tables_menu_and_has_an_order_success_panel(): void
+    {
+        RestaurantSetting::current()->forceFill(['customer_menu_enabled' => true])->save();
+
+        $table = RestaurantTable::query()->create([
+            'name' => 'میز QR تست',
+            'token' => Str::random(48),
+            'is_active' => true,
+        ]);
+
+        $this->get($table->menuUrl())
+            ->assertOk()
+            ->assertSee('میز QR تست')
+            ->assertSee('data-customer-qr-menu', false)
+            ->assertSee(route('customer.menu.data', ['token' => $table->token]))
+            ->assertSee(route('customer.menu.orders.store', ['token' => $table->token]));
+
+        $qrScript = file_get_contents(resource_path('js/public/customer-qr-menu.js'));
+        $this->assertIsString($qrScript);
+        $this->assertStringContainsString('kg-qr-success', $qrScript);
+        $this->assertStringContainsString('showQrSuccess', $qrScript);
+        $this->assertStringContainsString('پرداخت هنوز انجام نشده', $qrScript);
     }
 
 }

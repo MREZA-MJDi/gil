@@ -32,6 +32,9 @@ class PublicOrderController extends Controller
         $data['source'] = 'website';
         $data['discount'] = 0;
         $data['internal_note'] = 'ثبت مستقیم از منوی عمومی وب؛ تسویه هنگام تحویل یا در صندوق انجام شود.';
+        $data['customer_id'] = $request->user() && ! $request->user()->is_admin
+            ? (int) $request->user()->id
+            : null;
 
         $order = $orders->create($data, null);
 

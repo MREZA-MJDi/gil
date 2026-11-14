@@ -52,12 +52,12 @@ class RestaurantDemoSeeder extends Seeder
         $this->currencyMultiplier = $settings->currency_label === 'ریال' ? 10 : 1;
 
         $settings->forceFill([
-            'name' => $settings->name ?: 'Q Food',
+            'name' => $settings->name ?: 'مجموعه',
             'phone' => $settings->phone ?: '021-12345678',
             'address' => $settings->address ?: 'تهران، خیابان نمونه، پلاک ۱۲',
             // Never reset currency, rates, receipt content or other operator settings on reruns.
             'currency_label' => $settings->currency_label ?: ($this->currencyMultiplier === 10 ? 'ریال' : 'تومان'),
-            'receipt_footer' => $settings->receipt_footer ?: 'از اینکه Q Food را انتخاب کردید سپاسگزاریم.',
+            'receipt_footer' => $settings->receipt_footer ?: 'از خرید شما سپاسگزاریم.',
             'paper_width' => $settings->paper_width ?: 80,
         ])->save();
 

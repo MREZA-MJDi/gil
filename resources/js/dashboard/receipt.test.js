@@ -34,14 +34,20 @@ const sampleOrder = {
 
 test('customer receipt prints explicit order number, order type, items and financial summary', () => {
     const html = buildPrintHtml(sampleOrder, 'receipt', {
-        name: 'خانه گیلاسی',
+        name: 'کافه نمونه',
         phone: '02112345678',
         address: 'تهران',
         currency_label: 'تومان',
         paper_width: 80,
+        brand_logo_url: '/storage/site-media/logo.png',
+        receipt_footer: 'ممنون از همراهی شما',
     });
 
     assert.match(html, /رسید مشتری/);
+    assert.match(html, /class="store-logo"/);
+    assert.match(html, /\/storage\/site-media\/logo\.png/);
+    assert.match(html, /کافه نمونه/);
+    assert.match(html, /ممنون از همراهی شما/);
     assert.match(html, /شماره سفارش/);
     assert.match(html, /KG-1405-0088/);
     assert.match(html, /نوع سفارش/);
@@ -57,7 +63,7 @@ test('customer receipt prints explicit order number, order type, items and finan
 
 test('kitchen slip shows order identity and quantities but never prices or totals', () => {
     const html = buildPrintHtml(sampleOrder, 'kitchen', {
-        name: 'خانه گیلاسی',
+        name: 'کافه نمونه',
         currency_label: 'تومان',
         paper_width: 58,
     });

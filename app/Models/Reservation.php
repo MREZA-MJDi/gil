@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Reservation extends Model
 {
     protected $fillable = [
-        'reference', 'restaurant_table_id', 'customer_name', 'phone', 'email', 'party_size',
+        'reference', 'customer_id', 'restaurant_table_id', 'customer_name', 'phone', 'email', 'party_size',
         'starts_at', 'duration_minutes', 'ends_at', 'status', 'source', 'purpose', 'occasion_name', 'estimated_budget', 'notes', 'idempotency_key', 'idempotency_hash', 'created_by',
     ];
 
@@ -25,6 +25,7 @@ class Reservation extends Model
         ];
     }
 
+    public function customer(): BelongsTo { return $this->belongsTo(User::class, 'customer_id'); }
     public function table(): BelongsTo { return $this->belongsTo(RestaurantTable::class, 'restaurant_table_id'); }
     public function creator(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
 }

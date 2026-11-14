@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="color-scheme" content="light">
     <meta name="currency-label" content="{{ \App\Models\RestaurantSetting::current()->currency_label }}">
-    <title>{{ config('app.name', 'Q Food') }} | داشبورد مدیریت</title>
+    <title>{{ config('app.name', 'خانه گیلاسی') }} | داشبورد مدیریت</title>
     <script defer src="https://cdn.jsdelivr.net/npm/qz-tray@2.3.0/qz-tray.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.jsx'])
 </head>

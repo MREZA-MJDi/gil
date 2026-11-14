@@ -27,7 +27,7 @@ class RestaurantSetting extends Model
     {
         // Uniqueness is guaranteed by restaurant_settings.singleton_key, not by cache.
         return static::query()->firstOrCreate(['singleton_key' => 'main'], [
-            'name' => 'Q Food', 'currency_label' => config('restaurant.currency_label', 'تومان'), 'paper_width' => 80,
+            'name' => config('restaurant.name', 'نام مجموعه'), 'currency_label' => config('restaurant.currency_label', 'تومان'), 'paper_width' => 80,
         ]);
     }
 }

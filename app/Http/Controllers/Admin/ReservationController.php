@@ -19,7 +19,7 @@ class ReservationController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Reservation::query()->with('table:id,name')->with('creator:id,name')
+        $query = Reservation::query()->with('table:id,name')->with('creator:id,name')->with('customer:id,name,phone')
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->toString()))
             ->when($request->filled('from'), fn ($q) => $q->where('starts_at', '>=', Carbon::parse($request->date('from'))->startOfDay()))
             ->when($request->filled('to'), fn ($q) => $q->where('starts_at', '<=', Carbon::parse($request->date('to'))->endOfDay()))
@@ -134,7 +134,7 @@ class ReservationController extends Controller
                 throw ValidationException::withMessages(['status' => 'تغییر وضعیت رزرو از این مرحله مجاز نیست.']);
             }
 
-            if ($to === ReservationStatus::Confirmed && $locked->source === 'public' && ! $tableId) {
+            if ($to === ReservationStatus::Confirmed && in_array($locked->source, ['public', 'website'], true) && ! $tableId) {
                 throw ValidationException::withMessages(['restaurant_table_id' => 'برای تأیید درخواست مشتری ابتدا یک میز فعال تخصیص بده.']);
             }
 

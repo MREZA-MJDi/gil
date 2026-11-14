@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\OrderStatus;
+use App\Models\CustomerFeedback;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CashShift;
@@ -77,13 +78,67 @@ class DashboardController extends Controller
         $recent = Order::query()
             ->with('table:id,name')
             ->withCount('items')
-            ->latest('id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit(8)
             ->get([
                 'id', 'number', 'restaurant_table_id', 'channel', 'source',
                 'external_provider', 'external_order_id', 'status',
                 'payment_status', 'total', 'created_at',
             ]);
+
+        $pendingOrdersCount = Order::query()
+            ->where('status', OrderStatus::New->value)
+            ->count();
+
+        $pendingReservationsCount = Reservation::query()
+            ->where('status', 'pending')
+            ->count();
+
+        $pendingFeedbackCount = CustomerFeedback::query()
+            ->whereIn('status', ['new', 'in_progress'])
+            ->count();
+
+        $recentReservations = Reservation::query()
+            ->with('table:id,name')
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get([
+                'id', 'reference', 'customer_name', 'phone', 'party_size',
+                'restaurant_table_id', 'starts_at', 'status', 'source', 'created_at',
+            ]);
+
+        $lowStockProducts = Product::query()
+            ->onMenu()
+            ->lowStock()
+            ->orderBy('stock_quantity')
+            ->orderBy('id')
+            ->limit(6)
+            ->get(['id', 'name', 'stock_quantity', 'low_stock_threshold']);
+
+        $popularFrom = now()->subDays(6)->startOfDay();
+        $popularProducts = DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->whereBetween('orders.created_at', [$popularFrom, $end])
+            ->where('orders.status', '!=', OrderStatus::Cancelled->value)
+            ->select('order_items.product_id', 'order_items.name')
+            ->selectRaw('SUM(order_items.quantity) as units_sold')
+            ->selectRaw('SUM(order_items.line_total) as gross_sales')
+            ->groupBy('order_items.product_id', 'order_items.name')
+            ->orderByDesc('units_sold')
+            ->orderBy('order_items.name')
+            ->limit(5)
+            ->get()
+            ->map(fn ($product) => [
+                'product_id' => $product->product_id,
+                'name' => $product->name,
+                'units_sold' => (int) $product->units_sold,
+                'gross_sales' => (int) $product->gross_sales,
+            ]);
+
+        $lowStockCount = Product::query()->onMenu()->lowStock()->count();
 
         return response()->json(['data' => [
             'period' => ['from' => $start->toIso8601String(), 'to' => $end->toIso8601String()],
@@ -94,7 +149,14 @@ class DashboardController extends Controller
             'orders_count' => (int) $todayOrders->orders_count,
             'orders_by_status' => $byStatus,
             'open_invoice_amount' => $openInvoices,
-            'low_stock_count' => Product::query()->lowStock()->count(),
+            'low_stock_count' => $lowStockCount,
+            'low_stock_products' => $lowStockProducts,
+            'popular_products' => $popularProducts,
+            'popular_products_period_days' => 7,
+            'pending_orders_count' => $pendingOrdersCount,
+            'pending_reservations_count' => $pendingReservationsCount,
+            'pending_feedback_count' => $pendingFeedbackCount,
+            'recent_reservations' => $recentReservations,
             'today_reservations_count' => Reservation::query()
                 ->whereIn('status', ['pending', 'confirmed'])
                 ->whereBetween('starts_at', [$start, $end])

@@ -5,3 +5,5 @@ import './public/reservation.js';
 import './public/customer-qr-menu.js';
 import './public/menu-showcase.js';
 import './public/home-carousel.js';
+import './public/best-food-carousel.js';
+import './public/customer-account.js';
