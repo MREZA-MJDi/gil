@@ -86,7 +86,7 @@ function Button({ children, kind = 'secondary', type = 'button', ...props }) {
 }
 function PageHeader({ title, subtitle, action, onAction }) {
     return <header className="page-header">
-        <div><div className="eyebrow">خانه گیلاسی / عملیات</div><h1>{title}</h1><p>{subtitle}</p></div>
+        <div><div className="eyebrow">Q Food / عملیات</div><h1>{title}</h1><p>{subtitle}</p></div>
         {action && <div className="header-actions"><Button kind="primary" onClick={onAction}>{action}</Button></div>}
     </header>;
 }
@@ -178,7 +178,7 @@ function OverviewPage({ dashboard, onNavigate, onNewOrder, onOrderOpen }) {
     return <div className="page-content overview-page">
         <header className="overview-hero">
             <div className="overview-hero-copy">
-                <div className="overview-eyebrow"><span className="overview-live-dot" /> خانه گیلاسی <span>/</span> مرکز عملیات</div>
+                <div className="overview-eyebrow"><span className="overview-live-dot" /> Q Food <span>/</span> مرکز عملیات</div>
                 <h1>سلام، آماده‌ی یک روز منظم؟</h1>
                 <p>تصویر روشن صندوق، سفارش‌ها و مواردی که امروز نیاز به توجه دارند.</p>
                 <div className="overview-hero-meta">
@@ -644,7 +644,7 @@ function SettingsPage({ settings, onSave, onRefresh }) {
         try {
             if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
             const width = Number(form?.paper_width) === 58 ? 58 : 80;
-            const html = '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><style>@page{size:'+width+'mm auto;margin:3mm}body{width:'+(width-6)+'mm;margin:0 auto;font:13px Tahoma,Arial;text-align:center}h1{font-size:18px}p{font-size:11px}</style><body><h1>خانه گیلاسی</h1><p>آزمایش چاپگر '+escapeHtml(kind)+'</p><b>اتصال چاپگر موفق است</b></body></html>';
+            const html = '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><style>@page{size:'+width+'mm auto;margin:3mm}body{width:'+(width-6)+'mm;margin:0 auto;font:13px Tahoma,Arial;text-align:center}h1{font-size:18px}p{font-size:11px}</style><body><h1>Q Food</h1><p>آزمایش چاپگر '+escapeHtml(kind)+'</p><b>اتصال چاپگر موفق است</b></body></html>';
             const config = qz.configs.create(printerName);
             await qz.print(config, [{ type: 'pixel', format: 'html', flavor: 'plain', data: html }]);
             setPrinterNotice('درخواست آزمایش برای «'+printerName+'» ارسال شد. خروج واقعی کاغذ باید روی دستگاه بررسی شود.');
@@ -653,7 +653,7 @@ function SettingsPage({ settings, onSave, onRefresh }) {
         }
     };
     const defaults = {
-        hero_eyebrow: 'کافه و رستوران خانه گیلاسی',
+        hero_eyebrow: 'کافه و رستوران Q Food',
         hero_title_line1: 'طعم خوب،',
         hero_title_line2: 'حال خوب.',
         hero_description: 'برای یک قهوه کوتاه، یک وعده خوش‌طعم یا یک دورهمی دوست‌داشتنی؛ انتخاب و سفارش را ساده کرده‌ایم تا وقتت برای لذت‌بردن بماند.',
@@ -661,7 +661,7 @@ function SettingsPage({ settings, onSave, onRefresh }) {
         hero_secondary_cta: 'درخواست رزرو',
         hero_badge_title: 'با عشق پخته‌شده',
         hero_badge_description: 'از آشپزخانه تا میز تو',
-        showcase_eyebrow: 'انتخاب‌های خانه گیلاسی',
+        showcase_eyebrow: 'انتخاب‌های Q Food',
         showcase_title: 'بهترین طعم‌ها برای تو',
         showcase_description: 'محصولات فعال و تصاویر ثبت‌شده در منوی مجموعه؛ برای دیدن جزئیات و سفارش، انتخابشان کن.'
     };
@@ -1221,7 +1221,7 @@ export default function DashboardApp() {
 
     return <div className="dashboard-app" dir="rtl">
         <aside className={'sidebar '+(mobileNav?'sidebar-open':'')}>
-            <button type="button" className="brand-lockup" onClick={()=>navigate('overview')}><span className="brand-symbol">خ</span><span><strong>خانه گیلاسی</strong><small>کافه و رستوران</small></span><span className="brand-status" title="اتصال به سرور" /></button>
+            <button type="button" className="brand-lockup" onClick={()=>navigate('overview')}><span><strong>Q Food</strong><small>کافه و رستوران</small></span><span className="brand-status" title="اتصال به سرور" /></button>
             <div className="sidebar-caption">فضای کاری</div><div className="workspace"><span className="workspace-avatar">KG</span><span><b>شعبه مرکزی</b><small>پنل عملیات و صندوق</small></span></div>
             <div className="sidebar-caption">مدیریت روزانه</div>
             <nav className="side-nav" aria-label="منوی داشبورد">{navItems.map(([key,label,icon])=><button type="button" key={key} className={(page===key?'active ':'')+'nav-item'} onClick={()=>navigate(key)}><Icon>{icon}</Icon><span>{label}</span>{key==='orders'&&data.orders&&<b className="nav-count">{numberFa(data.orders.filter(o=>!['delivered','cancelled'].includes(o.status)).length)}</b>}</button>)}</nav>
@@ -1229,11 +1229,11 @@ export default function DashboardApp() {
         </aside>
         {mobileNav&&<button type="button" aria-label="بستن منو" className="mobile-overlay" onClick={()=>setMobileNav(false)}/>}
         <main className="main-shell">
-            <div className="topbar"><button type="button" className="mobile-menu-button" onClick={()=>setMobileNav(true)} aria-label="بازکردن منو">☰</button><div className="breadcrumb">خانه گیلاسی <span>/</span> {navItems.find(n=>n[0]===page)?.[1]||'مدیریت'}</div><div className="topbar-right"><span className={'connection-state '+(error?'op-connection-error':'')}><i/>{error?'خطا در ارتباط':'اتصال به سامانه'}</span><span className="topbar-date">{new Intl.DateTimeFormat('fa-IR-u-ca-persian-nu-arabext',{weekday:'long',day:'numeric',month:'long',timeZone:'Asia/Tehran'}).format(new Date())}</span><button type="button" className="icon-button" aria-label="تازه‌سازی صفحه" onClick={refresh}>↻</button><span className="topbar-avatar">KG</span></div></div>
+            <div className="topbar"><button type="button" className="mobile-menu-button" onClick={()=>setMobileNav(true)} aria-label="بازکردن منو">☰</button><div className="breadcrumb">Q Food <span>/</span> {navItems.find(n=>n[0]===page)?.[1]||'مدیریت'}</div><div className="topbar-right"><span className={'connection-state '+(error?'op-connection-error':'')}><i/>{error?'خطا در ارتباط':'اتصال به سامانه'}</span><span className="topbar-date">{new Intl.DateTimeFormat('fa-IR-u-ca-persian-nu-arabext',{weekday:'long',day:'numeric',month:'long',timeZone:'Asia/Tehran'}).format(new Date())}</span><button type="button" className="icon-button" aria-label="تازه‌سازی صفحه" onClick={refresh}>↻</button><span className="topbar-avatar">KG</span></div></div>
             {error&&<div className="op-global-error" role="alert"><span>{error}</span><Button onClick={refresh}>تلاش دوباره</Button></div>}
             {loading&&<div className="op-loading op-loading-line"><span className="op-spinner"/>در حال دریافت اطلاعات از سرور…</div>}
             {renderPage()}
-            <footer className="app-footer"><span>خانه گیلاسی <span className="footer-dot">·</span> پنل عملیات رستوران</span><span>نسخه متصل به API · مالی و موجودی با تاریخچه رویداد</span></footer>
+            <footer className="app-footer"><span>Q Food <span className="footer-dot">·</span> پنل عملیات رستوران</span><span>نسخه متصل به API · مالی و موجودی با تاریخچه رویداد</span></footer>
         </main>
         {modal?.type==='order'&&<OrderModal products={modal.products} tables={modal.tables} onClose={()=>setModal(null)} onSubmit={createOrder}/>}
         {modal?.type==='product'&&<ProductModal key={modal.product?.id||'new'} product={modal.product} categories={data.categories||[]} onClose={()=>setModal(null)} onSave={createProduct}/>}
