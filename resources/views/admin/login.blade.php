@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#2a2722">
-    <title>ورود مدیر | خانه گیلاسی</title>
+    <title>ورود مدیر | Q Food</title>
     @vite(['resources/css/auth-entry.css'])
 </head>
 @php($loginBackground = \App\Models\SiteMediaAsset::urlFor('login_background', asset('images/login-background.webp')))
@@ -33,8 +33,8 @@
             <div class="auth-links"><span>حساب کاربری نداری؟</span><a href="{{ route('admin.register') }}">ثبت‌نام با کلید دعوت</a></div>
             <footer class="auth-legal">شماره موبایل شناسه ورود شماست. اطلاعات ورود را در اختیار دیگران قرار ندهید.</footer>
         </section>
-        <aside class="auth-brand-panel" aria-label="خانه گیلاسی">
-            <div class="auth-brand-top"><span class="auth-mark">خ</span><span><b>خانه گیلاسی</b><small>کافه و رستوران</small></span></div>
+        <aside class="auth-brand-panel" aria-label="Q Food">
+            <div class="auth-brand-top"><span><b>Q Food</b><small>کافه و رستوران</small></span></div>
             <div class="auth-brand-copy">
                 <span class="auth-brand-kicker">تمام عملیات، در یک پنل</span>
                 <h2>از سفارش تا صندوق، همه‌چیز مرتب.</h2>
