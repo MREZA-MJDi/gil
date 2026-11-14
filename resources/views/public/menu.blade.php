@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#fbf6ec">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="currency-label" content="{{ $settings->currency_label }}">
-    <meta name="description" content="منوی به‌روز {{ $settings->name }}؛ محصولات، قیمت‌ها و افزودنی‌های فعال.">
-    <title>منو و سفارش | {{ $settings->name }}</title>
+    <meta name="description" content="منوی به‌روز Q Food؛ محصولات، قیمت‌ها و افزودنی‌های فعال.">
+    <title>منو و سفارش | Q Food</title>
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site kg-menu-page" id="top">
