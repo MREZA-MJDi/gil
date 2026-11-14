@@ -26,7 +26,7 @@
         </div>
     </div>
     <div class="kg-footer-bottom">
-        <span>© {{ now()->year }} {{ $settings->name }}. تمامی حقوق محفوظ است.</span>
+        <span>© {{ now()->year }} Q Food. تمامی حقوق محفوظ است.</span>
         <a href="#top">بازگشت به بالا ↑</a>
     </div>
 </footer>
