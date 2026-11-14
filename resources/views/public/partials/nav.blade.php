@@ -1,6 +1,6 @@
 <header class="kg-header" data-kg-header>
     <div class="kg-header-inner">
-        <a class="kg-brand" href="{{ route('home') }}" aria-label="صفحه اصلی {{ $settings->name }}">
+        <a class="kg-brand" href="{{ route('home') }}" aria-label="صفحه اصلی Q Food">
             <span class="kg-brand-copy">
                 <strong>Q Food</strong>
                 <small>کافه و رستوران</small>
