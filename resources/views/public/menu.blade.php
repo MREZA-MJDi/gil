@@ -11,16 +11,16 @@
     @vite(['resources/css/public.css', 'resources/js/public-site.js'])
 </head>
 <body class="public-site kg-menu-page" id="top">
-    <div class="kg-topline"><span>🍒 منوی خانه گیلاسی</span><span>انتخاب روشن، سفارش ساده</span></div>
+    <div class="kg-topline"><span>🍒 منوی Q Food</span><span>انتخاب روشن، سفارش ساده</span></div>
     @include('public.partials.nav')
 
     <main class="kg-menu-main" data-public-ordering data-menu-showcase data-order-endpoint="{{ route('public.orders.store') }}">
 
     @if(!empty($media['menu_cover']['url']))
         <section class="kg-menu-cover">
-            <img src="{{ $media['menu_cover']['url'] }}" alt="{{ $media['menu_cover']['alt_text'] ?: 'کاور منوی خانه گیلاسی' }}" fetchpriority="high">
+            <img src="{{ $media['menu_cover']['url'] }}" alt="{{ $media['menu_cover']['alt_text'] ?: 'کاور منوی Q Food' }}" fetchpriority="high">
             <div class="kg-menu-cover-overlay"></div>
-            <div class="kg-menu-cover-copy"><span>منوی خانه گیلاسی</span><h1>انتخاب‌های خوش‌طعم،<br><em>در یک نگاه.</em></h1><p>منوی روز را ببین و سفارش دلخواهت را ثبت کن.</p></div>
+            <div class="kg-menu-cover-copy"><span>منوی Q Food</span><h1>انتخاب‌های خوش‌طعم،<br><em>در یک نگاه.</em></h1><p>منوی روز را ببین و سفارش دلخواهت را ثبت کن.</p></div>
         </section>
     @endif
 
