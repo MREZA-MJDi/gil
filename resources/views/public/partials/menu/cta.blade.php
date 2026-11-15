@@ -1,0 +1,1 @@
+        <section class="menu-cta-band cup-stop" data-cup-stop><div><span class="section-kicker">یک مکث دل‌چسب</span><h2>طعم بعدیِ موردعلاقه‌ات<br>شاید همین‌جا باشد.</h2></div><a href="{{ route('home') }}#visit" class="button button-cream">ملاقات در کافه <span>↗</span></a></section>
