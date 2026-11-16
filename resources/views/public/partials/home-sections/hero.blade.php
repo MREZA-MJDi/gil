@@ -2,7 +2,7 @@
     <img class="gil-hero-photo" src="{{ $media['hero']['url'] ?? 'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=2400&q=90' }}" alt="چیدمان غذاهای تازه برای یک وعده کامل" fetchpriority="high">
     <div class="gil-hero-shade"></div>
     <div class="gil-hero-center">
-        <span class="gil-eyebrow"><i></i> خانه گیلاسی · کافه و رستوران</span>
+        <span class="gil-eyebrow"><i></i> {{ $settings->name }} · کافه و رستوران</span>
         <p class="gil-welcome-script">طعم خوب، لحظهٔ خوب</p>
         <h1>{{ $settings->name }}</h1>
         <div class="gil-hero-signature"><span>قهوه</span><i></i><span>آشپزخانه</span><i></i><span>لحظه‌های خوب</span></div>
@@ -28,6 +28,6 @@
             <span class="gil-hero-phone"><span>✳</span><b>میزت را انتخاب کن؛ لحظه‌ات را بساز.</b></span>
         @endif
         <a class="gil-hero-scroll" href="#menu"><span>برای کشف منو پایین برو</span><b>↓</b></a>
-        <span class="gil-hero-edition">۰۱ — تجربه خانه گیلاسی</span>
+        <span class="gil-hero-edition">۰۱ — تجربه {{ $settings->name }}</span>
     </div>
 </section>
