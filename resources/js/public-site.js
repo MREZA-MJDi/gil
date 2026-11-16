@@ -46,11 +46,11 @@ import { jalaliDateTimeToGregorian } from './date-utils.js';
         const validate = () => {
             const value = jalaliInput.value.trim();
             if (!value) {
-                jalaliInput.setCustomValidity('تاریخ و ساعت شمسی را وارد کن؛ نمونه: ۱۴۰۵/۰۸/۰۷ ۱۸:۳۰');
+                jalaliInput.setCustomValidity('تاریخ و ساعت شمسی را وارد کن؛ قالب: سال/ماه/روز ساعت:دقیقه.');
                 return false;
             }
             const converted = jalaliDateTimeToGregorian(value);
-            jalaliInput.setCustomValidity(converted ? '' : 'تاریخ شمسی معتبر وارد کن؛ قالب: سال/ماه/روز ساعت:دقیقه، مثل ۱۴۰۵/۰۸/۰۷ ۱۸:۳۰');
+            jalaliInput.setCustomValidity(converted ? '' : 'تاریخ و ساعت شمسی معتبر وارد کن؛ قالب: سال/ماه/روز ساعت:دقیقه.');
             return Boolean(converted);
         };
 
