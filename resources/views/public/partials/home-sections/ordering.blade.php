@@ -1,7 +1,7 @@
 <section class="gil-ordering section-wrap" id="moments">
     <div class="gil-section-heading">
         <div><span class="gil-eyebrow">راه‌های سفارش</span><h2>هرجا هستی،<br><em>ساده سفارش بده.</em></h2></div>
-        <div class="gil-section-heading-side"><p>سه راه روشن برای تجربهٔ خانه گیلاسی؛ بدون اینکه بین چند مسیر نامشخص سردرگم شوی.</p></div>
+        <div class="gil-section-heading-side"><p>سه راه روشن برای تجربهٔ {{ $settings->name }}؛ بدون اینکه بین چند مسیر نامشخص سردرگم شوی.</p></div>
     </div>
     <div class="gil-ordering-grid">
         <a href="{{ route('public.menu') }}" class="gil-order-card gil-order-card-dark"><span class="gil-order-icon">↗</span><span class="gil-order-number">۰۱ / سفارش مستقیم</span><h3>سفارش از سایت</h3><p>منو را ببین، گزینه‌ها را انتخاب کن و سفارش بیرون‌بر را ثبت کن. مبلغ نهایی سمت سرور محاسبه می‌شود.</p><b>رفتن به منو <span>↗</span></b></a>
