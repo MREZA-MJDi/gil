@@ -1,3 +1,5 @@
+import { getConfirmedPublicOrder } from './public-ordering-contract.js';
+
 const root = document.querySelector('[data-public-ordering]');
 
 if (root) {
@@ -109,13 +111,22 @@ if (root) {
                 body: JSON.stringify(pendingPayload),
             });
             let body = {};
-            try { body = await response.json(); } catch { body = {}; }
+            try {
+                body = await response.json();
+            } catch {
+                if (response.ok) {
+                    throw new Error('پاسخ سرور برای تأیید سفارش قابل‌خواندن نبود؛ وضعیت سفارش نامشخص است. برای جلوگیری از ثبت تکراری، با همان شناسه دوباره تلاش کن.');
+                }
+            }
             if (!response.ok) {
                 const validation = body?.errors ? Object.values(body.errors).flat().find(Boolean) : null;
                 throw new Error(validation || body?.message || 'سفارش ثبت نشد؛ اطلاعات را بررسی و دوباره تلاش کن.');
             }
 
-            const order = body?.data || {};
+            const order = getConfirmedPublicOrder(body);
+            if (!order) {
+                throw new Error('پاسخ سرور برای تأیید سفارش کامل نیست؛ وضعیت سفارش نامشخص است. برای جلوگیری از ثبت تکراری، با همان شناسه دوباره تلاش کن.');
+            }
             cart.clear();
             form.reset();
             pendingIdempotencyKey = null;
