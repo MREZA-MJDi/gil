@@ -1,3 +1,5 @@
+import { getConfirmedCustomerMenuOrder } from './customer-menu-order-contract.js';
+
 const root = document.getElementById('customer-menu-app');
 
 if (root) {
@@ -310,8 +312,9 @@ if (root) {
                 const validation = payload?.errors ? Object.values(payload.errors).flat().find(Boolean) : null;
                 throw new Error(validation || payload?.message || 'ثبت سفارش انجام نشد؛ اطلاعات را بررسی کن.');
             }
-            if (!payload?.data?.number) {
-                throw new Error('پاسخ ثبت سفارش از سرور کامل نبود؛ برای جلوگیری از ثبت تکراری، با همان شناسه دوباره تلاش کن.');
+            const order = getConfirmedCustomerMenuOrder(payload);
+            if (!order) {
+                throw new Error('پاسخ ثبت سفارش از سرور کامل نبود؛ وضعیت سفارش نامشخص است. برای جلوگیری از ثبت تکراری، با همان شناسه دوباره تلاش کن.');
             }
 
             cart = [];
@@ -319,7 +322,7 @@ if (root) {
             idempotencyKey = '';
             pendingPayload = null;
             submissionUncertain = false;
-            notice = 'سفارش ' + payload.data.number + ' ثبت شد. مبلغ نهایی: ' + money(payload.data.total, currency()) + '؛ سفارش برای میز ' + (data.table?.name || 'شما') + ' ارسال شد. پرداخت هنوز ثبت نشده است.';
+            notice = 'سفارش ' + order.number + ' ثبت شد. مبلغ نهایی: ' + money(order.total, currency()) + '؛ سفارش برای میز ' + (data.table?.name || 'شما') + ' ارسال شد. پرداخت هنوز ثبت نشده است.';
         } catch (error) {
             if (response && response.status >= 400 && response.status < 500 && response.status !== 429) {
                 idempotencyKey = '';
