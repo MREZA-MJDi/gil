@@ -21,6 +21,18 @@ import { jalaliDateTimeToGregorian } from './date-utils.js';
     });
     nav?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
 
+    // Keep the responsive navigation usable without a pointer and easy to dismiss.
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape' || !nav?.classList.contains('is-open')) return;
+        closeMenu();
+        menuToggle?.focus();
+    });
+    document.addEventListener('pointerdown', event => {
+        if (!nav?.classList.contains('is-open')) return;
+        if (nav.contains(event.target) || menuToggle?.contains(event.target)) return;
+        closeMenu();
+    });
+
     const updateHeader = () => header?.classList.toggle('is-scrolled', window.scrollY > 14);
     window.addEventListener('scroll', updateHeader, { passive: true });
     updateHeader();
@@ -34,7 +46,6 @@ import { jalaliDateTimeToGregorian } from './date-utils.js';
             track.scrollBy({ left: factor * Math.max(260, track.clientWidth * 0.82), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         });
     });
-
 
     // Public reservation dates are entered in the Jalali calendar but stored as Gregorian
     // timestamps so Laravel/database queries remain consistent.
