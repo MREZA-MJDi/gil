@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use Illuminate\\Foundation\\Testing\\RefreshDatabase;
+use Tests\\TestCase;
 
 class PublicPagesTest extends TestCase
 {
@@ -15,7 +15,9 @@ class PublicPagesTest extends TestCase
             $this->get($path)
                 ->assertOk()
                 ->assertSee('dir="rtl"', false)
-                ->assertSee('public-site', false);
+                ->assertSee('public-site', false)
+                ->assertSee('aria-controls="public-primary-navigation"', false)
+                ->assertSee('id="public-primary-navigation"', false);
         }
     }
 }
