@@ -39,6 +39,28 @@ class PublicReservationTest extends TestCase
         ]);
     }
 
+    public function test_reservation_form_preserves_duration_after_validation_error(): void
+    {
+        $this->from(route('public.reservations.create'))
+            ->post(route('public.reservations.store'), [
+                'customer_name' => 'مشتری آزمایشی',
+                'phone' => '09121234567',
+                'purpose' => 'table',
+                'party_size' => 2,
+                'starts_at' => 'not-a-date',
+                'duration_minutes' => 180,
+                'idempotency_key' => 'public-reserve-old-input-0001',
+                'website' => '',
+            ])
+            ->assertRedirect(route('public.reservations.create'))
+            ->assertSessionHasErrors(['starts_at']);
+
+        $this->get(route('public.reservations.create'))
+            ->assertOk()
+            ->assertSee('<option value="180" selected>۱۸۰ دقیقه</option>', false)
+            ->assertDontSee('<option value="90" selected>۹۰ دقیقه</option>', false);
+    }
+
     public function test_retried_public_reservation_does_not_create_a_duplicate(): void
     {
         $payload = [
