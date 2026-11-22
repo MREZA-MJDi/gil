@@ -103,7 +103,7 @@ if (root) {
                     const optionPrice = Number(option.price || 0);
                     const kind = option.type === 'size' ? 'سایز' : 'افزودنی';
                     return '<label class="' + (checked ? 'selected' : '') + '">' +
-                        '<input type="checkbox" data-option-id="' + Number(option.id) + '" data-product-id="' + Number(product.id) + '" data-focus-key="option-' + Number(product.id) + '-' + Number(option.id) + '" + (checked ? ' checked' : '') + (locked ? ' disabled' : '') + '>' +
+                        '<input type="checkbox" data-option-id="' + Number(option.id) + '" data-product-id="' + Number(product.id) + '" data-focus-key="option-' + Number(product.id) + '-' + Number(option.id) + '"' + (checked ? ' checked' : '') + (locked ? ' disabled' : '') + '>' +
                         '<span class="gil-option-kind">' + kind + '</span>' +
                         '<span class="gil-option-name">' + escapeHtml(option.name) + '</span>' +
                         '<b>' + (optionPrice > 0 ? '+' + money(optionPrice, currency()) : 'رایگان') + '</b>' +
@@ -129,7 +129,7 @@ if (root) {
                     '</div>' +
                     optionsMarkup +
                     '<div class="gil-featured-buy"><div class="gil-featured-price"><small>قیمت انتخاب فعلی</small><strong>' + money(selectedPrice, currency()) + '</strong></div>' +
-                    '<button type="button" data-action="add" data-id="' + Number(product.id) + '" data-focus-key="add-' + Number(product.id) + '" + (locked ? ' disabled' : '') + '>افزودن به سفارش <span aria-hidden="true">＋</span></button></div>' +
+                    '<button type="button" data-action="add" data-id="' + Number(product.id) + '" data-focus-key="add-' + Number(product.id) + '"' + (locked ? ' disabled' : '') + '>افزودن به سفارش <span aria-hidden="true">＋</span></button></div>' +
                 '</div>' +
                 '<div class="gil-featured-visual"><span class="gil-image-orbit gil-orbit-one" aria-hidden="true"></span><span class="gil-image-orbit gil-orbit-two" aria-hidden="true"></span>' +
                     (safeUrl(product.image_url)
