@@ -1,4 +1,5 @@
 import { getConfirmedCustomerMenuOrder } from './customer-menu-order-contract.js';
+import { captureCustomerMenuFocusKey, restoreCustomerMenuFocus } from './customer-menu-focus.js';
 
 const root = document.getElementById('customer-menu-app');
 
@@ -69,10 +70,12 @@ if (root) {
     }
 
     function render() {
+        const focusKey = captureCustomerMenuFocusKey(root, document.activeElement);
         if (!data) {
             root.innerHTML = notice
-                ? '<div class="gil-menu-error" role="alert"><span class="gil-error-mark" aria-hidden="true">!</span><h1>منو در دسترس نیست</h1><p>' + escapeHtml(notice) + '</p><button type="button" data-action="reload">تلاش دوباره</button></div>'
+                ? '<div class="gil-menu-error" role="alert"><span class="gil-error-mark" aria-hidden="true">!</span><h1>منو در دسترس نیست</h1><p>' + escapeHtml(notice) + '</p><button type="button" data-action="reload" data-focus-key="reload">تلاش دوباره</button></div>'
                 : '<div class="gil-menu-loading" role="status"><span class="gil-loading-mark" aria-hidden="true">گ</span><span>در حال آماده‌سازی منوی میز…</span></div>';
+            restoreCustomerMenuFocus(root, focusKey);
             return;
         }
 
@@ -90,7 +93,7 @@ if (root) {
 
         const categoryMarkup = cats.map(item => {
             const active = Number(category?.id) === Number(item.id);
-            return '<button type="button" data-action="category" data-id="' + Number(item.id) + '" class="' + (active ? 'active' : '') + '" aria-pressed="' + String(active) + '"' + (locked ? ' disabled' : '') + '><span>' + escapeHtml(item.name) + '</span><small>' + numberFa((item.products || []).length) + '</small></button>';
+            return '<button type="button" data-action="category" data-id="' + Number(item.id) + '" data-focus-key="category-' + Number(item.id) + '" class="' + (active ? 'active' : '') + '" aria-pressed="' + String(active) + '"' + (locked ? ' disabled' : '') + '><span>' + escapeHtml(item.name) + '</span><small>' + numberFa((item.products || []).length) + '</small></button>';
         }).join('');
 
         const optionsMarkup = product && (product.options || []).length
@@ -100,7 +103,7 @@ if (root) {
                     const optionPrice = Number(option.price || 0);
                     const kind = option.type === 'size' ? 'سایز' : 'افزودنی';
                     return '<label class="' + (checked ? 'selected' : '') + '">' +
-                        '<input type="checkbox" data-option-id="' + Number(option.id) + '" data-product-id="' + Number(product.id) + '"' + (checked ? ' checked' : '') + (locked ? ' disabled' : '') + '>' +
+                        '<input type="checkbox" data-option-id="' + Number(option.id) + '" data-product-id="' + Number(product.id) + '" data-focus-key="option-' + Number(product.id) + '-' + Number(option.id) + '" + (checked ? ' checked' : '') + (locked ? ' disabled' : '') + '>' +
                         '<span class="gil-option-kind">' + kind + '</span>' +
                         '<span class="gil-option-name">' + escapeHtml(option.name) + '</span>' +
                         '<b>' + (optionPrice > 0 ? '+' + money(optionPrice, currency()) : 'رایگان') + '</b>' +
@@ -126,7 +129,7 @@ if (root) {
                     '</div>' +
                     optionsMarkup +
                     '<div class="gil-featured-buy"><div class="gil-featured-price"><small>قیمت انتخاب فعلی</small><strong>' + money(selectedPrice, currency()) + '</strong></div>' +
-                    '<button type="button" data-action="add" data-id="' + Number(product.id) + '"' + (locked ? ' disabled' : '') + '>افزودن به سفارش <span aria-hidden="true">＋</span></button></div>' +
+                    '<button type="button" data-action="add" data-id="' + Number(product.id) + '" data-focus-key="add-' + Number(product.id) + '" + (locked ? ' disabled' : '') + '>افزودن به سفارش <span aria-hidden="true">＋</span></button></div>' +
                 '</div>' +
                 '<div class="gil-featured-visual"><span class="gil-image-orbit gil-orbit-one" aria-hidden="true"></span><span class="gil-image-orbit gil-orbit-two" aria-hidden="true"></span>' +
                     (safeUrl(product.image_url)
@@ -141,7 +144,7 @@ if (root) {
                 products.map(item => {
                     const active = Number(item.id) === Number(product.id);
                     const image = safeUrl(item.image_url);
-                    return '<button type="button" data-action="product" data-id="' + Number(item.id) + '" class="gil-dish-card' + (active ? ' active' : '') + '" aria-pressed="' + String(active) + '"' + (locked ? ' disabled' : '') + '>' +
+                    return '<button type="button" data-action="product" data-id="' + Number(item.id) + '" data-focus-key="product-' + Number(item.id) + '" class="gil-dish-card' + (active ? ' active' : '') + '" aria-pressed="' + String(active) + '"' + (locked ? ' disabled' : '') + '>' +
                         '<span class="gil-dish-thumb">' + (image ? '<img src="' + escapeHtml(image) + '" alt="" loading="lazy">' : '<span aria-hidden="true">گ</span>') + '</span>' +
                         '<span class="gil-dish-card-copy"><strong>' + escapeHtml(item.name) + '</strong><small>' + money(item.base_price, currency()) + '</small></span>' +
                         '<span class="gil-dish-select" aria-hidden="true">↙</span></button>';
@@ -160,9 +163,9 @@ if (root) {
                     (chosen.length ? '<small>' + escapeHtml(chosen.map(option => option.name).join('، ')) + '</small>' : '') +
                     '<strong>' + money(unitPrice * item.quantity, currency()) + '</strong></div>' +
                     '<div class="gil-cart-quantity" aria-label="تعداد ' + escapeHtml(itemProduct?.name || 'محصول') + '">' +
-                    '<button type="button" data-action="quantity" data-key="' + escapeHtml(key) + '" data-delta="-1" aria-label="کم کردن تعداد"' + (locked ? ' disabled' : '') + '>−</button>' +
+                    '<button type="button" data-action="quantity" data-key="' + escapeHtml(key) + '" data-delta="-1" data-focus-key="quantity-' + escapeHtml(key) + '-minus" aria-label="کم کردن تعداد"' + (locked ? ' disabled' : '') + '>−</button>' +
                     '<b>' + numberFa(item.quantity) + '</b>' +
-                    '<button type="button" data-action="quantity" data-key="' + escapeHtml(key) + '" data-delta="1" aria-label="افزایش تعداد"' + (locked ? ' disabled' : '') + '>＋</button></div></article>';
+                    '<button type="button" data-action="quantity" data-key="' + escapeHtml(key) + '" data-delta="1" data-focus-key="quantity-' + escapeHtml(key) + '-plus" aria-label="افزایش تعداد"' + (locked ? ' disabled' : '') + '>＋</button></div></article>';
             }).join('')
             : '<div class="gil-cart-empty"><span aria-hidden="true">＋</span><b>هنوز انتخابی به سبد اضافه نکرده‌ای.</b><small>از بخش منو یک محصول انتخاب کن و به سفارش اضافه کن.</small></div>';
 
@@ -174,7 +177,7 @@ if (root) {
                 '<button type="button" class="gil-header-cart" data-action="scroll-order"><span class="gil-cart-icon" aria-hidden="true">▱</span><span>سبد سفارش</span><b>' + numberFa(summary.count) + '</b></button></div></header>' +
             '<div class="gil-menu-layout"><aside class="gil-category-rail" aria-label="دسته‌بندی منو"><span class="gil-rail-label">انتخاب دسته</span>' + categoryMarkup + '</aside>' +
             '<main class="gil-menu-main"><section class="gil-menu-cover" data-menu-cover><div><span class="gil-cover-eyebrow">منوی دیجیتال · ' + escapeHtml(restaurantName) + '</span><h1>با حوصله انتخاب کن،<br><em>با لذت نوش جان کن.</em></h1><p>منوی همین میز با قیمت‌های به‌روز؛ انتخاب کن و سفارشت را مستقیم ثبت کن.</p></div><span class="gil-cover-seal" aria-hidden="true">G<span>✳</span></span></section>' +
-            (notice ? '<div class="gil-menu-notice" role="status">' + escapeHtml(notice) + '</div>' : '') +
+            (notice ? '<div class="gil-menu-notice" role="status" tabindex="-1" data-focus-key="checkout-status">' + escapeHtml(notice) + '</div>' : '') +
             featuredMarkup + dishMarkup +
             '<section class="gil-checkout" id="gil-menu-order" aria-labelledby="gil-checkout-title"><div class="gil-checkout-heading"><div><span class="gil-section-kicker">سفارش میز شما</span><h2 id="gil-checkout-title">سبد انتخاب‌ها</h2></div><span class="gil-checkout-count">' + numberFa(summary.count) + ' قلم</span></div>' +
             '<div class="gil-checkout-grid"><div class="gil-cart-panel">' + cartMarkup + '</div>' +
@@ -190,12 +193,14 @@ if (root) {
                     (summary.taxRate > 0 ? '<p><span>مالیات (' + numberFa(summary.taxRate / 100) + '٪)</span><b>' + money(summary.tax, currency()) + '</b></p>' : '') +
                     (summary.serviceRate > 0 ? '<p><span>هزینه خدمات (' + numberFa(summary.serviceRate / 100) + '٪)</span><b>' + money(summary.service, currency()) + '</b></p>' : '') +
                     '<p class="gil-total-row"><span>جمع تخمینی</span><b>' + money(summary.total, currency()) + '</b></p><small>مبلغ نهایی در سرور محاسبه می‌شود. انتخاب روش پرداخت به‌تنهایی به معنی تسویه سفارش نیست.</small></div>' +
-                '<button type="submit" class="gil-submit-order"' + (!cart.length || busy ? ' disabled' : '') + '>' +
+                '<button type="submit" class="gil-submit-order" data-focus-key="checkout-submit"' + (!cart.length || busy ? ' disabled' : '') + '>' +
                     (busy ? 'در حال ثبت سفارش…' : submissionUncertain ? 'ارسال دوباره با همان شناسه' : 'ثبت سفارش برای این میز') + '<span aria-hidden="true">↗</span></button>' +
                 (submissionUncertain ? '<p class="gil-uncertain-notice" role="alert">پاسخ قطعی از سرور نرسید. برای جلوگیری از ثبت تکراری، سبد و شناسه سفارش قفل شده‌اند؛ فقط با همان شناسه دوباره تلاش کن.</p>' : '') +
                 '<p class="gil-checkout-footnote">سفارش مستقیماً به میز ' + escapeHtml(tableName) + ' متصل می‌شود. پرداخت پس از ثبت سفارش با کارکنان انجام خواهد شد.</p>' +
             '</form></div></section>' +
             '<footer class="gil-menu-footer"><span>' + escapeHtml(restaurantName) + '</span><small>با احترام، برای لحظه‌های خوش شما</small></footer></main></div></div>';
+
+        restoreCustomerMenuFocus(root, focusKey);
 
         const cover = root.querySelector('[data-menu-cover]');
         const coverUrl = safeUrl(data.settings?.menu_cover_url);
@@ -273,7 +278,7 @@ if (root) {
     async function submitOrder() {
         if (!cart.length || busy) return;
         busy = true;
-        notice = '';
+        notice = 'در حال ثبت سفارش…';
         const requestKey = idempotencyKey || (globalThis.crypto?.randomUUID
             ? globalThis.crypto.randomUUID().replaceAll('-', '')
             : 'qr' + Date.now().toString(36) + Math.random().toString(36).slice(2, 24));
