@@ -13,9 +13,10 @@ export function restoreCustomerMenuFocus(root, focusKey) {
         return true;
     }
 
-    const status = controls.find(element => element.getAttribute('data-focus-key') === 'checkout-status');
-    if (status) {
-        status.focus({preventScroll: true});
+    const fallback = controls.find(element => element.getAttribute('data-focus-key') === 'checkout-status')
+        || controls.find(element => element.getAttribute('data-focus-key') === 'checkout-heading');
+    if (fallback) {
+        fallback.focus({preventScroll: true});
         return true;
     }
 
