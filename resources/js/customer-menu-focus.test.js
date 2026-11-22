@@ -51,3 +51,11 @@ test('does nothing when there is no prior focus key or matching status message',
     assert.equal(restoreCustomerMenuFocus(root, null), false);
     assert.equal(restoreCustomerMenuFocus(root, 'missing-control'), false);
 });
+
+test('falls back to the checkout heading when a removed cart control no longer exists', () => {
+    const heading = control('checkout-heading');
+    const root = {querySelectorAll: () => [heading]};
+
+    assert.equal(restoreCustomerMenuFocus(root, 'quantity-12:-1-minus'), true);
+    assert.equal(heading.focused, true);
+});
