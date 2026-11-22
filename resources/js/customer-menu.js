@@ -179,7 +179,7 @@ if (root) {
             '<main class="gil-menu-main"><section class="gil-menu-cover" data-menu-cover><div><span class="gil-cover-eyebrow">منوی دیجیتال · ' + escapeHtml(restaurantName) + '</span><h1>با حوصله انتخاب کن،<br><em>با لذت نوش جان کن.</em></h1><p>منوی همین میز با قیمت‌های به‌روز؛ انتخاب کن و سفارشت را مستقیم ثبت کن.</p></div><span class="gil-cover-seal" aria-hidden="true">G<span>✳</span></span></section>' +
             (notice ? '<div class="gil-menu-notice" role="status" tabindex="-1" data-focus-key="checkout-status">' + escapeHtml(notice) + '</div>' : '') +
             featuredMarkup + dishMarkup +
-            '<section class="gil-checkout" id="gil-menu-order" aria-labelledby="gil-checkout-title"><div class="gil-checkout-heading"><div><span class="gil-section-kicker">سفارش میز شما</span><h2 id="gil-checkout-title">سبد انتخاب‌ها</h2></div><span class="gil-checkout-count">' + numberFa(summary.count) + ' قلم</span></div>' +
+            '<section class="gil-checkout" id="gil-menu-order" aria-labelledby="gil-checkout-title"><div class="gil-checkout-heading"><div><span class="gil-section-kicker">سفارش میز شما</span><h2 id="gil-checkout-title" tabindex="-1" data-focus-key="checkout-heading">سبد انتخاب‌ها</h2></div><span class="gil-checkout-count">' + numberFa(summary.count) + ' قلم</span></div>' +
             '<div class="gil-checkout-grid"><div class="gil-cart-panel">' + cartMarkup + '</div>' +
             '<form class="gil-checkout-form" id="gil-menu-checkout-form">' +
                 '<label><span>نام (اختیاری)</span><input name="customer_name" data-field="customer-name" value="' + escapeHtml(customerName) + '" maxlength="150" autocomplete="name"' + (locked ? ' disabled' : '') + '></label>' +
