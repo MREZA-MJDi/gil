@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\\Feature;
 
-use App\Models\SiteMediaAsset;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\\Models\\SiteMediaAsset;
+use Illuminate\\Foundation\\Testing\\RefreshDatabase;
+use Tests\\TestCase;
 
 class PublicPagesTest extends TestCase
 {
@@ -41,5 +41,15 @@ class PublicPagesTest extends TestCase
                 ->assertSee($asset['path'], false)
                 ->assertSee('alt="'.$asset['alt_text'].'"', false);
         }
+
+        $matched = preg_match(
+            '/<section class="gil-event-banner" id="story">\\s*<img src="([^"]+)" alt="([^"]+)"/',
+            $response->getContent(),
+            $eventBannerImage,
+        );
+
+        $this->assertSame(1, $matched, 'The homepage event banner image should be rendered.');
+        $this->assertSame($assets[2]['path'], $eventBannerImage[1]);
+        $this->assertSame($assets[2]['alt_text'], $eventBannerImage[2]);
     }
 }
