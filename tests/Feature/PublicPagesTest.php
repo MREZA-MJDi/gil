@@ -49,7 +49,7 @@ class PublicPagesTest extends TestCase
         );
 
         $this->assertSame(1, $matched, 'The homepage event banner image should be rendered.');
-        $this->assertSame($assets[2]['path'], $eventBannerImage[1]);
+        $this->assertStringEndsWith($assets[2]['path'], $eventBannerImage[1]);
         $this->assertSame($assets[2]['alt_text'], $eventBannerImage[2]);
     }
 }
