@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Reservation;
+use App\Models\SiteMediaAsset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -13,7 +14,7 @@ class PublicReservationTest extends TestCase
 
     public function test_customer_can_submit_a_future_reservation_from_the_public_page(): void
     {
-        $startsAt = Carbon::now(config('app.timezone'))->addDays(3)->setTime(18, 30)->format('Y-m-d\TH:i');
+        $startsAt = Carbon::now(config('app.timezone'))->addDays(3)->setTime(18, 30)->format('Y-m-d\\TH:i');
 
         $response = $this->withHeaders([
             'Accept' => 'application/json',
@@ -67,7 +68,7 @@ class PublicReservationTest extends TestCase
             'customer_name' => 'مشتری تکراری شبکه',
             'phone' => '09121234568',
             'party_size' => 2,
-            'starts_at' => Carbon::now(config('app.timezone'))->addDays(4)->setTime(19, 0)->format('Y-m-d\TH:i'),
+            'starts_at' => Carbon::now(config('app.timezone'))->addDays(4)->setTime(19, 0)->format('Y-m-d\\TH:i'),
             'duration_minutes' => 90,
             'notes' => null,
             'idempotency_key' => 'public-reserve-test-0002',
@@ -80,5 +81,29 @@ class PublicReservationTest extends TestCase
             ->postJson(route('public.reservations.store'), $payload)->assertOk();
 
         $this->assertSame(1, Reservation::query()->where('idempotency_key', $payload['idempotency_key'])->count());
+    }
+
+    public function test_reservation_intro_uses_event_gallery_slot_and_managed_alt_text(): void
+    {
+        $assets = [
+            ['slot' => 'gallery_1', 'path' => 'site-media/gallery_1/space.webp', 'alt_text' => 'فضای داخلی ثبت‌شده'],
+            ['slot' => 'gallery_3', 'path' => 'site-media/gallery_3/event.webp', 'alt_text' => 'مراسم ثبت‌شده'],
+        ];
+
+        foreach ($assets as $asset) {
+            SiteMediaAsset::query()->create($asset);
+        }
+
+        $response = $this->get(route('public.reservations.create'))->assertOk();
+
+        $matched = preg_match(
+            '/<div class="reserve-side-photo">\\s*<img src="([^"]+)" alt="([^"]+)"/',
+            $response->getContent(),
+            $reservationImage,
+        );
+
+        $this->assertSame(1, $matched, 'The reservation intro image should be rendered.');
+        $this->assertStringEndsWith($assets[1]['path'], $reservationImage[1]);
+        $this->assertSame($assets[1]['alt_text'], $reservationImage[2]);
     }
 }
