@@ -93,8 +93,14 @@ class RestaurantOperationsTest extends TestCase
         ]);
         SiteMediaAsset::query()->create([
             'slot' => 'gallery_1',
-            'path' => 'site-media/gallery_1/reservation.webp',
-            'alt_text' => 'تصویر رزرو بارگذاری‌شده از داشبورد',
+            'path' => 'site-media/gallery_1/space.webp',
+            'alt_text' => 'فضای داخلی بارگذاری‌شده از داشبورد',
+            'uploaded_by' => $this->admin->id,
+        ]);
+        SiteMediaAsset::query()->create([
+            'slot' => 'gallery_3',
+            'path' => 'site-media/gallery_3/reservation.webp',
+            'alt_text' => 'تصویر مراسم بارگذاری‌شده از داشبورد',
             'uploaded_by' => $this->admin->id,
         ]);
 
@@ -104,7 +110,7 @@ class RestaurantOperationsTest extends TestCase
 
         $this->get('/reserve')
             ->assertOk()
-            ->assertSee('/storage/site-media/gallery_1/reservation.webp', false)
+            ->assertSee('/storage/site-media/gallery_3/reservation.webp', false)
             ->assertSee('رزرو و برنامه‌ریزی');
     }
 
