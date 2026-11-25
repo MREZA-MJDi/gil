@@ -14,7 +14,7 @@ class PublicReservationTest extends TestCase
 
     public function test_customer_can_submit_a_future_reservation_from_the_public_page(): void
     {
-        $startsAt = Carbon::now(config('app.timezone'))->addDays(3)->setTime(18, 30)->format('Y-m-d\\TH:i');
+        $startsAt = Carbon::now(config('app.timezone'))->addDays(3)->setTime(18, 30)->format('Y-m-d\TH:i');
 
         $response = $this->withHeaders([
             'Accept' => 'application/json',
@@ -68,7 +68,7 @@ class PublicReservationTest extends TestCase
             'customer_name' => 'مشتری تکراری شبکه',
             'phone' => '09121234568',
             'party_size' => 2,
-            'starts_at' => Carbon::now(config('app.timezone'))->addDays(4)->setTime(19, 0)->format('Y-m-d\\TH:i'),
+            'starts_at' => Carbon::now(config('app.timezone'))->addDays(4)->setTime(19, 0)->format('Y-m-d\TH:i'),
             'duration_minutes' => 90,
             'notes' => null,
             'idempotency_key' => 'public-reserve-test-0002',
