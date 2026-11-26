@@ -296,3 +296,39 @@
   .public-home-warm .site-nav a:hover,
   .public-home-warm .site-nav a:focus-visible{color:var(--pub-red)}
 }
+
+
+/* Dark mobile dropdowns for pages with dark navigation headers. */
+@media (max-width: 840px) {
+  .public-menu-page .site-nav,
+  .public-booking-v2 .site-nav {
+    background: rgba(20, 19, 16, .98);
+    border-bottom-color: rgba(255, 255, 255, .14);
+  }
+
+  .public-menu-page .site-nav a,
+  .public-booking-v2 .site-nav a {
+    color: #f5eee2;
+    border-bottom-color: rgba(255, 255, 255, .1);
+  }
+
+  .public-menu-page .site-nav a:hover,
+  .public-menu-page .site-nav a:focus-visible,
+  .public-booking-v2 .site-nav a:hover,
+  .public-booking-v2 .site-nav a:focus-visible {
+    color: #efbd66;
+  }
+
+  .public-menu-page .site-nav .site-nav-auth,
+  .public-booking-v2 .site-nav .site-nav-auth {
+    color: #f1d7aa !important;
+    border-bottom-color: rgba(220, 179, 110, .35);
+  }
+
+  .public-menu-page .site-nav .site-nav-auth:hover,
+  .public-menu-page .site-nav .site-nav-auth:focus-visible,
+  .public-booking-v2 .site-nav .site-nav-auth:hover,
+  .public-booking-v2 .site-nav .site-nav-auth:focus-visible {
+    color: #efbd66 !important;
+  }
+}
