@@ -332,3 +332,15 @@
     color: #efbd66 !important;
   }
 }
+
+/* Show the expanded state of the mobile navigation toggle. */
+.public-site .site-menu-toggle span {
+  transform-origin: center;
+  transition: transform .2s ease;
+}
+.public-site .site-menu-toggle[aria-expanded="true"] span:first-child {
+  transform: translateY(6px) rotate(45deg);
+}
+.public-site .site-menu-toggle[aria-expanded="true"] span:last-child {
+  transform: translateY(-6px) rotate(-45deg);
+}
