@@ -52,4 +52,15 @@ class PublicPagesTest extends TestCase
         $this->assertStringEndsWith($assets[2]['path'], $eventBannerImage[1]);
         $this->assertSame($assets[2]['alt_text'], $eventBannerImage[2]);
     }
+
+    public function test_home_navigation_anchor_targets_exist(): void
+    {
+        $response = $this->get('/')->assertOk();
+
+        $response
+            ->assertSee('id="home"', false)
+            ->assertSee('id="story"', false)
+            ->assertSee('id="visit"', false)
+            ->assertSee(route('home').'#visit', false);
+    }
 }

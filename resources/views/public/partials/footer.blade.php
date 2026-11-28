@@ -1,5 +1,5 @@
 @php($brandLogo = \App\Models\SiteMediaAsset::urlFor('brand_logo'))
-<footer class="site-footer">
+<footer id="visit" class="site-footer">
     <div class="site-footer-top">
         <a class="site-brand site-brand-footer" href="{{ route('home') }}">
             <span class="site-brand-mark">@if ($brandLogo)<img src="{{ $brandLogo }}" alt="" />@else<svg viewBox="0 0 36 36" aria-hidden="true"><path d="M9 12h18l-2 16H11z" fill="currentColor"/><path d="M8 10h20v4H8z" fill="#f2a6ae"/></svg>@endif</span>

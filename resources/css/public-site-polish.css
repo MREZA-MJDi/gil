@@ -39,7 +39,7 @@
 .public-site :where(.hero-image-frame,.food-card-image,.story-image-main,.story-image-small,.moment-photo){
   isolation:isolate;
 }
-.public-site :where(.section-wrap,.moments-section){scroll-margin-top:96px}
+.public-site :where(.section-wrap,.moments-section,#home,#story,#visit){scroll-margin-top:96px}
 .public-site :where(.site-nav a,.site-header-cta,.button,.text-link){min-height:42px}
 .public-site :where(.food-card,.value-card,.moment-photo){min-width:0}
 .public-site :where(.food-card-info h3,.value-card h3){line-height:1.65}
